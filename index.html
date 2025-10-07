@@ -30,7 +30,7 @@ function trigger(action) {
   const requestId = document.getElementById('request_id').value.trim();
   if(!requestId) { alert('Please enter Request ID'); return; }
 
-  const url = `https://n8n.yourdomain.com/webhook/${action}?request_id=${encodeURIComponent(requestId)}`;
+  const url = ` https://nonserially-unpent-jin.ngrok-free.dev/webhook-test/${action}?request_id=${encodeURIComponent(requestId)}`;
   
   fetch(url, { method: 'GET' })
     .then(r => r.text())
