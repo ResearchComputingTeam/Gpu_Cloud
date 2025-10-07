@@ -30,7 +30,7 @@ function trigger(action) {
   const requestId = document.getElementById('request_id').value.trim();
   if(!requestId) { alert('Please enter Request ID'); return; }
 
-  const webhookUrl = ` https://dirty-icons-swim.loca.lt/${action}?request_id=${encodeURIComponent(requestId)}`;
+  const webhookUrl = `https://dirty-icons-swim.loca.lt/${action}?request_id=${encodeURIComponent(requestId)}`;
   
   fetch(webhookUrl, { method: 'POST',
     headers: { 'Content-Type': 'application/json' },
