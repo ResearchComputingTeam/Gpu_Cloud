@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GPU Cloud Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body { padding: 20px; background-color: #f8f9fa; }
+.container { max-width: 600px; margin-top: 50px; }
+button { margin: 5px; }
+.card { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+#status-message { margin-top: 20px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <div class="card-body">
+      <h2 class="card-title">GPU Cloud Control</h2>
+      <div class="mb-3">
+        <label for="request_id" class="form-label">Request ID</label>
+        <input type="text" id="request_id" class="form-control" placeholder="Enter your request ID">
+      </div>
+      <div class="d-grid gap-2">
+        <button class="btn btn-primary" onclick="updateStatus('simulation_running')">▶️ Run Simulation</button>
+        <button class="btn btn-warning" onclick="updateStatus('simulation_paused')">⏸️ Pause Simulation</button>
+        <button class="btn btn-success" onclick="updateStatus('simulation_running')">🔁 Resume Simulation</button>
+        <button class="btn btn-danger" onclick="updateStatus('simulation_complete')">🛑 Stop Simulation</button>
+        <button class="btn btn-info" onclick="updateStatus('finalized')">💰 Finalize & Show Credits</button>
+      </div>
+      <div id="status-message"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Initialize Supabase client
+const supabaseUrl = 'https://dgttklfdlwaxvxjubcxx.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRndHRrbGZkbHdheHZ4anViY3h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3MTkzNTAsImV4cCI6MjA3NDI5NTM1MH0.ZggUBEE_GN0e_-b4TQL8yaXfe5ckoD6AglORC7NdYwQ';
+const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+function showMessage(message, type = 'info') {
+  const statusDiv = document.getElementById('status-message');
+  statusDiv.innerHTML = `<div class="alert alert-${type} mt-3" role="alert">${message}</div>`;
+  setTimeout(() => { statusDiv.innerHTML = ''; }, 5000);
+}
+
+async function updateStatus(newStatus) {
+  const requestIdInput = document.getElementById('request_id').value.trim();
+  
+  if (!requestIdInput) {
+    showMessage('Please enter a Request ID', 'warning');
+    return;
+  }
+
+  // Convert to integer for int8 column
+  const requestId = parseInt(requestIdInput, 10);
+  
+  if (isNaN(requestId)) {
+    showMessage('Invalid Request ID - must be a number', 'warning');
+    return;
+  }
+
+  console.log('Attempting to update Request ID:', requestId, 'to status:', newStatus);
+
+  try {
+    // Update the workflow_status column for the matching request ID
+    const { data, error } = await supabase
+      .from('vm_creation_requests')
+      .update({ workflow_status: newStatus })
+      .eq('form_submission_unique_id', requestId)
+      .select();
+
+    if (error) {
+      console.error('Supabase error:', error);
+      showMessage(`Error: ${error.message}`, 'danger');
+      return;
+    }
+
+    if (data && data.length > 0) {
+      showMessage(`✅ Successfully updated status to: ${newStatus}`, 'success');
+    } else {
+      showMessage(`⚠️ No request found with ID: ${requestId}`, 'warning');
+      console.log('No matching record found. Fetching sample records...');
+      
+      // Debug: Fetch all IDs to help troubleshoot
+      const { data: debugData, error: debugError } = await supabase
+        .from('vm_creation_requests')
+        .select('form_submission_unique_id, workflow_status')
+        .limit(10);
+      
+      console.log('Sample IDs in table:', debugData);
+      console.log('Debug error (if any):', debugError);
+    }
+  } catch (err) {
+    console.error('Unexpected error:', err);
+    showMessage(`Error: ${err.message}`, 'danger');
+  }
+}
+</script>
+</body>
+</html>
