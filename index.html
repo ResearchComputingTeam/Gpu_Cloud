@@ -52,31 +52,56 @@ function showMessage(message, type = 'info') {
   setTimeout(() => { statusDiv.innerHTML = ''; }, 5000);
 }
 
+// function trigger(action) {
+//   const requestId = document.getElementById('request_id').value.trim();
+//   if (!requestId) {
+//     showMessage('Please enter a Request ID', 'warning');
+//     return;
+//   }
+
+//   const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/${action}?request_id=${encodeURIComponent(requestId)}`;
+  
+//   console.log('Attempting to process Request ID:', requestId);
+
+//   try {
+//   fetch(webhookUrl, { method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify({ request_id: requestId })
+//   })
+//     .then(r => r.text())
+//     .then(msg => alert(msg))
+//     .catch(err => alert('Error: ' + err));
+//   } catch (err) {
+//     console.error('Unexpected error:', err);
+//     showMessage(`Error: ${err.message}`, 'danger');
+//   }
+// }
+
 function trigger(action) {
   const requestId = document.getElementById('request_id').value.trim();
-  if (!requestId) {
-    showMessage('Please enter a Request ID', 'warning');
-    return;
+  if(!requestId) { 
+    alert('Please enter Request ID'); 
+    return; 
   }
-
-  const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/${action}?request_id=${encodeURIComponent(requestId)}`;
   
-  console.log('Attempting to process Request ID:', requestId);
-
-  try {
-  fetch(webhookUrl, { method: 'POST',
+  // Call Vercel API endpoint instead of ngrok
+  const apiUrl = `/api/trigger?action=${action}&request_id=${encodeURIComponent(requestId)}`;
+  
+  fetch(apiUrl, { 
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ request_id: requestId })
   })
-    .then(r => r.text())
-    .then(msg => alert(msg))
-    .catch(err => alert('Error: ' + err));
-  } catch (err) {
-    console.error('Unexpected error:', err);
-    showMessage(`Error: ${err.message}`, 'danger');
-  }
+    .then(r => r.json())
+    .then(data => {
+      console.log('Response:', data);
+      alert(data.message || 'Success!');
+    })
+    .catch(err => {
+      console.error('Error:', err);
+      alert('Error: ' + err.message);
+    });
 }
-
 
 // async function updateStatus(newStatus) {
 //   const requestIdInput = document.getElementById('request_id').value.trim();
