@@ -59,7 +59,7 @@ function trigger(action) {
     return;
   }
 
-  const webhookUrl = `http://13.60.72.174:5678/${action}?request_id=${encodeURIComponent(requestId)}`;
+  const webhookUrl = `https://logos-leads-necessity-slots.trycloudflare.com/webhook/${action}?request_id=${encodeURIComponent(requestId)}`;
   
   console.log('Attempting to process Request ID:', requestId);
 
