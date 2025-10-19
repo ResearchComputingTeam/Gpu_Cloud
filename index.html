@@ -456,6 +456,39 @@ async function trigger(action) {
     hideSpinner();
     return;
   }
+
+  //Initial check of Request ID
+  const initialRequestIDCheck = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/check_id?request_id=${encodeURIComponent(requestId)}`;
+  console.log('Attempting to process Request ID:', requestId);
+  try {
+    const response = await fetch(initialRequestIDCheck, { 
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ request_id: requestId })
+    });
+    const check_msg = await response.text();
+    try {
+      data = JSON.parse(check_msg);
+    } catch (e) {
+      console.error('Response is not valid JSON:', e);
+      return;
+    }
+    if (data.success === true) {
+      console.log('Request ID is valid');
+      //proceed with the rest of the code
+    } else {
+      hideSpinner();
+      console.log('Request ID is not valid');
+      // showProgress(`Error: ${err.message}`, 'danger');
+      showProgress(`Error: Request ID is not valid`, 'danger');
+      return;
+    }
+  } catch (err) {
+    console.error('Check status error:', err);
+    showProgress(`Error: ${err.message}`, 'danger');
+    return;
+  }
+
   // 🔥 Start listening for real-time updates
   if (action === 'run_simulation_simple' || action === 'pause_simulation' || action === 'stop_simulation') {
     subscribeToStatusUpdates(requestId, action);
@@ -464,23 +497,6 @@ async function trigger(action) {
   const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/${action}?request_id=${encodeURIComponent(requestId)}`;
   console.log('Attempting to process Request ID:', requestId);
 
-  // Fire and forget - don't await this
-  fetch(webhookUrl, { 
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ request_id: requestId })
-  })
-    .then(response => response.text())
-    .then(msg => {
-      console.log('Webhook initial response:', msg);
-      showDetails(msg);
-      // Optional: do something lightweight with initial response
-    })
-    .catch(err => {
-      console.error('Webhook error:', err);
-      hideSpinner();
-    })
-
   if (action === 'check_status') {
     try {
       const response = await fetch(webhookUrl, { 
@@ -488,8 +504,8 @@ async function trigger(action) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ request_id: requestId })
       });
-      const msg = await response.text();
-      const data = JSON.parse(msg);
+      const check_msg = await response.text();
+      const data = JSON.parse(check_msg);
       const check_message = `STATUS = ${data.request_status} started by ${data.user_name} at ${new Date(data.first_time_start).toLocaleString('en-US')}`;
 
       showProgress(`STATUS = ${data.request_status}`, 'info');
@@ -497,21 +513,27 @@ async function trigger(action) {
       showProgressDiv.innerHTML = check_message;
       addToHistory(action, check_message, 'info');
       hideSpinner();
-      } catch (err) {
-        console.error('Check status error:', err);
-        showProgress(`Error: ${err.message}`, 'danger');
-      }
+    } catch (err) {
+      console.error('Check status error:', err);
+      showProgress(`Error: ${err.message}`, 'danger');
+    }
+  } else { //Trigger is not Check Status
+    // Fire and forget - don't await this
+    fetch(webhookUrl, { 
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ request_id: requestId })
+    })
+      .then(response => response.text())
+      .then(msg => {
+        console.log('Webhook initial response:', msg);
+        showDetails(msg);
+      })
+      .catch(err => {
+        console.error('Webhook error:', err);
+        hideSpinner();
+      })
   }
-      // .then(r => r.text())
-      // .then(msg => {
-      //   webhook_response = msg;
-      //   showDetails(msg);
-      //   hideSpinner();
-      //   })
-      // .catch(err => {
-      //   hideSpinner();
-      //   console.error('Unexpected error:', err);
-      // });
 }
 
 // Real-time updates via Supabase
@@ -549,7 +571,7 @@ function subscribeToStatusUpdates(requestId, action) {
       }
     });
     
-  // Auto-unsubscribe after 10 minutes (optional cleanup)
+  // Auto-unsubscribe after 30 minutes (optional cleanup)
   setTimeout(() => {
     if (activeChannel) {
       activeChannel.unsubscribe();
