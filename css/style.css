@@ -82,7 +82,7 @@ body {
 #markdown-panel {
   border: 2px solid #667eea;
 }
-
 #markdown-panel .card-header {
   background-color: #667eea;
 }
+#status-message { margin-top: 20px; }

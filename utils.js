@@ -307,48 +307,93 @@ function subscribeToStatusUpdates(requestId, action) {
   }, 1800000); // 30 minutes
 }
 
+// function handleRealtimeUpdate(data, action) {
+//   // Format the update as a nice message
+//   const statusMessage = formatStatusUpdate(data);
+  
+//   // Update feedback panel with new status
+//   // showFeedbackPanel(JSON.stringify(data), 'success', `Status: ${data.request_status}`);
+//   // showFeedback(JSON.stringify(data), 'success', `Status: ${data.request_status}`);
+//   showProgress(formatResponseData(data, 'status_update'), 'success', `Status: ${data.request_status}`);
+
+//   // // Show toast notification
+//   // showMessage(statusMessage, 'success');
+  
+//   // Check if workflow is complete
+//   if (action === 'run_simulation_simple' && data.request_status === 'simulation_running') {
+//     showMessage('✅ Workflow completed!', 'success');
+//     // showProgress('✅ Workflow completed!', 'success');
+//     hideSpinner();
+//     // Unsubscribe since workflow is done
+//     if (activeChannel) {
+//       activeChannel.unsubscribe();
+//       activeChannel = null;
+//     } 
+//   } else if (action === 'stop_simulation' && data.request_status === 'finalized') {
+//     showMessage('✅ Workflow completed!', 'success');
+//     // showProgress('✅ Workflow completed!', 'success');
+//     hideSpinner();
+//     // Unsubscribe since workflow is done
+//     if (activeChannel) {
+//       activeChannel.unsubscribe();
+//       activeChannel = null;
+//     }  
+//   } else if (data.request_status === 'failed') {
+//     showMessage('❌ Failed to copy', 'failed');
+//     // showProgress('✅ Workflow completed!', 'success');
+//     hideSpinner();
+//     // Unsubscribe since workflow is done
+//     if (activeChannel) {
+//       activeChannel.unsubscribe();
+//       activeChannel = null;
+//     }
+//   }
+// }
+
 function handleRealtimeUpdate(data, action) {
-  // Format the update as a nice message
-  const statusMessage = formatStatusUpdate(data);
+  console.log('Real-time update received:', data, 'Action:', action);
   
-  // Update feedback panel with new status
-  // showFeedbackPanel(JSON.stringify(data), 'success', `Status: ${data.request_status}`);
-  // showFeedback(JSON.stringify(data), 'success', `Status: ${data.request_status}`);
-  showProgress(formatResponseData(data, 'status_update'), 'success', `Status: ${data.request_status}`);
+  // Update progress and details panels
+  showProgress(formatStatusUpdate(data), 'info');
+  showDetails(JSON.stringify(data));
   
-  // // Show toast notification
-  // showMessage(statusMessage, 'success');
+  // Determine completion states based on action
+  const isComplete = 
+    (action === 'create_vm' && (data.STATUS === 'vm_ready' || data.workflow_status === 'vm_ready')) ||
+    (action === 'run_simulation_simple' && data.request_status === 'simulation_running') ||
+    (action === 'stop_simulation' && data.request_status === 'finalized');
   
-  // Check if workflow is complete
-  if (action === 'run_simulation_simple' && data.request_status === 'simulation_running') {
-    showMessage('✅ Workflow completed!', 'success');
-    // showProgress('✅ Workflow completed!', 'success');
-    hideSpinner();
-    // Unsubscribe since workflow is done
-    if (activeChannel) {
-      activeChannel.unsubscribe();
-      activeChannel = null;
-    } 
-  } else if (action === 'stop_simulation' && data.request_status === 'finalized') {
-    showMessage('✅ Workflow completed!', 'success');
-    // showProgress('✅ Workflow completed!', 'success');
-    hideSpinner();
-    // Unsubscribe since workflow is done
-    if (activeChannel) {
-      activeChannel.unsubscribe();
-      activeChannel = null;
-    }  
-  } else if (data.request_status === 'failed') {
-    showMessage('❌ Failed to copy', 'failed');
-    // showProgress('✅ Workflow completed!', 'success');
-    hideSpinner();
-    // Unsubscribe since workflow is done
+  const isError = 
+    data.STATUS === 'error' || 
+    data.workflow_status === 'error' || 
+    data.request_status === 'failed';
+  
+  // Handle completion
+  if (isComplete) {
+    showMessage(`✅ ${action} completed successfully!`, 'success');
+    addToHistory(action, JSON.stringify(data), 'success');
+    
     if (activeChannel) {
       activeChannel.unsubscribe();
       activeChannel = null;
     }
   }
-
+  // Handle errors
+  else if (isError) {
+    const errorMsg = data.error_message || data.message || 'Unknown error';
+    showMessage(`❌ ${action} failed: ${errorMsg}`, 'danger');
+    showProgress(errorMsg, 'danger', action);
+    addToHistory(action, JSON.stringify(data), 'danger');
+    
+    if (activeChannel) {
+      activeChannel.unsubscribe();
+      activeChannel = null;
+    }
+  }
+  // Still processing
+  else {
+    console.log(`${action} in progress:`, data.STATUS || data.workflow_status || data.request_status);
+  }
 }
 
 function formatStatusUpdate(data) {
