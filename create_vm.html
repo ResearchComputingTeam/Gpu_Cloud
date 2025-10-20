@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create a new VM</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+
+<body>
+<div class="card p-3 mb-3">
+    <h4>Create a new GPU VM</h4>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h6 class="card-title mb-3">Project Options</h6>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+            <label class="form-label"><strong>Hardware Flavor</strong></label>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="flavor" id="n3-A100x1" value="n3-A100x1">
+                <label class="form-check-label" for="n3-A100x1">Single A100 GPU</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="flavor" id="n3-H100x1" value="n3-H100x1">
+                <label class="form-check-label" for="n3-H100x1">Single H100 GPU</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="flavor" id="n3-H100x4" value="n3-H100x4">
+                <label class="form-check-label" for="n3-H100x4">4 x H100 GPU</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="flavor" id="n3-H100x8" value="n3-H100x8">
+                <label class="form-check-label" for="n3-H100x8">8 x H100 GPU</label>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label"><strong>Base Image</strong></label>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="image" id="vanilla" value="Ubuntu Server 22.04 LTS (Jammy Jellyfish)">
+                <label class="form-check-label" for="vanilla">Ubuntu Server 22.04</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="image" id="cuda" value="Ubuntu Server 22.04 LTS R535 CUDA 12.21">
+                <label class="form-check-label" for="cuda">Ubuntu Server 22.04 + CUDA 12.2</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="image" id="minimal" value="minimal-research-base-image">
+                <label class="form-check-label" for="minimal">minimal-research-base-image</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="image" id="ml_dl" value="ml-dl-gpu-base-image">
+                <label class="form-check-label" for="ml_dl">ml-dl-gpu-base-image</label>
+            </div>
+        </div>
+      </div>
+        <div class="mb-3">
+            <!-- <label for="projectId" class="form-label"><strong>VM Name</strong></label> -->
+            <input type="text" 
+                    id="vmName" 
+                    class="form-control" 
+                    placeholder="VM Name"
+                    onkeypress="handleEnter(event)">
+        </div>
+        <button class="btn btn-primary" onclick="createVm()">▶️ Create GPU VM</button>
+    </div>
+</div>
+
+<div id="progress-panel" class="mt-3">
+    <h5>Progress Panel</h5>
+    <div id="progress-content" class="alert alert-info" role="alert">
+        Ready, waiting for user action.
+    </div>
+</div>
+
+<div id="loading-spinner" class="text-center my-3" style="display:none;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+
+<div class="card mt-3" id="markdown-panel" style="max-height: 400px; overflow-y: auto;">
+    <div class="card-header text-white">
+        <strong>Details</strong>
+    </div>
+        <div class="card-body" id="markdown-content">
+        <!-- Rendered markdown HTML goes here -->
+    </div>
+</div>
+
+<div class="mt-4">
+    <h6>History</h6>
+    <div id="responseHistoryList" class="list-group" style="max-height:100px; overflow-y:auto;">
+        <!-- History items will be injected here -->
+    </div>
+</div>
+</div>
+
+<script src="utils.js"></script>
+<script>
+
+// Initialize Supabase
+// const supabaseUrl = 'https://dgttklfdlwaxvxjubcxx.supabase.co';
+// const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRndHRrbGZkbHdheHZ4anViY3h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3MTkzNTAsImV4cCI6MjA3NDI5NTM1MH0.ZggUBEE_GN0e_-b4TQL8yaXfe5ckoD6AglORC7NdYwQ';
+// const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+let projectId = null;
+
+window.addEventListener('load', () => {
+  console.log('Create VM page loaded');
+  projectId = getProjectIdFromUrl();
+  
+  if (!projectId) {
+    showMessage('No project ID provided', 'danger');
+    return;
+  }
+  
+  console.log('Project ID:', projectId);
+  document.querySelector('.card p-3').innerHTML = `<h4>Create a new GPU VM - Project: <code>${projectId}</code></h4>`;
+});
+
+function getFormInputs() {
+  // Get selected hardware flavor
+  const flavorRadios = document.querySelectorAll('input[name="flavor"]:checked');
+  const flavor = flavorRadios.length > 0 ? flavorRadios[0].value : null;
+  
+  // Get selected base image
+  const imageRadios = document.querySelectorAll('input[name="image"]:checked');
+  const image = imageRadios.length > 0 ? imageRadios[0].value : null;
+  
+  // Get VM name
+  const vmName = document.getElementById('vmName').value.trim();
+  
+  return {
+    flavor,
+    image,
+    vmName,
+    projectId
+  };
+}
+
+function validateFormInputs(inputs) {
+  const errors = [];
+  if (!inputs.flavor) { errors.push('Please select a hardware flavor');}
+  if (!inputs.image) { errors.push('Please select a base image');}
+  if (!inputs.vmName) { errors.push('Please enter a VM name');}
+  if (!inputs.projectId) { errors.push('Project ID is missing');}
+  return errors;
+}
+
+async function createVm() {
+  // Get and validate inputs
+  const inputs = getFormInputs();
+  const errors = validateFormInputs(inputs);
+  
+  if (errors.length > 0) {
+    showMessage(errors.join(' | '), 'warning');
+    return;
+  }
+  
+  console.log('Creating VM with inputs:', inputs);
+  
+  // Show loading state
+//   const progressContent = document.getElementById('progress-content');
+//   progressContent.innerHTML = `<div class="text-center"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Creating VM...</div>`;
+//   progressContent.className = 'alert alert-info';
+  
+  await triggerVmAction('create_vm', inputs);
+}
+
+async function triggerVmAction(action, inputs) {
+  try {
+    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/${action}`;
+    
+    console.log('Calling webhook:', webhookUrl, 'with inputs:', inputs);
+    showProgress('Creating VM...', 'info', action);
+    
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(inputs)
+    });
+    
+    const responseText = await response.text();
+    let data = JSON.parse(responseText);
+    
+    console.log('Response received:', data);
+    
+    if (data.success) {
+    //   // Update progress panel
+    //   document.getElementById('progress-content').innerHTML = `
+    //     <div class="alert alert-success">
+    //       <strong>VM Creation Started</strong><br>
+    //       <small>Your VM is being provisioned. This may take a few minutes.</small>
+    //     </div>
+    //   `;
+        showProgress('VM creation started successfully!', 'success', action);
+        showDetails(JSON.stringify(data));
+    //   showFeedbackPanel(JSON.stringify(data), 'success', action);
+    //   showProgress(formatResponseData(data, 'status_update'), 'success', `Status: ${data.request_status}`);
+      
+      // Subscribe to real-time updates if request_id provided
+      if (data.request_id) {
+        subscribeToStatusUpdates(data.request_id);
+      }
+      
+    } else {
+    //   document.getElementById('progress-content').innerHTML = `
+    //     <div class="alert alert-danger">
+    //       <strong>VM Creation Failed</strong><br>
+    //       <small>${data.message || 'Unknown error'}</small>
+    //     </div>
+    //   `;
+        showProgress(`VM creation failed: ${data.message || 'Unknown error'}`, 'danger', action);
+        showDetails(JSON.stringify(data));
+      
+    //   showFeedbackPanel(JSON.stringify(data), 'danger', action);
+    //   showProgress(formatResponseData(data, 'status_update'), 'success', `Status: ${data.request_status}`);
+    }
+    
+  } catch (error) {
+    console.error('Error:', error);
+    showProgress(`Error: ${error.message}`, 'danger', action);
+    showDetails(error.message);
+    
+    // document.getElementById('progress-content').innerHTML = `
+    //   <div class="alert alert-danger">
+    //     <strong>Error</strong><br>
+    //     <small>${error.message}</small>
+    //   </div>
+    // `;
+    
+    // showFeedbackPanel(
+    //   JSON.stringify({ message: error.message, error: true }), 
+    //   'danger', 
+    //   action
+    // );
+  }
+}
+
+function handleEnter(event) {
+  if (event.key === 'Enter') {
+    createVm();
+  }
+}
+
+</script>
+
+</body>

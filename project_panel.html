@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GPU Cloud - Project Panel</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <div class="card-header">
+      <h2 class="mb-0">🚀 GPU Cloud Dashboard</h2>
+      <small>Project Management</small>
+    </div>
+    <div class="card-body">
+      
+      <!-- Project ID Input -->
+      <!-- <div class="input-group"> -->
+      <div class="mb-3">
+        <label for="projectId" class="form-label"><strong>Project ID</strong></label>
+        <input type="text" 
+               id="projectId" 
+               class="form-control" 
+               placeholder="Enter your project ID"
+               onkeypress="handleEnter(event)">
+      </div>
+
+      <!-- Check Project Status Button -->
+      <button class="btn btn-primary w-100" onclick="checkProjectStatus()">
+        <span id="checkBtn-text">🔍 Check Project Status</span>
+        <span id="checkBtn-spinner" class="spinner-border spinner-border-sm ms-2" style="display: none;"></span>
+      </button>
+
+      <!-- Status Message -->
+      <div id="status-message"></div>
+
+      <!-- Project Info Display -->
+      <div id="project-info" class="project-info">
+        <div id="project-info-content"></div>
+      </div>
+
+      <!-- Action Buttons (Create VM / Handle VMs) -->
+      <div class="button-group">
+        <button class="btn btn-success" 
+                id="createVmBtn" 
+                onclick="openCreateVmPage()" 
+                disabled
+                title="Validate project first">
+          ➕ Create VM
+        </button>
+        <button class="btn btn-info" 
+                id="handleVmsBtn" 
+                onclick="openHandleVmsPage()" 
+                disabled
+                title="Validate project first">
+          ⚙️ Manage VMs
+        </button>
+      </div>
+
+      <div class="btn-disabled-info" id="disabledInfo">
+        ℹ️ Validate your project ID first
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// State management
+let projectState = {
+  projectId: null,
+  isValid: false,
+  projectData: null
+};
+
+// Show status message
+function showMessage(message, type = 'info') {
+  const statusDiv = document.getElementById('status-message');
+  statusDiv.innerHTML = `<div class="alert alert-${type} mt-3 mb-0" role="alert">${message}</div>`;
+  setTimeout(() => { statusDiv.innerHTML = ''; }, 5000);
+}
+
+// Show loading spinner on button
+function setButtonLoading(isLoading) {
+  const btn = document.querySelector('button[onclick="checkProjectStatus()"]');
+  const spinner = document.getElementById('checkBtn-spinner');
+  const text = document.getElementById('checkBtn-text');
+  
+  if (isLoading) {
+    btn.disabled = true;
+    spinner.style.display = 'inline-block';
+    text.style.opacity = '0.7';
+  } else {
+    btn.disabled = false;
+    spinner.style.display = 'none';
+    text.style.opacity = '1';
+  }
+}
+
+// Display project info
+function displayProjectInfo(data, isSuccess) {
+  const infoDiv = document.getElementById('project-info');
+  const contentDiv = document.getElementById('project-info-content');
+  
+  if (isSuccess) {
+    infoDiv.classList.add('success');
+    infoDiv.classList.remove('error');
+    contentDiv.innerHTML = `
+      <strong>✅ Project Valid</strong>
+      <hr style="margin: 8px 0;">
+      <small>
+        <div><strong>Project ID:</strong> ${data.project_id}</div>
+        <div><strong>Status:</strong> ${data.status || 'Active'}</div>
+        <div><strong>Credits Used:</strong> $${(data.credits_used || 0).toFixed(2)}</div>
+        <div><strong>Credits Remaining:</strong> $${(data.credits_remaining || 0).toFixed(2)}</div>
+      </small>
+    `;
+  } else {
+    infoDiv.classList.add('error');
+    infoDiv.classList.remove('success');
+    contentDiv.innerHTML = `
+      <strong>❌ Project Not Found</strong>
+      <hr style="margin: 8px 0;">
+      <small>The project ID you entered is not valid. Please check and try again.</small>
+    `;
+  }
+  
+  infoDiv.classList.add('visible');
+}
+
+// Check project status
+async function checkProjectStatus() {
+  const projectIdInput = document.getElementById('projectId').value.trim();
+  
+  if (!projectIdInput) {
+    showMessage('Please enter a Project ID', 'warning');
+    return;
+  }
+
+  // Set loading state
+  setButtonLoading(true);
+  projectState.projectId = projectIdInput;
+
+  try {
+    // Call n8n webhook to validate project
+    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/project_id_check?project_id=${encodeURIComponent(projectIdInput)}`;
+    
+    console.log('🔍 Checking project status for:', projectIdInput);
+
+    const response = await fetch(webhookUrl, { 
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project_id: projectIdInput })
+    });
+
+    const responseText = await response.text();
+    console.log('📡 Response:', responseText);
+
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error('Failed to parse JSON:', responseText);
+      throw new Error('Invalid response from server');
+    }
+
+    // Handle response
+    if (data.success) {
+      projectState.isValid = true;
+      projectState.projectData = data;
+      
+      // Enable action buttons
+      enableActionButtons();
+      
+      // Display project info
+      displayProjectInfo(data, true);
+      
+      showMessage(`✅ Project validated successfully!`, 'success');
+      console.log('✅ Project is valid:', data);
+      
+    } else {
+      projectState.isValid = false;
+      projectState.projectData = null;
+      
+      // Disable action buttons
+      disableActionButtons();
+      
+      // Display error info
+      displayProjectInfo(data, false);
+      
+      showMessage(`❌ Project validation failed: ${data.message || 'Unknown error'}`, 'danger');
+      console.log('❌ Project is not valid:', data);
+    }
+
+  } catch (error) {
+    console.error('Error:', error);
+    projectState.isValid = false;
+    disableActionButtons();
+    showMessage(`Error: ${error.message}`, 'danger');
+  } finally {
+    setButtonLoading(false);
+  }
+}
+
+// Enable action buttons
+function enableActionButtons() {
+  const createVmBtn = document.getElementById('createVmBtn');
+  const handleVmsBtn = document.getElementById('handleVmsBtn');
+  const disabledInfo = document.getElementById('disabledInfo');
+  
+  createVmBtn.disabled = false;
+  handleVmsBtn.disabled = false;
+  createVmBtn.title = 'Click to create a new VM';
+  handleVmsBtn.title = 'Click to manage existing VMs';
+  disabledInfo.style.display = 'none';
+  
+  console.log('✅ Buttons enabled');
+}
+
+// Disable action buttons
+function disableActionButtons() {
+  const createVmBtn = document.getElementById('createVmBtn');
+  const handleVmsBtn = document.getElementById('handleVmsBtn');
+  const disabledInfo = document.getElementById('disabledInfo');
+  
+  createVmBtn.disabled = true;
+  handleVmsBtn.disabled = true;
+  createVmBtn.title = 'Validate project first';
+  handleVmsBtn.title = 'Validate project first';
+  disabledInfo.style.display = 'block';
+  
+  console.log('❌ Buttons disabled');
+}
+
+// Open Create VM page
+function openCreateVmPage() {
+  if (!projectState.isValid) {
+    showMessage('Please validate your project first', 'warning');
+    return;
+  }
+  
+  console.log('📄 Opening Create VM page for project:', projectState.projectId);
+  
+  // Pass project ID to new page via URL parameter
+  const createVmUrl = `create_vm.html?project_id=${encodeURIComponent(projectState.projectId)}`;
+  //window.location.href = createVmUrl;
+  
+  // Alternative: Open in new tab
+  window.open(createVmUrl, '_blank');
+}
+
+// Open Handle VMs page
+function openHandleVmsPage() {
+  if (!projectState.isValid) {
+    showMessage('Please validate your project first', 'warning');
+    return;
+  }
+  
+  console.log('📄 Opening Handle VMs page for project:', projectState.projectId);
+  
+  // Pass project ID to new page via URL parameter
+  const handleVmsUrl = `handle_vms.html?project_id=${encodeURIComponent(projectState.projectId)}`;
+  // window.location.href = handleVmsUrl;
+  
+  // Alternative: Open in new tab
+  window.open(handleVmsUrl, '_blank');
+}
+
+// Handle Enter key on input field
+function handleEnter(event) {
+  if (event.key === 'Enter') {
+    checkProjectStatus();
+  }
+}
+
+// Extract project ID from URL if provided
+function initializeFromUrl() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectIdFromUrl = urlParams.get('project_id');
+  
+  if (projectIdFromUrl) {
+    document.getElementById('projectId').value = projectIdFromUrl;
+    console.log('📍 Project ID from URL:', projectIdFromUrl);
+    // Optionally auto-check
+    // checkProjectStatus();
+  }
+}
+
+// Initialize on page load
+window.addEventListener('load', () => {
+  console.log('✅ Project Panel loaded');
+  initializeFromUrl();
+});
+</script>
+
+<script src="utils.js"></script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+body { 
+    padding: 20px; 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.container { 
+    max-width: 500px; 
+}
+.card { 
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    border: none;
+}
+.card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 20px;
+}
+.card-body {
+    padding: 30px;
+}
+#status-message { 
+    margin-top: 15px;
+    animation: slideDown 0.3s ease-out;
+}
+@keyframes slideDown {
+    from {
+    opacity: 0;
+    transform: translateY(-10px);
+    }
+    to {
+    opacity: 1;
+    transform: translateY(0);
+    }
+}
+.project-info {
+    background-color: #f8f9fa;
+    border-left: 4px solid #667eea;
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 5px;
+    display: none;
+}
+.project-info.visible {
+    display: block;
+}
+.project-info.success {
+    border-left-color: #28a745;
+    background-color: #d4edda;
+}
+.project-info.error {
+    border-left-color: #dc3545;
+    background-color: #f8d7da;
+}
+.button-group {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.btn-disabled-info {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 10px;
+    text-align: center;
+}
+.input-group {
+    margin-bottom: 20px;
+}
+#projectId {
+    font-size: 1rem;
+    padding: 10px 15px;
+}
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.2rem;
+}
+#markdown-panel {
+  border: 2px solid #667eea;
+}
+
+#markdown-panel .card-header {
+  background-color: #667eea;
+}
