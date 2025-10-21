@@ -98,10 +98,10 @@ function renderHistory() {
   }).join('');
 }
 
-
+// Show status message
 function showMessage(message, type = 'info') {
   const statusDiv = document.getElementById('status-message');
-  statusDiv.innerHTML = `<div class="alert alert-${type} mt-3" role="alert">${message}</div>`;
+  statusDiv.innerHTML = `<div class="alert alert-${type} mt-3 mb-0" role="alert">${message}</div>`;
   setTimeout(() => { statusDiv.innerHTML = ''; }, 5000);
 }
 
@@ -266,107 +266,69 @@ async function trigger(action) {
 let activeChannel = null; // Track active subscription
 
 function subscribeToStatusUpdates(requestId, action) {
-  // Unsubscribe from any previous channel
-  if (activeChannel) {
-    activeChannel.unsubscribe();
-  }
-  
-  console.log('Subscribing to updates for Request ID:', requestId);
-  
-  // Create new channel
-  activeChannel = supabase
-    .channel(`status-updates-${requestId}`)
-    .on(
-      'postgres_changes',
-      {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'vm_creation_requests',
-        filter: `form_submission_unique_id=eq.${requestId}`
-      },
-      (payload) => {
-        console.log('✨ Real-time update received:', payload.new);
-        handleRealtimeUpdate(payload.new, action);
+  return new Promise((resolve, reject) => {
+    try {
+      // Unsubscribe from any previous channel
+      if (activeChannel) {
+        activeChannel.unsubscribe();
       }
-    )
-    .subscribe((status) => {
-      if (status === 'SUBSCRIBED') {
-        console.log('✅ Subscribed to real-time updates');
-        // showMessage('📡 Monitoring status in real-time...', 'info');
-        showProgress('📡 Monitoring status in real-time...', 'info');
+      
+      console.log('Subscribing to updates for Request ID:', requestId);
+      
+      // Create new channel
+      activeChannel = supabase
+        .channel(`status-updates-${requestId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'vm_creation_requests',
+            filter: `form_submission_unique_id=eq.${requestId}`},
+            (payload) => {
+              console.log('✨ Real-time update received:', payload.new);
+              handleRealtimeUpdate(payload.new, action);
+            }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('✅ Subscribed to real-time updates');
+            showProgress('📡 Monitoring status in real-time...', 'info');
+            resolve(true);
+          }
+        });
+        
+      // Auto-unsubscribe after 30 minutes (optional cleanup)
+      setTimeout(() => {
+        if (activeChannel) {
+          activeChannel.unsubscribe();
+          activeChannel = null;
+          hideSpinner();
+          console.log('Unsubscribed after timeout');
+          reject(new Error('Subscription timed out'));
+        }
+      }, 1800000); // 30 minutes
+    } catch (err) {
+        reject(err);
       }
     });
-    
-  // Auto-unsubscribe after 30 minutes (optional cleanup)
-  setTimeout(() => {
-    if (activeChannel) {
-      activeChannel.unsubscribe();
-      hideSpinner();
-      console.log('Unsubscribed after timeout');
-    }
-  }, 1800000); // 30 minutes
 }
-
-// function handleRealtimeUpdate(data, action) {
-//   // Format the update as a nice message
-//   const statusMessage = formatStatusUpdate(data);
-  
-//   // Update feedback panel with new status
-//   // showFeedbackPanel(JSON.stringify(data), 'success', `Status: ${data.request_status}`);
-//   // showFeedback(JSON.stringify(data), 'success', `Status: ${data.request_status}`);
-//   showProgress(formatResponseData(data, 'status_update'), 'success', `Status: ${data.request_status}`);
-
-//   // // Show toast notification
-//   // showMessage(statusMessage, 'success');
-  
-//   // Check if workflow is complete
-//   if (action === 'run_simulation_simple' && data.request_status === 'simulation_running') {
-//     showMessage('✅ Workflow completed!', 'success');
-//     // showProgress('✅ Workflow completed!', 'success');
-//     hideSpinner();
-//     // Unsubscribe since workflow is done
-//     if (activeChannel) {
-//       activeChannel.unsubscribe();
-//       activeChannel = null;
-//     } 
-//   } else if (action === 'stop_simulation' && data.request_status === 'finalized') {
-//     showMessage('✅ Workflow completed!', 'success');
-//     // showProgress('✅ Workflow completed!', 'success');
-//     hideSpinner();
-//     // Unsubscribe since workflow is done
-//     if (activeChannel) {
-//       activeChannel.unsubscribe();
-//       activeChannel = null;
-//     }  
-//   } else if (data.request_status === 'failed') {
-//     showMessage('❌ Failed to copy', 'failed');
-//     // showProgress('✅ Workflow completed!', 'success');
-//     hideSpinner();
-//     // Unsubscribe since workflow is done
-//     if (activeChannel) {
-//       activeChannel.unsubscribe();
-//       activeChannel = null;
-//     }
-//   }
-// }
 
 function handleRealtimeUpdate(data, action) {
   console.log('Real-time update received:', data, 'Action:', action);
   
   // Update progress and details panels
-  showProgress(formatStatusUpdate(data), 'info');
+  showProgress(formatResponseData(data, 'status_update'), 'success', `Status: ${data.request_status}`);
+
   showDetails(JSON.stringify(data));
   
   // Determine completion states based on action
   const isComplete = 
-    (action === 'create_vm' && (data.STATUS === 'vm_ready' || data.workflow_status === 'vm_ready')) ||
-    (action === 'run_simulation_simple' && data.request_status === 'simulation_running') ||
+    (action === 'create_vm' && data.request_status === 'vm_ready') ||
     (action === 'stop_simulation' && data.request_status === 'finalized');
   
   const isError = 
-    data.STATUS === 'error' || 
-    data.workflow_status === 'error' || 
-    data.request_status === 'failed';
+    data.request_status === 'failed' || data.request_status === 'error';
   
   // Handle completion
   if (isComplete) {
@@ -392,8 +354,136 @@ function handleRealtimeUpdate(data, action) {
   }
   // Still processing
   else {
-    console.log(`${action} in progress:`, data.STATUS || data.workflow_status || data.request_status);
+    console.log(`${action} in progress:`, data.request_status);
   }
+}
+
+function formatResponseData(data, action) {
+  let html = '';
+  
+  // Main message (if exists)
+  if (data.message) {
+  // Parse markdown to HTML
+  const htmlContent = marked.parse(data.message);
+  html += `<div class="alert mb-3" style="background-color: #d1ecf1; border-left: 4px solid #0c5460; color: #0c5460;">
+    ${htmlContent}
+  </div>`;
+  }
+  
+  // Build details list
+  const details = [];
+  
+  // Common fields
+  if (data.status) {
+    details.push({
+      label: 'Status',
+      value: `<span class="badge bg-primary">${escapeHtml(data.status)}</span>`
+    });
+  }
+  
+  if (data.request_id) {
+    details.push({
+      label: 'Request ID',
+      value: `<code>${escapeHtml(data.request_id)}</code>`
+    });
+  }
+  
+  if (data.vm_id) {
+    details.push({
+      label: 'VM ID',
+      value: `<code>${escapeHtml(data.vm_id)}</code>`
+    });
+  }
+  
+  if (data.vm_ip) {
+    details.push({
+      label: 'VM IP Address',
+      value: `<code>${escapeHtml(data.vm_ip)}</code> 
+              <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyToClipboard('${data.vm_ip}')">
+                📋 Copy
+              </button>`
+    });
+  }
+  
+  if (data.ssh_command) {
+    details.push({
+      label: 'SSH Command',
+      value: `<code>${escapeHtml(data.ssh_command)}</code>
+              <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copyToClipboard('${data.ssh_command}')">
+                📋 Copy
+              </button>`
+    });
+  }
+  
+  if (data.credits_used !== undefined) {
+    details.push({
+      label: 'Credits Used',
+      value: `<strong>$${parseFloat(data.credits_used).toFixed(2)}</strong>`
+    });
+  }
+  
+  if (data.credits_remaining !== undefined) {
+    details.push({
+      label: 'Credits Remaining',
+      value: `<strong>$${parseFloat(data.credits_remaining).toFixed(2)}</strong>`
+    });
+  }
+  
+  if (data.estimated_time) {
+    details.push({
+      label: 'Estimated Time',
+      value: `<span class="text-muted">${escapeHtml(data.estimated_time)}</span>`
+    });
+  }
+  
+  if (data.runtime) {
+    details.push({
+      label: 'Runtime',
+      value: `<span class="text-muted">${escapeHtml(data.runtime)}</span>`
+    });
+  }
+  
+  if (data.gpu_type) {
+    details.push({
+      label: 'GPU Type',
+      value: `<span class="badge bg-success">${escapeHtml(data.gpu_type)}</span>`
+    });
+  }
+  
+  if (data.timestamp) {
+    details.push({
+      label: 'Timestamp',
+      value: `<small class="text-muted">${escapeHtml(data.timestamp)}</small>`
+    });
+  }
+
+  if (data.request_status) {
+  details.push({
+    label: 'GPU VM Status',
+    value: `<span class="badge bg-info">${escapeHtml(data.request_status)}</span>`
+  });
+  }
+  
+  // Render details as a table
+  if (details.length > 0) {
+    html += '<table class="table table-sm table-borderless mb-0" style="background-color: transparent;">';
+    details.forEach(detail => {
+      html += `
+        <tr>
+          <td class="text-muted" style="width: 40%;">${detail.label}:</td>
+          <td>${detail.value}</td>
+        </tr>
+      `;
+    });
+    html += '</table>';
+  }
+  
+  // If no specific fields matched, show a generic success message
+  if (!html) {
+    html = '<p class="text-success mb-0">✅ Action completed successfully</p>';
+  }
+  
+  return html;
 }
 
 function formatStatusUpdate(data) {

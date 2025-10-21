@@ -10,33 +10,45 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
+<style>
+  .card {
+      min-width: 612px; /* or any desired width */
+  }
+</style>
+
 <body>
 <div class="card p-3 mb-3">
-    <h4>Create a new GPU VM</h4>
 
 <div class="card shadow-sm">
-    <div class="card-header">
-        <h6 class="card-title mb-3">Project Options</h6>
+    <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h2 class="mb-0">➕ Create new VM</h2>
+            Project: <code id="projectIdDisplay" class="text-white">Loading...</code>
+        </div>
+        <button class="btn btn-light btn-sm" onclick="goBackToProjectPanel()">← Back</button>
+        </div>
     </div>
+
     <div class="card-body">
       <div class="row">
         <div class="col-md-6">
             <label class="form-label"><strong>Hardware Flavor</strong></label>
             <div class="form-check">
                 <input class="form-check-input" type="radio" name="flavor" id="n3-A100x1" value="n3-A100x1">
-                <label class="form-check-label" for="n3-A100x1">Single A100 GPU</label>
+                <label class="form-check-label" for="n3-A100x1">Single A100 GPU PCIe $1.35/hour</label>
             </div>
             <div class="form-check">
                 <input class="form-check-input" type="radio" name="flavor" id="n3-H100x1" value="n3-H100x1">
-                <label class="form-check-label" for="n3-H100x1">Single H100 GPU</label>
+                <label class="form-check-label" for="n3-H100x1">Single H100 GPU PCIe $1.90/hour</label>
             </div>
             <div class="form-check">
                 <input class="form-check-input" type="radio" name="flavor" id="n3-H100x4" value="n3-H100x4">
-                <label class="form-check-label" for="n3-H100x4">4 x H100 GPU</label>
+                <label class="form-check-label" for="n3-H100x4">4 x H100 GPU PCIe $7.60/hour</label>
             </div>
             <div class="form-check">
                 <input class="form-check-input" type="radio" name="flavor" id="n3-H100x8" value="n3-H100x8">
-                <label class="form-check-label" for="n3-H100x8">8 x H100 GPU</label>
+                <label class="form-check-label" for="n3-H100x8">8 x H100 GPU PCIe $15.20/hour</label>
             </div>
         </div>
         <div class="col-md-6">
@@ -67,7 +79,8 @@
                     placeholder="VM Name"
                     onkeypress="handleEnter(event)">
         </div>
-        <button class="btn btn-primary" onclick="createVm()">▶️ Create GPU VM</button>
+        <!-- <button class="btn btn-primary" onclick="createVm()">▶️ Create GPU VM</button> -->
+        <button id="createVmButton" class="btn btn-primary">▶️ Create GPU VM</button>
     </div>
 </div>
 
@@ -107,11 +120,6 @@
 <script src="utils.js"></script>
 <script>
 
-// Initialize Supabase
-// const supabaseUrl = 'https://dgttklfdlwaxvxjubcxx.supabase.co';
-// const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRndHRrbGZkbHdheHZ4anViY3h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3MTkzNTAsImV4cCI6MjA3NDI5NTM1MH0.ZggUBEE_GN0e_-b4TQL8yaXfe5ckoD6AglORC7NdYwQ';
-// const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
-
 let projectId = null;
 
 window.addEventListener('load', () => {
@@ -122,10 +130,14 @@ window.addEventListener('load', () => {
     showMessage('No project ID provided', 'danger');
     return;
   }
-  
+  document.getElementById('projectIdDisplay').textContent = projectId;
   console.log('Project ID:', projectId);
-  document.querySelector('.card p-3').innerHTML = `<h4>Create a new GPU VM - Project: <code>${projectId}</code></h4>`;
+//   document.querySelector('.card p-3').innerHTML = `<h4>Create a new GPU VM - Project: <code>${projectId}</code></h4>`;
 });
+
+function goBackToProjectPanel() {
+  window.location.href = `project_panel.html?project_id=${encodeURIComponent(projectId)}`;
+}
 
 function getFormInputs() {
   // Get selected hardware flavor
@@ -156,6 +168,15 @@ function validateFormInputs(inputs) {
   return errors;
 }
 
+document.getElementById("createVmButton").addEventListener("click", async () => {
+  try {
+    await createVm();
+  } catch (err) {
+    console.error('Unhandled error in createVm:', err);
+    showMessage(`Unexpected error: ${err.message}`, 'danger');
+  }
+});
+
 async function createVm() {
   // Get and validate inputs
   const inputs = getFormInputs();
@@ -167,13 +188,7 @@ async function createVm() {
   }
   
   console.log('Creating VM with inputs:', inputs);
-  
-  // Show loading state
-//   const progressContent = document.getElementById('progress-content');
-//   progressContent.innerHTML = `<div class="text-center"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Creating VM...</div>`;
-//   progressContent.className = 'alert alert-info';
-  
-  await triggerVmAction('create_vm', inputs);
+  return await triggerVmAction('create_vm', inputs);
 }
 
 async function triggerVmAction(action, inputs) {
@@ -188,61 +203,44 @@ async function triggerVmAction(action, inputs) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(inputs)
     });
-    
+  
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
     const responseText = await response.text();
-    let data = JSON.parse(responseText);
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (err) {
+      throw new Error(`Invalid JSON: ${responseText}`);
+    }
     
     console.log('Response received:', data);
     
     if (data.success) {
+      showProgress('✅ Request accepted. Monitoring status...', 'success');
+      showDetails(JSON.stringify(data)); // initial details
     // Subscribe to real-time updates if request_id provided
       if (data.request_id) {
-        subscribeToStatusUpdates(data.request_id, action);
+        await subscribeToStatusUpdates(data.request_id, action);
       }
-    //   // Update progress panel
-    //   document.getElementById('progress-content').innerHTML = `
-    //     <div class="alert alert-success">
-    //       <strong>VM Creation Started</strong><br>
-    //       <small>Your VM is being provisioned. This may take a few minutes.</small>
-    //     </div>
-    //   `;
-        showProgress('VM creation started successfully!', 'success', action);
+        // showProgress('VM creation started successfully!', 'success', action);
+        showProgress(formatResponseData(data, 'status_update'), 'success', `Status: ${data.request_status}`);
         showDetails(JSON.stringify(data));
-    //   showFeedbackPanel(JSON.stringify(data), 'success', action);
-    //   showProgress(formatResponseData(data, 'status_update'), 'success', `Status: ${data.request_status}`);
+        return data;
       
-
     } else {
-    //   document.getElementById('progress-content').innerHTML = `
-    //     <div class="alert alert-danger">
-    //       <strong>VM Creation Failed</strong><br>
-    //       <small>${data.message || 'Unknown error'}</small>
-    //     </div>
-    //   `;
         showProgress(`VM creation failed: ${data.message || 'Unknown error'}`, 'danger', action);
         showDetails(JSON.stringify(data));
-      
-    //   showFeedbackPanel(JSON.stringify(data), 'danger', action);
-    //   showProgress(formatResponseData(data, 'status_update'), 'success', `Status: ${data.request_status}`);
+        throw new Error(data.message || 'Action failed');
     }
     
   } catch (error) {
-    console.error('Error:', error);
-    showProgress(`Error: ${error.message}`, 'danger', action);
+    showProgress(`❌ Error: ${error.message}`, 'danger');
     showDetails(error.message);
-    
-    // document.getElementById('progress-content').innerHTML = `
-    //   <div class="alert alert-danger">
-    //     <strong>Error</strong><br>
-    //     <small>${error.message}</small>
-    //   </div>
-    // `;
-    
-    // showFeedbackPanel(
-    //   JSON.stringify({ message: error.message, error: true }), 
-    //   'danger', 
-    //   action
-    // );
+    addToHistory(action, error.message, 'danger');
+    return { success: false, error: error.message };
   }
 }
 

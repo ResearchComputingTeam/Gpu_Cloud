@@ -77,13 +77,6 @@ let projectState = {
   projectData: null
 };
 
-// Show status message
-function showMessage(message, type = 'info') {
-  const statusDiv = document.getElementById('status-message');
-  statusDiv.innerHTML = `<div class="alert alert-${type} mt-3 mb-0" role="alert">${message}</div>`;
-  setTimeout(() => { statusDiv.innerHTML = ''; }, 5000);
-}
-
 // Show loading spinner on button
 function setButtonLoading(isLoading) {
   const btn = document.querySelector('button[onclick="checkProjectStatus()"]');

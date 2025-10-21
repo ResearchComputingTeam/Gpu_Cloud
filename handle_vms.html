@@ -11,37 +11,28 @@
     <link href="css/style.css" rel="stylesheet">
 </head>
 
+<style>
+  .card {
+      min-width: 612px; /* or any desired width */
+  }
+</style>
+
 <body>
 <div class="card p-3 mb-3">
-    <h5>Handle existing VMs</h5>
+    <!-- <h5>Handle existing VMs</h5> -->
     <!-- <div class="mb-3" id="projectLabel">
         <label for="vm_name" class="form-label">VM Name</label>
         <input type="text" id="vm_name" class="form-control" placeholder="Enter the name of the VM you want to manage">
     </div> -->
-
     <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
       <div class="d-flex justify-content-between align-items-center">
         <div>
           <h2 class="mb-0">⚙️ Manage VMs</h2>
-          <small>Project: <code id="projectIdDisplay">Loading...</code></small>
+            Project: <code id="projectIdDisplay" class="text-white">Loading...</code>
         </div>
         <button class="btn btn-light btn-sm" onclick="goBackToProjectPanel()">← Back</button>
       </div>
     </div>
-
-    <div class="mb-3">
-        <label for="projectId" class="form-label"><strong>VM Name</strong></label>
-        <input type="text" 
-               id="vmName" 
-               class="form-control" 
-               placeholder="VM Name"
-               onkeypress="handleEnter(event)">
-    </div>
-    <!-- Refresh Button -->
-    <button class="btn btn-primary mb-3" onclick="loadVms()">
-        <span id="refreshBtn-text">🔄 Refresh VMs</span>
-        <span id="refreshBtn-spinner" class="spinner-border spinner-border-sm ms-2" style="display: none;"></span>
-    </button>
 
     <!-- VMs List -->
     <div id="vmsList">
@@ -51,6 +42,21 @@
         </div>
     </div>
 
+    <!-- Refresh Button -->
+    <button class="btn btn-primary btn-sm mb-3" style="width: fit-content;" onclick="loadVms()">
+        <span id="refreshBtn-text">🔄 Refresh GPU VMs</span>
+        <span id="refreshBtn-spinner" class="spinner-border spinner-border-sm ms-2" style="display: none;"></span>
+    </button>
+
+    <div class="mb-3">
+        <label for="vmName" class="form-label"><strong>VM Name</strong></label>
+        <input type="text" 
+               id="vmName" 
+               class="form-control" 
+               placeholder="VM Name"
+               onkeypress="handleEnter(event)">
+    </div>
+
     <div class="d-grid gap-2">
         <!-- <button class="btn btn-primary" onclick="updateStatus('simulation_running')">▶️ Run Simulation</button>
         <button class="btn btn-warning" onclick="updateStatus('simulation_paused')">⏸️ Pause Simulation</button>
@@ -58,12 +64,15 @@
         <button class="btn btn-danger" onclick="updateStatus('simulation_complete')">🛑 Stop Simulation</button>
         <button class="btn btn-info" onclick="updateStatus('finalized')">💰 Finalize & Show Credits</button> -->
         <!-- <div class="d-flex justify-content-between"> -->
+        <button class="btn btn-secondary" onclick="trigger('check_status')">🔍 Check Status</button>
         <div class="button-group">
             <button class="btn btn-warning" onclick="trigger('pause_simulation')">⏸️ Hibernate GPU VM</button>
-            <button class="btn btn-danger" onclick="trigger('stop_simulation')">🛑 Delete GPU VM</button>
+            <button class="btn btn-success" onclick="trigger('restore_simulation')">♻️ Restore GPU VM</button>
         </div>
-        <button class="btn btn-secondary" onclick="trigger('check_status')">🔍 Check Status</button>
+        <button class="btn btn-danger" onclick="stopSimulation()">🛑 Delete GPU VM</button>
     </div>
+  
+    <div id="status-message"></div>
 
     <div id="progress-panel" class="mt-3">
         <h5>Progress Panel</h5>
@@ -87,30 +96,63 @@
         </div>
     </div>
 
-    <div id="status-message"></div>
-
     <div class="mt-4">
         <h6>History</h6>
         <div id="responseHistoryList" class="list-group" style="max-height:100px; overflow-y:auto;">
             <!-- History items will be injected here -->
         </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title" id="confirmDeleteModalLabel">Confirm Deletion</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            ⚠️ Are you sure you want to <strong>delete this GPU VM</strong>?<br>
+            This action <strong>cannot be undone</strong>.
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Yes, delete it</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
 </div>
 
 <script>
-const urlParams = new URLSearchParams(window.location.search);
-const projectId = urlParams.get("project_id");
-document.getElementById("projectLabel").textContent = "Project ID: " + projectId;
+// const urlParams = new URLSearchParams(window.location.search);
+// const projectId = urlParams.get("project_id");
+// document.getElementById("projectLabel").textContent = "Project ID: " + projectId;
 
 // Example: load data via API (pseudo)
 // fetch(`/api/vms?project_id=${projectId}`).then(...)
 
-function goBack() {
-    window.location.href = `project-panel.html?project_id=${projectId}`;
-}
-</script>
+let projectId = null;
 
-<script>
+window.addEventListener('load', () => {
+  console.log('Create VM page loaded');
+  projectId = getProjectIdFromUrl();
+  
+  if (!projectId) {
+    showMessage('No project ID provided', 'danger');
+    return;
+  }
+  document.getElementById('projectIdDisplay').textContent = projectId;
+  console.log('Project ID:', projectId);
+//   document.querySelector('.card p-3').innerHTML = `<h4>Create a new GPU VM - Project: <code>${projectId}</code></h4>`;
+});
+
+function goBackToProjectPanel() {
+  window.location.href = `project_panel.html?project_id=${encodeURIComponent(projectId)}`;
+}
+
+
 
 function loadVms() {
   const projectId = getProjectIdFromUrl();
@@ -118,9 +160,143 @@ function loadVms() {
 }
 
 
+
+// async function stopSimulation() {
+
+//   deleteModal.show();
+//   confirmDeleteBtn.onclick = () => {
+//     deleteModal.hide();
+//     // Now safely call the real trigger() from utils.js
+//     await triggerVmAction('stop_simulation');
+//   };
+
+//   // Show loading state
+// //   const progressContent = document.getElementById('progress-content');
+// //   progressContent.innerHTML = `<div class="text-center"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Creating VM...</div>`;
+// //   progressContent.className = 'alert alert-info';
+// }
+
+function stopSimulation() {
+
+const vmNameInput = document.getElementById('vmName').value.trim();
+if (!vmNameInput) {
+  console.log('No VM Name given');
+  showMessage('Please enter a VM Name', 'warning');
+  return;
+}
+
+const deleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+deleteModal.show();
+confirmDeleteBtn.onclick = async () => {
+  try {
+    // Optional: show a spinner or disable the button
+    confirmDeleteBtn.disabled = true;
+    confirmDeleteBtn.innerHTML = 'Deleting... ⏳';
+
+    // Call your async function and wait for it to finish
+    await triggerVmAction('stop_simulation', vmNameInput);
+
+    // If it succeeds, hide the modal
+    deleteModal.hide();
+
+    // Optional: show a success message or refresh UI
+    // showMessage('GPU VM deleted successfully', 'success');
+  } catch (err) {
+    console.error('Error deleting VM:', err);
+    showMessage('Failed to delete GPU VM', 'danger');
+  } finally {
+    // Re-enable button and restore text
+    confirmDeleteBtn.disabled = false;
+    confirmDeleteBtn.innerHTML = 'Yes, delete it';
+  }
+};
+
+
+}
+
+
+async function triggerVmAction(action, vmName) {
+  
+  const payload = { 
+                    user_vm_name: vmName, 
+                    project_id: projectId
+                  };
+
+  try {
+    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/${action}`;
+    
+    console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
+    showProgress('Creating VM...', 'info', action);
+    
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    const responseText = await response.text();
+    let data = JSON.parse(responseText);
+    
+    console.log('Response received:', data);
+    
+    if (data.success) {
+      showProgress('VM deletion started', 'info', action);
+      // Subscribe to real-time updates if request_id provided
+      if (data.request_id) {
+        subscribeToStatusUpdates(data.request_id, action);
+      }
+    //   // Update progress panel
+    //   document.getElementById('progress-content').innerHTML = `
+    //     <div class="alert alert-success">
+    //       <strong>VM Creation Started</strong><br>
+    //       <small>Your VM is being provisioned. This may take a few minutes.</small>
+    //     </div>
+    //   `;
+        showDetails(JSON.stringify(data));
+    //   showFeedbackPanel(JSON.stringify(data), 'success', action);
+    //   showProgress(formatResponseData(data, 'status_update'), 'success', `Status: ${data.request_status}`);
+      
+
+    } else {
+    //   document.getElementById('progress-content').innerHTML = `
+    //     <div class="alert alert-danger">
+    //       <strong>VM Creation Failed</strong><br>
+    //       <small>${data.message || 'Unknown error'}</small>
+    //     </div>
+    //   `;
+        showProgress(`VM deletion failed: ${data.message || 'Unknown error'}`, 'danger', action);
+        showDetails(JSON.stringify(data));
+      
+    //   showFeedbackPanel(JSON.stringify(data), 'danger', action);
+    //   showProgress(formatResponseData(data, 'status_update'), 'success', `Status: ${data.request_status}`);
+    }
+    
+  } catch (error) {
+    console.error('Error:', error);
+    showProgress(`Error: ${error.message}`, 'danger', action);
+    showDetails(error.message);
+    
+    // document.getElementById('progress-content').innerHTML = `
+    //   <div class="alert alert-danger">
+    //     <strong>Error</strong><br>
+    //     <small>${error.message}</small>
+    //   </div>
+    // `;
+    
+    // showFeedbackPanel(
+    //   JSON.stringify({ message: error.message, error: true }), 
+    //   'danger', 
+    //   action
+    // );
+  }
+}
+
 </script>
 
 <script src="utils.js"></script>
+
 </body>
 
 </html>

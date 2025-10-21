@@ -86,3 +86,9 @@ body {
   background-color: #667eea;
 }
 #status-message { margin-top: 20px; }
+
+#progress-panel table,
+#progress-panel td,
+#progress-panel th {
+  background-color: transparent !important;
+}
