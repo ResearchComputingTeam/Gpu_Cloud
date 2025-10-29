@@ -1,3 +1,72 @@
+/* Top Navigation Bar */
+.top-nav {
+    background: white;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 12px 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.top-nav .container {
+    max-width: 1200px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.top-nav .logo {
+    height: 46px;
+    width: auto;
+}
+
+/* .top-nav .logo {
+  height: 36px;         /* tune to fit your bar */
+  /* width: auto;
+  display: inline-block;
+  vertical-align: middle;
+} */
+
+/* optional: prevent the image from stretching on small screens */
+.top-nav .container { display: flex; justify-content: space-between; align-items: center; } */
+
+
+.top-nav .title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin-left: 15px;
+}
+.top-nav .links a {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-left: 20px;
+}
+.top-nav .links a:hover {
+    text-decoration: underline;
+}
+/* Footer */
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255,255,255,0.95);
+    border-top: 1px solid #e0e0e0;
+    padding: 10px 0;
+    text-align: center;
+    font-size: 0.85rem;
+}
+.footer a {
+    color: #667eea;
+    text-decoration: none;
+}
+.footer a:hover {
+    text-decoration: underline;
+}
+
 body { 
     padding: 20px; 
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -12,6 +81,8 @@ body {
 .card { 
     box-shadow: 0 8px 16px rgba(0,0,0,0.2);
     border: none;
+    max-width: 100%;
+    overflow: hidden;
 }
 .card-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -79,10 +150,28 @@ body {
     height: 1rem;
     border-width: 0.2rem;
 }
-#markdown-panel {
+#detailsPanel {
   border: 2px solid #667eea;
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: auto;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  font-family: monospace;
+  font-size: 12px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 10px;
 }
-#markdown-panel .card-header {
+#detailsPanel pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-width: 100%;
+}
+
+#detailsPanel .card-header {
   background-color: #667eea;
 }
 #status-message { margin-top: 20px; }

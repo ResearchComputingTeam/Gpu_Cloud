@@ -12,7 +12,7 @@
 
 <style>
   .card {
-      min-width: 612px; /* or any desired width */
+      min-width: 612px;
   }
 </style>
 
@@ -99,13 +99,27 @@
         </div>
     </div>
 
-    <div class="card mt-3" id="markdown-panel" style="max-height: 400px; overflow-y: auto;">
+    <!-- <div class="card mt-3" id="markdown-panel" style="max-height: 400px; overflow-y: auto;">
         <div class="card-header text-white">
             <strong>Details</strong>
         </div>
-            <div class="card-body" id="markdown-content">
+            <div class="card-body" id="markdown-content"> -->
             <!-- Rendered markdown HTML goes here -->
+        <!-- </div>
+    </div> -->
+
+    <div class="card mt-4" style="box-shadow: none; border: 1px solid #8c8d92;">
+      <div class="card-header" style="background: #8c8d92; padding: 6px 6px; line-height: 1.1;">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="mb-0">Details</h6>
+          </div>
         </div>
+      </div>
+      <div id="detailsPanel" style="max-height: 100px; overflow-y: auto; padding: 0;">
+        <div class="text-center text-muted p-3">
+        </div>
+      </div>
     </div>
 </div>
 <div id="status-message"></div>
@@ -192,6 +206,7 @@ async function createVm() {
 }
 
 async function triggerVmAction(action, inputs) {
+  let requestId = null;
   try {
     const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/${action}`;
     
@@ -208,41 +223,134 @@ async function triggerVmAction(action, inputs) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    const responseText = await response.text();
-    let data;
-    try {
-      data = JSON.parse(responseText);
-    } catch (err) {
-      throw new Error(`Invalid JSON: ${responseText}`);
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.message || 'Action failed');
     }
     
-    console.log('Response received:', data);
+    showProgress('✅ Request accepted. Monitoring status...', 'success', action);
+    showDetails(JSON.stringify(data));
     
-    if (data.success) {
-      showProgress('✅ Request accepted. Monitoring status...', 'success');
-      showDetails(JSON.stringify(data)); // initial details
-    // Subscribe to real-time updates if request_id provided
-      if (data.request_id) {
-        await subscribeToStatusUpdates(data.request_id, action);
-      }
-        // showProgress('VM creation started successfully!', 'success', action);
-        showProgress(formatResponseData(data, 'status_update'), 'success', `Status: ${data.request_status}`);
-        showDetails(JSON.stringify(data));
-        return data;
+    if (!data.request_id) {
+      // No real-time tracking available
+      return data;
+    }
+    
+    requestId = data.request_id;
+
+    // Start subscription BEFORE creating the promise
+    await subscribeToStatusUpdates(requestId, action);
+
+    // Add initial polling to catch current state
+    const initialStatus = await pollCurrentStatus(requestId);
+    if (initialStatus) {
+      handleRealtimeUpdate(initialStatus, action);
+    }
+
+    // Create promise and subscription together
+    const finalData = await new Promise((resolve, reject) => {
+      // Store resolver with timeout
+      const timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error(`Timed out waiting for ${action} to complete.`));
+      }, 1800000); // 30 minutes
+
+      actionResolvers[requestId] = { 
+        resolve: (data) => {
+          cleanup();
+          resolve(data);
+        },
+        reject: (error) => {
+          cleanup();
+          reject(error);
+        },
+        timeout
+      };
       
-    } else {
-        showProgress(`VM creation failed: ${data.message || 'Unknown error'}`, 'danger', action);
-        showDetails(JSON.stringify(data));
-        throw new Error(data.message || 'Action failed');
-    }
+      // Cleanup helper
+      function cleanup() {
+        if (actionResolvers[requestId]) {
+          clearTimeout(actionResolvers[requestId].timeout);
+          delete actionResolvers[requestId];
+        }
+        if (activeChannel) {
+          activeChannel.unsubscribe();
+          activeChannel = null;
+        }
+      }
+      
+      // Start subscription
+      // subscribeToStatusUpdates(requestId, action).catch(reject);
+    });
+    
+    return finalData;
     
   } catch (error) {
+    // Cleanup on any error
+    if (requestId && actionResolvers[requestId]) {
+      clearTimeout(actionResolvers[requestId].timeout);
+      delete actionResolvers[requestId];
+    }
+    if (activeChannel) {
+      activeChannel.unsubscribe();
+      activeChannel = null;
+    }
+    
     showProgress(`❌ Error: ${error.message}`, 'danger');
     showDetails(error.message);
     addToHistory(action, error.message, 'danger');
-    return { success: false, error: error.message };
+    throw error; // Re-throw so caller knows it failed
   }
 }
+
+
+    // if (data.success) {
+    //   showProgress('✅ Request accepted. Monitoring status...', 'success', action);
+    //   showDetails(JSON.stringify(data)); // initial details
+    // // Subscribe to real-time updates if request_id provided
+    //   if (data.request_id) {
+    //     const requestId = data.request_id;
+        
+    //     // Create a promise that resolves when the action is complete
+    //     const completionPromise = new Promise((resolve, reject) => {
+    //       actionResolvers[requestId] = { resolve, reject };
+
+    //     // ⏳ Add a timeout (10 minutes = 600,000 ms)
+    //     const timeout = setTimeout(() => {
+    //       if (actionResolvers[requestId]) {
+    //         reject(new Error(`Timed out waiting for ${action} to complete.`));
+    //         delete actionResolvers[requestId];
+    //       }
+    //     }, 1800000); // 30 minutes
+
+    //     // Store the timeout reference so we can clear it later when done
+    //     actionResolvers[requestId].timeout = timeout;
+    //     });
+
+    //     await subscribeToStatusUpdates(requestId, action);
+
+    //     const finalData = await completionPromise;
+    //     return finalData;
+    //   }
+        // showProgress('VM creation started successfully!', 'success', action);
+        // showProgress(formatResponseData(data, 'status_update'), 'success', `Status: ${data.request_status}`);
+        // showDetails(JSON.stringify(data));
+        // return data;
+      
+//     } else {
+//         showProgress(`VM creation failed: ${data.message || 'Unknown error'}`, 'danger', action);
+//         showDetails(JSON.stringify(data));
+//         throw new Error(data.message || 'Action failed');
+//     }
+    
+//   } catch (error) {
+//     showProgress(`❌ Error: ${error.message}`, 'danger');
+//     showDetails(error.message);
+//     addToHistory(action, error.message, 'danger');
+//     return { success: false, error: error.message };
+//   }
+// }
 
 function handleEnter(event) {
   if (event.key === 'Enter') {

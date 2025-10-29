@@ -1,0 +1,4 @@
+# Ignore HTML files
+index.html
+draft.js
+output_data_history_cost_api.json

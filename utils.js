@@ -1,4 +1,7 @@
 // utils.js
+
+const actionResolvers = {}; // { request_id: resolveFunction }
+
 function showMessage(message, type = 'info') {
   const statusDiv = document.getElementById('status-message');
   statusDiv.innerHTML = `<div class="alert alert-${type} mt-3" role="alert">${message}</div>`;
@@ -112,35 +115,64 @@ function clearMessage() {
   detailsDiv.innerHTML = '';
 }
 
+let progressUpdateTimeout = null;
 
 function showProgress(message, type = 'info', action = '') {
-  const progressDiv = document.getElementById('progress-content');
-  progressDiv.className = `alert alert-${type}`;
-  progressDiv.innerHTML = message;
-  if (action) addToHistory(action, message, type);
-}
-
-function showDetails(msg) {
-  const markdownDiv = document.getElementById('markdown-content');
-  let markdownText = '';
-
-  try {
-    // Try to parse as JSON and extract 'message' field
-    const data = typeof msg === 'string' ? JSON.parse(msg) : msg;
-    if (data.message) {
-      markdownText = data.message;
-    } else {
-      // If no 'message' field, fallback to stringified object
-      markdownText = JSON.stringify(data, null, 2);
-    }
-  } catch (e) {
-    // If not JSON, treat msg as markdown/text
-    markdownText = msg;
+  // Clear any pending update
+  if (progressUpdateTimeout) {
+    clearTimeout(progressUpdateTimeout);
   }
 
-  // Parse markdown and display
-  markdownDiv.innerHTML = marked.parse(markdownText);
+  // Debounce: wait 100ms before actually updating
+  progressUpdateTimeout = setTimeout(() => {
+    const progressDiv = document.getElementById('progress-content');
+    if (progressDiv) {
+      progressDiv.className = `alert alert-${type}`;
+      progressDiv.innerHTML = message;
+      if (action) addToHistory(action, message, type);
+    }
+    progressUpdateTimeout = null;
+  }, 100);
 }
+
+// function showDetails(msg) {
+//   const markdownDiv = document.getElementById('markdown-content');
+//   let markdownText = '';
+
+//   try {
+//     // Try to parse as JSON and extract 'message' field
+//     const data = typeof msg === 'string' ? JSON.parse(msg) : msg;
+//     if (data.message) {
+//       markdownText = data.message;
+//     } else {
+//       // If no 'message' field, fallback to stringified object
+//       markdownText = JSON.stringify(data, null, 2);
+//     }
+//   } catch (e) {
+//     // If not JSON, treat msg as markdown/text
+//     markdownText = msg;
+//   }
+
+//   // Parse markdown and display
+//   markdownDiv.innerHTML = marked.parse(markdownText);
+// }
+
+function showDetails(data) {
+  const detailsPanel = document.getElementById('detailsPanel');
+  if (!detailsPanel) return;
+  
+  try {
+    // Try to parse and pretty-print if it's JSON
+    const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+    detailsPanel.innerHTML = `<pre>${JSON.stringify(parsed, null, 2)}</pre>`;
+  } catch (e) {
+    // If not JSON, just display as-is
+    detailsPanel.textContent = data;
+  }
+  
+  detailsPanel.style.display = 'block';
+}
+
 
 function getActionLabel(action) {
   const labels = {
@@ -162,104 +194,6 @@ function showSpinner() {
 
 function hideSpinner() {
   document.getElementById('loading-spinner').style.display = 'none';
-}
-
-async function trigger(action) {
-  clearMessage();
-  showSpinner(); // Show spinner when request starts
-  const projectId = document.getElementById('project_id').value.trim();
-  if (!projectId) {
-    showProgress('Please enter a Project ID', 'warning');
-    hideSpinner();
-    return;
-  }
-
-  //Initial check of Project ID
-  const initialRequestIDCheck = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/project_id_check?project_id=${encodeURIComponent(project_id)}`;
-  console.log('Attempting to process Project ID:', projectId);
-  try {
-    const response = await fetch(initialRequestIDCheck, { 
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ project_id: projectId })
-    });
-    const check_msg = await response.text();
-    try {
-      data = JSON.parse(check_msg);
-    } catch (e) {
-      console.error('Response is not valid JSON:', e);
-      return;
-    }
-    if (data.success === true) {
-      console.log('Poject ID is valid');
-      //proceed with the rest of the code
-      info.textContent = `✅ Project ID: ${projectId}`;
-      actions.classList.remove("d-none");
-
-      // Wire buttons
-      document.getElementById("handleBtn").onclick = () =>
-      window.location.href = `handle_vms.html?project_id=${projectId}`;
-      document.getElementById("createBtn").onclick = () =>
-      window.location.href = `create_vm.html?project_id=${projectId}`;
-    } else {
-      hideSpinner();
-      console.log('Project ID is not valid');
-      info.textContent = `❌ Invalid Project ID`;
-      // showProgress(`Error: ${err.message}`, 'danger');
-      showProgress(`Error: Request ID is not valid`, 'danger');
-      return;
-    }
-  } catch (err) {
-    console.error('Check status error:', err);
-    showProgress(`Error: ${err.message}`, 'danger');
-    return;
-  }
-
-  // 🔥 Start listening for real-time updates
-  if (action === 'run_simulation_simple' || action === 'pause_simulation' || action === 'stop_simulation') {
-    subscribeToStatusUpdates(requestId, action);
-  }
-
-  const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/${action}?request_id=${encodeURIComponent(requestId)}`;
-  console.log('Attempting to process Request ID:', requestId);
-
-  if (action === 'check_status') {
-    try {
-      const response = await fetch(webhookUrl, { 
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ request_id: requestId })
-      });
-      const check_msg = await response.text();
-      const data = JSON.parse(check_msg);
-      const check_message = `STATUS = ${data.request_status} started by ${data.user_name} at ${new Date(data.first_time_start).toLocaleString('en-US')}`;
-
-      showProgress(`STATUS = ${data.request_status}`, 'info');
-      const showProgressDiv = document.getElementById('markdown-content');
-      showProgressDiv.innerHTML = check_message;
-      addToHistory(action, check_message, 'info');
-      hideSpinner();
-    } catch (err) {
-      console.error('Check status error:', err);
-      showProgress(`Error: ${err.message}`, 'danger');
-    }
-  } else { //Trigger is not Check Status
-    // Fire and forget - don't await this
-    fetch(webhookUrl, { 
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ request_id: requestId })
-    })
-      .then(response => response.text())
-      .then(msg => {
-        console.log('Webhook initial response:', msg);
-        showDetails(msg);
-      })
-      .catch(err => {
-        console.error('Webhook error:', err);
-        hideSpinner();
-      })
-  }
 }
 
 // Real-time updates via Supabase
@@ -286,14 +220,13 @@ function subscribeToStatusUpdates(requestId, action) {
             table: 'vm_creation_requests',
             filter: `form_submission_unique_id=eq.${requestId}`},
             (payload) => {
-              console.log('✨ Real-time update received:', payload.new);
               handleRealtimeUpdate(payload.new, action);
             }
         )
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
             console.log('✅ Subscribed to real-time updates');
-            showProgress('📡 Monitoring status in real-time...', 'info');
+            // showProgress('📡 Monitoring status in real-time...', 'info');
             resolve(true);
           }
         });
@@ -315,46 +248,59 @@ function subscribeToStatusUpdates(requestId, action) {
 }
 
 function handleRealtimeUpdate(data, action) {
-  console.log('Real-time update received:', data, 'Action:', action);
+  console.log('✨ Real-time update received:', data);
   
   // Update progress and details panels
+  // requestAnimationFrame(() => {
   showProgress(formatResponseData(data, 'status_update'), 'success', `Status: ${data.request_status}`);
-
   showDetails(JSON.stringify(data));
+  // });
   
   // Determine completion states based on action
   const isComplete = 
-    (action === 'create_vm' && data.request_status === 'vm_ready') ||
-    (action === 'stop_simulation' && data.request_status === 'finalized');
+    (action === 'create_vm' && data.request_status === 'simulation_running') ||
+    (action === 'hibernate_vm' && data.request_status === 'hibernated') ||
+    (action === 'restore_vm' && data.request_status === 'simulation_running') ||
+    (action === 'stop_simulation' && data.request_status === 'deleted');
   
   const isError = 
     data.request_status === 'failed' || data.request_status === 'error';
-  
-  // Handle completion
-  if (isComplete) {
+
+  const resolver = actionResolvers[data.form_submission_unique_id];
+
+  if (isComplete && resolver) {
     showMessage(`✅ ${action} completed successfully!`, 'success');
     addToHistory(action, JSON.stringify(data), 'success');
-    
-    if (activeChannel) {
-      activeChannel.unsubscribe();
-      activeChannel = null;
-    }
-  }
-  // Handle errors
-  else if (isError) {
+    resolver.resolve(data); // Cleanup happens in resolve wrapper
+  } 
+  else if (isError && resolver) {
     const errorMsg = data.error_message || data.message || 'Unknown error';
     showMessage(`❌ ${action} failed: ${errorMsg}`, 'danger');
     showProgress(errorMsg, 'danger', action);
     addToHistory(action, JSON.stringify(data), 'danger');
-    
-    if (activeChannel) {
-      activeChannel.unsubscribe();
-      activeChannel = null;
-    }
+    resolver.reject(new Error(errorMsg)); // Cleanup happens in reject wrapper
   }
-  // Still processing
-  else {
-    console.log(`${action} in progress:`, data.request_status);
+}
+
+// function to poll current status
+async function pollCurrentStatus(requestId) {
+  try {
+    const { data, error } = await supabase
+      .from('vm_creation_requests')
+      .select('*')
+      .eq('form_submission_unique_id', requestId)
+      .single();
+    
+    if (error) {
+      console.error('Error polling status:', error);
+      return null;
+    }
+    
+    console.log('📊 Current status:', data);
+    return data;
+  } catch (err) {
+    console.error('Failed to poll status:', err);
+    return null;
   }
 }
 
@@ -495,7 +441,7 @@ function formatStatusUpdate(data) {
     'simulation_running': '🚀 Simulation is running!',
     'simulation_paused': '⏸️ Simulation paused',
     'simulation_complete': '✅ Simulation complete!',
-    'finalized': '💰 Processing finalized'
+    'deleted': '❌ Deleting VM'
   };
   
   return statusMessages[data.request_status] || `Status: ${data.request_status}`;

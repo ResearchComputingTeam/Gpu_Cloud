@@ -13,7 +13,7 @@
 
 <style>
   .card {
-      min-width: 612px; /* or any desired width */
+      min-width: 612px;
   }
 </style>
 
@@ -35,26 +35,45 @@
     </div>
 
     <!-- VMs List -->
-    <div id="vmsList">
+    <!-- <div id="vmsList">
         <div class="empty-state">
             <div class="empty-state-icon">⏳</div>
             <p>Loading VMs...</p>
         </div>
+        <div id="vmsList" style="max-height: 200px; overflow-y: auto; padding: 0;">
+          <div class="text-center text-muted p-3">Loading VMs...</div>
+        </div>
+    </div> -->
+
+    <div class="card mt-4" style="box-shadow: none; border: 1px solid #757de7;">
+      <div class="card-header" style="background: #757de7; padding: 6px 6px; line-height: 1.1;">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="mb-0">VMs (<span id="vmCount">0</span>)</h6>
+          </div>
+          <!-- Refresh Button -->
+          <button class="btn btn-primary btn-sm" style="width: fit-content;" onclick="loadVms()">
+              <span id="refreshBtn-text">🔄 Refresh GPU VMs</span>
+              <!-- <span id="refreshBtn-spinner" class="spinner-border spinner-border-sm ms-2" style="display: none;"></span> -->
+          </button>
+        </div>
+      </div>
+      <div id="vmsList" style="max-height: 150px; overflow-y: auto; padding: 0;">
+        <div class="text-center text-muted p-3">
+          <p class="text-center mt-0 mb-0 fs-5">Loading VMs...</p>
+          <div class="empty-state-icon" style="font-size: 2.5rem;">⏳</div>
+        </div>
+      </div>
     </div>
 
-    <!-- Refresh Button -->
-    <button class="btn btn-primary btn-sm mb-3" style="width: fit-content;" onclick="loadVms()">
-        <span id="refreshBtn-text">🔄 Refresh GPU VMs</span>
-        <span id="refreshBtn-spinner" class="spinner-border spinner-border-sm ms-2" style="display: none;"></span>
-    </button>
+
 
     <div class="mb-3">
-        <label for="vmName" class="form-label"><strong>VM Name</strong></label>
+        <label for="vmName" class="form-label"><strong></strong></label>
         <input type="text" 
                id="vmName" 
                class="form-control" 
-               placeholder="VM Name"
-               onkeypress="handleEnter(event)">
+               placeholder="[GPU VM to manage]">
     </div>
 
     <div class="d-grid gap-2">
@@ -64,22 +83,36 @@
         <button class="btn btn-danger" onclick="updateStatus('simulation_complete')">🛑 Stop Simulation</button>
         <button class="btn btn-info" onclick="updateStatus('finalized')">💰 Finalize & Show Credits</button> -->
         <!-- <div class="d-flex justify-content-between"> -->
-        <button class="btn btn-secondary" onclick="trigger('check_status')">🔍 Check Status</button>
+        <!-- <button class="btn btn-secondary" onclick="trigger('check_status')">🔍 Check Details</button> -->
         <div class="button-group">
-            <button class="btn btn-warning" onclick="trigger('pause_simulation')">⏸️ Hibernate GPU VM</button>
-            <button class="btn btn-success" onclick="trigger('restore_simulation')">♻️ Restore GPU VM</button>
+            <button class="btn btn-warning" onclick="triggerLongAction('hibernate_vm')">⏸️ Hibernate GPU VM</button>
+            <button class="btn btn-success" onclick="triggerLongAction('restore_vm')">♻️ Restore GPU VM</button>
         </div>
-        <button class="btn btn-danger" onclick="stopSimulation()">🛑 Delete GPU VM</button>
+        <!-- <button class="btn btn-danger" onclick="stopSimulation()">🛑 Delete GPU VM</button> -->
+        <button id="deleteVmButton" class="btn btn-danger">🛑 Delete GPU VM</button>
     </div>
   
     <div id="status-message"></div>
 
-    <div id="progress-panel" class="mt-3">
+<div id="progress-panel" class="card mt-4" style="box-shadow: none; border: 1px solid #757de7;">
+  <div class="card-header" style="background: #757de7; padding: 6px 6px; line-height: 1.1;">
+    <div class="d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">Progress Panel</h6>
+    </div>
+  </div>
+  <div class="card-body" style="max-height: 160px; overflow-y: auto; padding: 0;">
+      <div id="progress-content" class="alert alert-info" role="alert">
+        Ready, waiting for user action.
+      </div>
+  </div>
+</div>
+
+    <!-- <div id="progress-panel" class="mt-3">
         <h5>Progress Panel</h5>
         <div id="progress-content" class="alert alert-info" role="alert">
         Ready, waiting for user action.
         </div>
-    </div>
+    </div> -->
 
     <div id="loading-spinner" class="text-center my-3" style="display:none;">
         <div class="spinner-border text-primary" role="status">
@@ -87,13 +120,36 @@
         </div>
     </div>
 
-    <div class="card mt-3" id="markdown-panel" style="max-height: 400px; overflow-y: auto;">
+    <!-- <div class="card mt-3" id="markdown-panel" style="max-height: 400px; overflow-y: auto;">
         <div class="card-header text-white">
         <strong>Details</strong>
         </div>
-        <div class="card-body" id="markdown-content">
+        <div class="card-body" id="markdown-content"> -->
         <!-- Rendered markdown HTML goes here -->
+        <!-- </div>
+    </div> -->
+    <!-- <div id="detailsPanel" class="card mt-3" style="margin-top: 15px;">
+        <div class="card-header text-white">
+        <strong>Details</strong>
         </div>
+        <div class="card-body" id="detailsPanel">
+        </div>
+    </div> -->
+
+
+
+    <div class="card mt-4" style="box-shadow: none; border: 1px solid #8c8d92;">
+      <div class="card-header" style="background: #8c8d92; padding: 6px 6px; line-height: 1.1;">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="mb-0">Details</h6>
+          </div>
+        </div>
+      </div>
+      <div id="detailsPanel" style="max-height: 100px; overflow-y: auto; padding: 0;">
+        <div class="text-center text-muted p-3">
+        </div>
+      </div>
     </div>
 
     <div class="mt-4">
@@ -153,82 +209,62 @@ function goBackToProjectPanel() {
 }
 
 
-
-function loadVms() {
-  const projectId = getProjectIdFromUrl();
-  // ... specific logic ...
-}
-
-
-
-// async function stopSimulation() {
-
-//   deleteModal.show();
-//   confirmDeleteBtn.onclick = () => {
-//     deleteModal.hide();
-//     // Now safely call the real trigger() from utils.js
-//     await triggerVmAction('stop_simulation');
-//   };
-
-//   // Show loading state
-// //   const progressContent = document.getElementById('progress-content');
-// //   progressContent.innerHTML = `<div class="text-center"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Creating VM...</div>`;
-// //   progressContent.className = 'alert alert-info';
-// }
-
-function stopSimulation() {
-
-const vmNameInput = document.getElementById('vmName').value.trim();
-if (!vmNameInput) {
-  console.log('No VM Name given');
-  showMessage('Please enter a VM Name', 'warning');
-  return;
-}
-
-const deleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
-const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-
-deleteModal.show();
-confirmDeleteBtn.onclick = async () => {
+document.getElementById("deleteVmButton").addEventListener("click", async () => {
   try {
-    // Optional: show a spinner or disable the button
-    confirmDeleteBtn.disabled = true;
-    confirmDeleteBtn.innerHTML = 'Deleting... ⏳';
-
-    // Call your async function and wait for it to finish
-    await triggerVmAction('stop_simulation', vmNameInput);
-
-    // If it succeeds, hide the modal
-    deleteModal.hide();
-
-    // Optional: show a success message or refresh UI
-    // showMessage('GPU VM deleted successfully', 'success');
+    await deleteVm();
   } catch (err) {
-    console.error('Error deleting VM:', err);
-    showMessage('Failed to delete GPU VM', 'danger');
-  } finally {
-    // Re-enable button and restore text
-    confirmDeleteBtn.disabled = false;
-    confirmDeleteBtn.innerHTML = 'Yes, delete it';
+    console.error('Unhandled error in createVm:', err);
+    showMessage(`Unexpected error: ${err.message}`, 'danger');
   }
-};
+});
 
+async function deleteVm() {
+  const vmNameInput = document.getElementById('vmName').value.trim();
+  if (!vmNameInput) {
+    console.log('No VM Name given');
+    showMessage('Please enter a VM Name', 'warning');
+    return;
+  }
 
+  const deleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+  deleteModal.show();
+  confirmDeleteBtn.onclick = async () => {
+    try {
+      // Optional: show a spinner or disable the button
+      confirmDeleteBtn.disabled = true;
+      confirmDeleteBtn.innerHTML = 'Deleting... ⏳';
+
+      // Call your async function and wait for it to finish
+      await triggerDeleteAction({ user_vm_name: vmNameInput });
+
+      // If it succeeds, hide the modal
+      deleteModal.hide();
+
+      // Optional: show a success message or refresh UI
+      // showMessage('GPU VM deleted successfully', 'success');
+    } catch (err) {
+      console.error('Error deleting VM:', err);
+      showMessage('Failed to delete GPU VM', 'danger');
+    } finally {
+      // Re-enable button and restore text
+      confirmDeleteBtn.disabled = false;
+      confirmDeleteBtn.innerHTML = 'Yes, delete it';
+    }
+  };
 }
 
 
-async function triggerVmAction(action, vmName) {
-  
-  const payload = { 
-                    user_vm_name: vmName, 
-                    project_id: projectId
-                  };
+async function triggerDeleteAction(vmName) {
+
+  const payload = { ...vmName, project_id: projectId };
 
   try {
-    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/${action}`;
+    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/delete_vm`;
     
     console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
-    showProgress('Creating VM...', 'info', action);
+    showProgress("VM deletion will start", 'info', 'delete_vm');
     
     const response = await fetch(webhookUrl, {
       method: 'POST',
@@ -242,54 +278,226 @@ async function triggerVmAction(action, vmName) {
     console.log('Response received:', data);
     
     if (data.success) {
-      showProgress('VM deletion started', 'info', action);
+      showProgress('VM deletion started', 'info', 'delete_vm');
       // Subscribe to real-time updates if request_id provided
       if (data.request_id) {
         subscribeToStatusUpdates(data.request_id, action);
       }
-    //   // Update progress panel
-    //   document.getElementById('progress-content').innerHTML = `
-    //     <div class="alert alert-success">
-    //       <strong>VM Creation Started</strong><br>
-    //       <small>Your VM is being provisioned. This may take a few minutes.</small>
-    //     </div>
-    //   `;
         showDetails(JSON.stringify(data));
-    //   showFeedbackPanel(JSON.stringify(data), 'success', action);
-    //   showProgress(formatResponseData(data, 'status_update'), 'success', `Status: ${data.request_status}`);
-      
-
     } else {
-    //   document.getElementById('progress-content').innerHTML = `
-    //     <div class="alert alert-danger">
-    //       <strong>VM Creation Failed</strong><br>
-    //       <small>${data.message || 'Unknown error'}</small>
-    //     </div>
-    //   `;
-        showProgress(`VM deletion failed: ${data.message || 'Unknown error'}`, 'danger', action);
+        showProgress(`VM deletion failed: ${data.message || 'Unknown error'}`, 'danger', 'delete_vm');
         showDetails(JSON.stringify(data));
-      
-    //   showFeedbackPanel(JSON.stringify(data), 'danger', action);
-    //   showProgress(formatResponseData(data, 'status_update'), 'success', `Status: ${data.request_status}`);
     }
     
   } catch (error) {
     console.error('Error:', error);
-    showProgress(`Error: ${error.message}`, 'danger', action);
+    showProgress(`Error: ${error.message}`, 'danger', 'delete_vm');
     showDetails(error.message);
+  }
+}
+
+
+async function triggerLongAction(action) {
+  const vmNameInput = document.getElementById('vmName').value.trim();
+  if (!vmNameInput) {
+    console.log('No VM Name given');
+    showMessage('Please enter a VM Name', 'warning');
+    return;
+  }
+
+  const payload = { 
+    vm_name: vmNameInput, 
+    project_id: projectId 
+  };
+
+  let requestId = null;
+  try {
+    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/${action}`;
     
-    // document.getElementById('progress-content').innerHTML = `
-    //   <div class="alert alert-danger">
-    //     <strong>Error</strong><br>
-    //     <small>${error.message}</small>
-    //   </div>
-    // `;
+    console.log('Calling webhook:', webhookUrl, 'on inputs:', payload);
+    showProgress('Restoring VM...', 'info', action);
     
-    // showFeedbackPanel(
-    //   JSON.stringify({ message: error.message, error: true }), 
-    //   'danger', 
-    //   action
-    // );
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.message || 'Action failed');
+    }
+    
+    showProgress('✅ Request accepted. Monitoring status...', 'success', action);
+    showDetails(JSON.stringify(data));
+    
+    if (!data.request_id) {
+      // No real-time tracking available
+      return data;
+    }
+    
+    requestId = data.request_id;
+
+    // Start subscription BEFORE creating the promise
+    await subscribeToStatusUpdates(requestId, action);
+
+    // Add initial polling to catch current state
+    const initialStatus = await pollCurrentStatus(requestId);
+    if (initialStatus) {
+      handleRealtimeUpdate(initialStatus, action);
+    }
+
+    // Create promise and subscription together
+    const finalData = await new Promise((resolve, reject) => {
+      // Store resolver with timeout
+      const timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error(`Timed out waiting for ${action} to complete.`));
+      }, 1800000); // 30 minutes
+
+      actionResolvers[requestId] = { 
+        resolve: (data) => {
+          cleanup();
+          resolve(data);
+        },
+        reject: (error) => {
+          cleanup();
+          reject(error);
+        },
+        timeout
+      };
+      
+      // Cleanup helper
+      function cleanup() {
+        if (actionResolvers[requestId]) {
+          clearTimeout(actionResolvers[requestId].timeout);
+          delete actionResolvers[requestId];
+        }
+        if (activeChannel) {
+          activeChannel.unsubscribe();
+          activeChannel = null;
+        }
+      }
+      
+      // Start subscription
+      // subscribeToStatusUpdates(requestId, action).catch(reject);
+    });
+    
+    return finalData;
+    
+  } catch (error) {
+    // Cleanup on any error
+    if (requestId && actionResolvers[requestId]) {
+      clearTimeout(actionResolvers[requestId].timeout);
+      delete actionResolvers[requestId];
+    }
+    if (activeChannel) {
+      activeChannel.unsubscribe();
+      activeChannel = null;
+    }
+    
+    showProgress(`❌ Error: ${error.message}`, 'danger');
+    showDetails(error.message);
+    addToHistory(action, error.message, 'danger');
+    throw error; // Re-throw so caller knows it failed
+  }
+}
+
+function displayVmsList(responseData) {
+  const data = Array.isArray(responseData) ? responseData[0] : responseData;
+  const vms = data.vms || [];
+  
+  document.getElementById('vmCount').textContent = vms.length;
+  
+  const vmsListDiv = document.getElementById('vmsList');
+  
+  if (vms.length === 0) {
+    vmsListDiv.innerHTML = '<div class="text-muted p-3">No VMs found</div>';
+    return;
+  }
+  
+  vmsListDiv.innerHTML = `
+    <div class="list-group list-group-flush">
+      ${vms.map(vm => `
+        <div class="list-group-item">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <strong>${escapeHtml(vm.vm_name.replace(/_[^_]*$/, ''))}</strong>
+              <br>
+              <small class="text-muted">
+                ${vm.vm_ip || 'N/A'} • $${(vm.total_cost || 0).toFixed(2)}
+              </small>
+            </div>
+            <span class="badge bg-${vm.status === 'simulation_running' ? 'success' : 'secondary'}">
+              ${vm.status}
+            </span>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+window.addEventListener('load', async () => {
+  projectId = getProjectIdFromUrl();
+  
+  if (!projectId) {
+    showMessage('No project ID provided', 'danger');
+    return;
+  }
+  
+  // Load VMs
+  await loadVms();
+});
+
+async function loadVms() {
+
+  const payload = { project_id: projectId };
+
+  try {
+    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/list_vms`;
+    
+    console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
+    // showProgress("VMs listing", 'info', 'list_vms');
+    
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    // const responseText = await response.text();
+    // console.log('📡 Response:', responseText);
+
+    // let data;
+    // try {
+    //   data = JSON.parse(responseText);
+    // } catch (e) {
+    //   console.error('Failed to parse JSON:', responseText);
+    //   throw new Error('Invalid response from server');
+    // }
+    const data = await response.json();
+    console.log('Response received:', data);
+    
+    if (data.success) {
+      showMessage(`🔄 VM list updated`, 'success');
+      // showProgress('.', 'info', 'list_vms');
+      //list the VMs
+      displayVmsList(data);
+    } else {
+      // showProgress(`❌VM listing failed: ${data.message || 'Unknown error'}`, 'danger', 'list_vms');
+      document.getElementById('vmsList').innerHTML = '<div class="text-danger p-3">Failed to load VMs</div>';
+    }
+    
+  } catch (error) {
+    console.error('Error:', error);
+    showProgress(`Error: ${error.message}`, 'danger', 'list_vms');
+    showDetails(error.message);
   }
 }
 
