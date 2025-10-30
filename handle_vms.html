@@ -11,19 +11,63 @@
     <link href="css/style.css" rel="stylesheet">
 </head>
 
-<style>
-  .card {
-      min-width: 612px;
-  }
-</style>
-
 <body>
-<div class="card p-3 mb-3">
+<!-- <div class="card p-3 mb-3"> -->
     <!-- <h5>Handle existing VMs</h5> -->
     <!-- <div class="mb-3" id="projectLabel">
         <label for="vm_name" class="form-label">VM Name</label>
         <input type="text" id="vm_name" class="form-control" placeholder="Enter the name of the VM you want to manage">
     </div> -->
+
+<div class="main-wrapper">
+  <!-- Workflow Sidebar -->
+  <leftside>
+    <div class="workflow-sidebar mb-3">
+      <h6 class="mb-3"><strong>VM Actions</strong></h6>
+      
+      <div class="workflow-step active" onclick="showHelp('check')">
+        <div class="icon">🔍</div>
+        <div>Check Status</div>
+      </div>
+      
+      <div class="workflow-step" onclick="showHelp('upload')">
+        <div class="icon">📤</div>
+        <div>Upload Data</div>
+      </div>
+      
+      <div class="workflow-step" onclick="showHelp('download')">
+        <div class="icon">📥</div>
+        <div>Download Data</div>
+      </div>
+      
+      <div class="workflow-step" onclick="showHelp('hibernate')">
+        <div class="icon">⏸️</div>
+        <div>Hibernate VM</div>
+      </div>
+      
+      <div class="workflow-step" onclick="showHelp('restore')">
+        <div class="icon">♻️</div>
+        <div>Restore VM</div>
+      </div>
+
+      <div class="workflow-step" onclick="showHelp('delete')">
+        <div class="icon">🛑</div>
+        <div>Delete VM</div>
+      </div>
+
+      <div class="mt-3 p-2" style="background: #e8f4f8; border-radius: 6px; font-size: 0.8rem; border-left: 3px solid #667eea;">
+        <strong>💡 Quick Help</strong><br>
+        <small class="text-muted">Click any action above for copy-ready commands</small>
+      </div>
+    
+    </div>
+
+  </leftside>
+
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Main Card -->
     <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
       <div class="d-flex justify-content-between align-items-center">
         <div>
@@ -33,80 +77,83 @@
         <button class="btn btn-light btn-sm" onclick="goBackToProjectPanel()">← Back</button>
       </div>
     </div>
-
-    <!-- VMs List -->
-    <!-- <div id="vmsList">
-        <div class="empty-state">
-            <div class="empty-state-icon">⏳</div>
-            <p>Loading VMs...</p>
+    <div class="card-body" style="background:white; padding: 5px;">
+    <!-- VMs List Card -->
+      <div class="card" style="margin-bottom: 5px; box-shadow: none; border: 1px solid #757de7;">
+        <div class="card-header" style="background: #757de7; padding: 6px 6px; line-height: 1.1;">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="mb-0">VMs (<span id="vmCount">0</span>)</h6>
+            </div>
+            <!-- Refresh Button -->
+            <button class="btn btn-primary btn-sm" style="width: fit-content;" onclick="loadVms()">
+                <span id="refreshBtn-text">🔄 Refresh GPU VMs</span>
+                <!-- <span id="refreshBtn-spinner" class="spinner-border spinner-border-sm ms-2" style="display: none;"></span> -->
+            </button>
+          </div>
         </div>
         <div id="vmsList" style="max-height: 200px; overflow-y: auto; padding: 0;">
-          <div class="text-center text-muted p-3">Loading VMs...</div>
+          <div class="text-center text-muted p-3">
+            <p class="text-center mt-0 mb-0 fs-5">Loading VMs...</p>
+            <div class="empty-state-icon" style="font-size: 2.5rem;">⏳</div>
+          </div>
         </div>
-    </div> -->
+      </div>
 
-    <div class="card mt-4" style="box-shadow: none; border: 1px solid #757de7;">
+      <!-- <div class="mb-1">
+        <label for="vmName" class="form-label mb-1"><strong></strong></label>
+        <input type="text" 
+              id="vmName" 
+              class="form-control" 
+              placeholder="[GPU VM to manage]">
+      </div> -->
+
+      <div class="d-grid gap-2 mb-0">
+        <input type="hidden" id="vmName" value=""> 
+        <p id="vmSelectedDisplay" class="alert alert-info text-center mb-0 p-2" style="display:none;">
+            VM Selected: <strong><span id="selectedVmName"></span></strong>
+        </p>
+      </div>
+
+      <div class="d-grid gap-2" id="vmActionButtons">
+          <div class="button-group">
+              <button class="btn btn-warning" onclick="triggerLongAction('hibernate_vm')">⏸️ Hibernate GPU VM</button>
+              <button class="btn btn-success" onclick="triggerLongAction('restore_vm')">♻️ Restore GPU VM</button>
+          </div>
+          <button id="deleteVmButton" class="btn btn-danger">🛑 Delete GPU VM</button>
+      </div>
+    </div>
+
+    <!-- Help Card (contextual) -->
+    <div class="help-card mt-3" id="helpCard">
+      <div id="helpContent">
+        <strong>🔍 Check VM Status</strong>
+        <p class="mb-0 mt-2">Select a VM from the list below to view its current status and details.</p>
+      </div>
+    </div>
+
+  </main>
+
+  <rightside>
+     <div id="progress-panel" class="card mt-1" style="box-shadow: none; border: 1px solid #757de7;">
       <div class="card-header" style="background: #757de7; padding: 6px 6px; line-height: 1.1;">
         <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <h6 class="mb-0">VMs (<span id="vmCount">0</span>)</h6>
+            <h6 class="mb-0">Progress Panel</h6>
+        </div>
+      </div>
+      <div class="card-body" style="max-height: 160px; overflow-y: auto; padding: 0;">
+          <div id="progress-content" class="alert alert-info" role="alert">
+            Ready, waiting for user action.
           </div>
-          <!-- Refresh Button -->
-          <button class="btn btn-primary btn-sm" style="width: fit-content;" onclick="loadVms()">
-              <span id="refreshBtn-text">🔄 Refresh GPU VMs</span>
-              <!-- <span id="refreshBtn-spinner" class="spinner-border spinner-border-sm ms-2" style="display: none;"></span> -->
-          </button>
-        </div>
-      </div>
-      <div id="vmsList" style="max-height: 150px; overflow-y: auto; padding: 0;">
-        <div class="text-center text-muted p-3">
-          <p class="text-center mt-0 mb-0 fs-5">Loading VMs...</p>
-          <div class="empty-state-icon" style="font-size: 2.5rem;">⏳</div>
-        </div>
       </div>
     </div>
 
-
-
-    <div class="mb-3">
-        <label for="vmName" class="form-label"><strong></strong></label>
-        <input type="text" 
-               id="vmName" 
-               class="form-control" 
-               placeholder="[GPU VM to manage]">
-    </div>
-
-    <div class="d-grid gap-2">
-        <!-- <button class="btn btn-primary" onclick="updateStatus('simulation_running')">▶️ Run Simulation</button>
-        <button class="btn btn-warning" onclick="updateStatus('simulation_paused')">⏸️ Pause Simulation</button>
-        <button class="btn btn-success" onclick="updateStatus('simulation_running')">🔁 Resume Simulation</button>
-        <button class="btn btn-danger" onclick="updateStatus('simulation_complete')">🛑 Stop Simulation</button>
-        <button class="btn btn-info" onclick="updateStatus('finalized')">💰 Finalize & Show Credits</button> -->
-        <!-- <div class="d-flex justify-content-between"> -->
-        <!-- <button class="btn btn-secondary" onclick="trigger('check_status')">🔍 Check Details</button> -->
-        <div class="button-group">
-            <button class="btn btn-warning" onclick="triggerLongAction('hibernate_vm')">⏸️ Hibernate GPU VM</button>
-            <button class="btn btn-success" onclick="triggerLongAction('restore_vm')">♻️ Restore GPU VM</button>
-        </div>
-        <!-- <button class="btn btn-danger" onclick="stopSimulation()">🛑 Delete GPU VM</button> -->
-        <button id="deleteVmButton" class="btn btn-danger">🛑 Delete GPU VM</button>
-    </div>
-  
     <div id="status-message"></div>
-
-<div id="progress-panel" class="card mt-4" style="box-shadow: none; border: 1px solid #757de7;">
-  <div class="card-header" style="background: #757de7; padding: 6px 6px; line-height: 1.1;">
-    <div class="d-flex justify-content-between align-items-center">
-        <h6 class="mb-0">Progress Panel</h6>
-    </div>
-  </div>
-  <div class="card-body" style="max-height: 160px; overflow-y: auto; padding: 0;">
-      <div id="progress-content" class="alert alert-info" role="alert">
-        Ready, waiting for user action.
-      </div>
-  </div>
-</div>
-
+      <!-- <div id="loading-spinner" class="text-center my-3" style="display:none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+      </div> -->
     <!-- <div id="progress-panel" class="mt-3">
         <h5>Progress Panel</h5>
         <div id="progress-content" class="alert alert-info" role="alert">
@@ -114,20 +161,21 @@
         </div>
     </div> -->
 
-    <div id="loading-spinner" class="text-center my-3" style="display:none;">
+    <!-- <div id="loading-spinner" class="text-center my-3" style="display:none;">
         <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Loading...</span>
         </div>
-    </div>
+    </div> -->
 
     <!-- <div class="card mt-3" id="markdown-panel" style="max-height: 400px; overflow-y: auto;">
         <div class="card-header text-white">
-        <strong>Details</strong>
+          <strong>Details</strong>
         </div>
         <div class="card-body" id="markdown-content"> -->
-        <!-- Rendered markdown HTML goes here -->
+          <!-- Rendered markdown HTML goes here -->
         <!-- </div>
     </div> -->
+
     <!-- <div id="detailsPanel" class="card mt-3" style="margin-top: 15px;">
         <div class="card-header text-white">
         <strong>Details</strong>
@@ -135,8 +183,6 @@
         <div class="card-body" id="detailsPanel">
         </div>
     </div> -->
-
-
 
     <div class="card mt-4" style="box-shadow: none; border: 1px solid #8c8d92;">
       <div class="card-header" style="background: #8c8d92; padding: 6px 6px; line-height: 1.1;">
@@ -146,9 +192,9 @@
           </div>
         </div>
       </div>
-      <div id="detailsPanel" style="max-height: 100px; overflow-y: auto; padding: 0;">
-        <div class="text-center text-muted p-3">
-        </div>
+
+      <div class="card-body p-3" id="markdown-content">
+          <!-- Rendered markdown HTML goes here -->
       </div>
     </div>
 
@@ -158,28 +204,30 @@
             <!-- History items will be injected here -->
         </div>
     </div>
+  </rightside>
+</div>
 
-    <!-- Delete Confirmation Modal -->
-    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header bg-danger text-white">
-            <h5 class="modal-title" id="confirmDeleteModalLabel">Confirm Deletion</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            ⚠️ Are you sure you want to <strong>delete this GPU VM</strong>?<br>
-            This action <strong>cannot be undone</strong>.
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Yes, delete it</button>
-          </div>
-        </div>
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="confirmDeleteModalLabel">Confirm Deletion</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        ⚠️ Are you sure you want to <strong>delete this GPU VM</strong>?<br>
+        This action <strong>cannot be undone</strong>.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Yes, delete it</button>
       </div>
     </div>
-
+  </div>
 </div>
+
+<!-- </div> -->
 
 <script>
 // const urlParams = new URLSearchParams(window.location.search);
@@ -188,6 +236,7 @@
 
 // Example: load data via API (pseudo)
 // fetch(`/api/vms?project_id=${projectId}`).then(...)
+document.getElementById('deleteVmButton').onclick = deleteVm;
 
 let projectId = null;
 
@@ -204,6 +253,131 @@ window.addEventListener('load', () => {
 //   document.querySelector('.card p-3').innerHTML = `<h4>Create a new GPU VM - Project: <code>${projectId}</code></h4>`;
 });
 
+window.addEventListener('load', async () => {
+  projectId = getProjectIdFromUrl();
+  
+  if (!projectId) {
+    showMessage('No project ID provided', 'danger');
+    return;
+  }
+  
+  // Load VMs
+  await loadVms();
+});
+
+// Help content for each action
+const helpContent = {
+  check: {
+    title: '🔍 Check VM Status',
+    content: 'View current status, IP address, and resource usage of your VM.'
+  },
+  upload: {
+    title: '📤 Upload Data to VM',
+    content: `Upload your code and data to the running VM:<br><br>
+      <code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
+        rsync -avz --progress ./local-folder/ user@VM_IP:/remote/path/
+      </code>
+      <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyCommand('rsync -avz --progress ./local-folder/ user@VM_IP:/remote/path/')">📋 Copy</button>
+      <br><br><small class="text-muted">Replace VM_IP with your actual VM IP address from the status check</small>`
+  },
+  download: {
+    title: '📥 Download Data from VM',
+    content: `Download results from your VM:<br><br>
+      <code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
+        rsync -avz --progress user@VM_IP:/remote/results/ ./local-results/
+      </code>
+      <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyCommand('rsync -avz --progress user@VM_IP:/remote/results/ ./local-results/')">📋 Copy</button>
+      <br><br><small class="text-muted">Download your results before hibernating or deleting the VM</small>`
+  },
+  hibernate: {
+    title: '⏸️ Hibernate VM',
+    content: `Pause your VM to stop compute charges while preserving data:<br><br>
+      <strong>What happens:</strong><br>
+      • VM stops running (compute charges stop)<br>
+      • Data is preserved (storage charges continue)<br>
+      • Can be restored later<br><br>
+      Enter the VM name and click "Hibernate VM" button.`
+  },
+  restore: {
+    title: '♻️ Restore VM',
+    content: `Resume a hibernated VM:<br><br>
+      <strong>What happens:</strong><br>
+      • VM starts running again<br>
+      • All data is preserved<br>
+      • Compute charges resume<br><br>
+      Enter the VM name and click "Restore VM" button.`
+  },
+  delete: {
+    title: '🛑 Delete VM',
+    content: `<span style="color: #dc3545;"><strong>⚠️ Permanent Action</strong></span><br><br>
+      Deleting a VM will:<br>
+      • Permanently remove all data<br>
+      • Stop all charges<br>
+      • Cannot be undone<br><br>
+      <small class="text-muted">Make sure to download any important data before deleting!</small>`
+  }
+};
+
+// function showHelp(action) {
+//   const help = helpContent[action];
+//   document.getElementById('helpContent').innerHTML = `
+//     <strong>${help.title}</strong>
+//     <p class="mb-0 mt-2">${help.content}</p>
+//   `;
+  
+//   // Update active state
+//   document.querySelectorAll('.workflow-step').forEach(el => {
+//     el.classList.remove('active');
+//   });
+//   event.currentTarget.classList.add('active');
+// }
+
+function showHelp(action, vmIp = null) {
+  // ... update help content ...
+  const help = helpContent[action];
+  document.getElementById('helpContent').innerHTML = `
+    <strong>${help.title}</strong>
+    <p class="mb-0 mt-2">${help.content}</p>
+  `;
+  
+  // Update active state
+  document.querySelectorAll('.workflow-step').forEach(el => {
+    el.classList.remove('active');
+  });
+  // ✅ Call separate function that doesn't need event
+  updateSidebarActive(action);
+}
+
+// New helper function
+function updateSidebarActive(action) {
+  const actionMap = {
+    'check': 0,
+    'upload': 1,
+    'download': 2,
+    'hibernate': 3,
+    'restore': 4,
+    'delete': 5
+  };
+  
+  const steps = document.querySelectorAll('.workflow-step');
+  steps.forEach(el => el.classList.remove('active'));
+  
+  const index = actionMap[action];
+  if (index !== undefined && steps[index]) {
+    steps[index].classList.add('active');
+  }
+}
+
+function copyCommand(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    event.target.textContent = '✓ Copied!';
+    setTimeout(() => {
+      event.target.textContent = '📋 Copy';
+    }, 2000);
+  });
+}
+
+
 function goBackToProjectPanel() {
   window.location.href = `project_panel.html?project_id=${encodeURIComponent(projectId)}`;
 }
@@ -218,42 +392,120 @@ document.getElementById("deleteVmButton").addEventListener("click", async () => 
   }
 });
 
+function selectVm(vmName) {
+    // 1. Update the hidden input field (vmName)
+    document.getElementById('vmName').value = vmName;
+
+    // 2. Update the visual display
+    document.getElementById('selectedVmName').textContent = vmName.replace(/_[^_]*$/, '');
+    document.getElementById('vmSelectedDisplay').style.display = 'block';
+
+    // 3. Highlight the selected item in the list
+    const listItems = document.querySelectorAll('#vmsList .list-group-item');
+    listItems.forEach(item => {
+        item.classList.remove('selected');
+    });
+
+    // Find and highlight the specific item
+    const selectedItem = document.querySelector(`[data-vm-name="${vmName}"]`);
+    if (selectedItem) {
+        selectedItem.classList.add('selected');
+    }
+
+    // 4. Enable the action buttons
+    document.querySelectorAll('#vmActionButtons button').forEach(button => {
+        button.disabled = false;
+    });
+
+    // Optional: Pre-fill status check
+    CheckVmStatus(vmName); 
+}
+
+
+// async function deleteVm() {
+//   const vmNameInput = document.getElementById('vmName').value.trim();
+//   if (!vmNameInput) {
+//     console.log('No VM Name given');
+//     showMessage('Please enter a VM Name', 'warning');
+//     return;
+//   }
+
+//   const deleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+//   const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+//   deleteModal.show();
+//   confirmDeleteBtn.onclick = async () => {
+//     try {
+//       // Optional: show a spinner or disable the button
+//       confirmDeleteBtn.disabled = true;
+//       confirmDeleteBtn.innerHTML = 'Deleting... ⏳';
+
+//       // Call your async function and wait for it to finish
+//       await triggerDeleteAction({ user_vm_name: vmNameInput });
+
+//       // If it succeeds, hide the modal
+//       deleteModal.hide();
+
+//       // Optional: show a success message or refresh UI
+//       // showMessage('GPU VM deleted successfully', 'success');
+//     } catch (err) {
+//       console.error('Error deleting VM:', err);
+//       showMessage('Failed to delete GPU VM', 'danger');
+//     } finally {
+//       // Re-enable button and restore text
+//       confirmDeleteBtn.disabled = false;
+//       confirmDeleteBtn.innerHTML = 'Yes, delete it';
+//     }
+//   };
+// }
+
 async function deleteVm() {
   const vmNameInput = document.getElementById('vmName').value.trim();
   if (!vmNameInput) {
-    console.log('No VM Name given');
     showMessage('Please enter a VM Name', 'warning');
     return;
   }
 
-  const deleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+  const deleteModalEl = document.getElementById('confirmDeleteModal');
+  const deleteModal = new bootstrap.Modal(deleteModalEl);
+
+  // Replace button to avoid stacked listeners
   const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+  confirmDeleteBtn.replaceWith(confirmDeleteBtn.cloneNode(true));
+  const newConfirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 
-  deleteModal.show();
-  confirmDeleteBtn.onclick = async () => {
+  // Handle deletion
+  newConfirmDeleteBtn.addEventListener('click', async () => {
     try {
-      // Optional: show a spinner or disable the button
-      confirmDeleteBtn.disabled = true;
-      confirmDeleteBtn.innerHTML = 'Deleting... ⏳';
-
-      // Call your async function and wait for it to finish
+      newConfirmDeleteBtn.disabled = true;
+      newConfirmDeleteBtn.innerHTML = 'Deleting... ⏳';
+      deleteModal.hide();
       await triggerDeleteAction({ user_vm_name: vmNameInput });
 
-      // If it succeeds, hide the modal
-      deleteModal.hide();
-
-      // Optional: show a success message or refresh UI
-      // showMessage('GPU VM deleted successfully', 'success');
+      showMessage('GPU VM deleted successfully', 'success');
     } catch (err) {
       console.error('Error deleting VM:', err);
       showMessage('Failed to delete GPU VM', 'danger');
     } finally {
-      // Re-enable button and restore text
-      confirmDeleteBtn.disabled = false;
-      confirmDeleteBtn.innerHTML = 'Yes, delete it';
+      newConfirmDeleteBtn.disabled = false;
+      newConfirmDeleteBtn.innerHTML = 'Yes, delete it';
     }
-  };
+  });
+
+  // Show the modal
+  deleteModal.show();
+
+  // 🔴 FIX: Ensure UI is fully restored when modal is hidden
+  deleteModalEl.addEventListener('hidden.bs.modal', () => {
+    // Remove the class that disables scrolling
+    document.body.classList.remove('modal-open');
+
+    // Remove the backdrop manually if it’s still there
+    const backdrop = document.querySelector('.modal-backdrop');
+    if (backdrop) backdrop.remove();
+  });
 }
+
 
 
 async function triggerDeleteAction(vmName) {
@@ -264,35 +516,46 @@ async function triggerDeleteAction(vmName) {
     const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/delete_vm`;
     
     console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
-    showProgress("VM deletion will start", 'info', 'delete_vm');
+    showProgress("VM deletion is starting", 'info', 'delete_vm');
     
     const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.message || 'Action failed');
+    }
     
-    const responseText = await response.text();
-    let data = JSON.parse(responseText);
-    
+    showProgress("VM deletion started", 'info', 'delete_vm');
     console.log('Response received:', data);
     
     if (data.success) {
-      showProgress('VM deletion started', 'info', 'delete_vm');
+      showProgress('VM deletion is over', 'info', 'delete_vm');
       // Subscribe to real-time updates if request_id provided
-      if (data.request_id) {
-        subscribeToStatusUpdates(data.request_id, action);
-      }
-        showDetails(JSON.stringify(data));
+      // if (data.request_id) {
+      //   subscribeToStatusUpdates(data.request_id, action);
+      // }
+      showDetails(JSON.stringify(data));
+      return;
     } else {
         showProgress(`VM deletion failed: ${data.message || 'Unknown error'}`, 'danger', 'delete_vm');
         showDetails(JSON.stringify(data));
+        throw new Error(data.message || 'Action failed');
     }
     
   } catch (error) {
     console.error('Error:', error);
     showProgress(`Error: ${error.message}`, 'danger', 'delete_vm');
     showDetails(error.message);
+    throw error; // Re-throw so caller knows it failed
   }
 }
 
@@ -315,7 +578,7 @@ async function triggerLongAction(action) {
     const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/${action}`;
     
     console.log('Calling webhook:', webhookUrl, 'on inputs:', payload);
-    showProgress('Restoring VM...', 'info', action);
+    showProgress('Handling VM...', 'info', action);
     
     const response = await fetch(webhookUrl, {
       method: 'POST',
@@ -418,13 +681,21 @@ function displayVmsList(responseData) {
   
   if (vms.length === 0) {
     vmsListDiv.innerHTML = '<div class="text-muted p-3">No VMs found</div>';
+    // Disable buttons if no VMs exist
+    document.querySelectorAll('#vmActionButtons button').forEach(button => {
+      button.disabled = true;
+    });
+    document.getElementById('vmSelectedDisplay').style.display = 'none';
     return;
   }
   
   vmsListDiv.innerHTML = `
     <div class="list-group list-group-flush">
       ${vms.map(vm => `
-        <div class="list-group-item">
+        <div class="list-group-item list-group-item-action" 
+              onclick="selectVm('${vm.vm_name}')"
+              data-vm-name="${vm.vm_name}"
+              style="cursor: pointer;">
           <div class="d-flex justify-content-between align-items-center">
             <div>
               <strong>${escapeHtml(vm.vm_name.replace(/_[^_]*$/, ''))}</strong>
@@ -433,27 +704,69 @@ function displayVmsList(responseData) {
                 ${vm.vm_ip || 'N/A'} • $${(vm.total_cost || 0).toFixed(2)}
               </small>
             </div>
-            <span class="badge bg-${vm.status === 'simulation_running' ? 'success' : 'secondary'}">
-              ${vm.status}
-            </span>
+            <span class="vm-status ${vm.status}">${vm.status.toUpperCase()}</span>
           </div>
         </div>
       `).join('')}
     </div>
   `;
+  // Ensure buttons are disabled until a selection is made (unless a selection was preserved)
+  document.querySelectorAll('#vmActionButtons button').forEach(button => {
+      button.disabled = true;
+  });
+  document.getElementById('vmSelectedDisplay').style.display = 'none';
 }
 
-window.addEventListener('load', async () => {
-  projectId = getProjectIdFromUrl();
-  
-  if (!projectId) {
-    showMessage('No project ID provided', 'danger');
-    return;
+async function CheckVmStatus(vmName) {
+  console.log('Test', vmName);
+  const payload = { vm_name: vmName };
+
+  // Show loading state
+  // document.getElementById('progress-content').innerHTML = 
+  //   `<strong>Checking status for ${escapeHtml(vmName)}...</strong>`;
+  // document.getElementById('loading-spinner').style.display = 'block';
+
+  try {
+    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/check_vm_status`;
+    
+    console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
+    // showProgress("VMs listing", 'info', 'list_vms');
+    
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    const data = await response.json();
+    console.log('Response received:', data);
+    
+    if (data.success) {
+      //Display the VM details
+      // updateHelpBasedOnStatus(data.vm_status);
+      showDetails(JSON.stringify(data));
+      displayVmDetails(data);
+      // document.getElementById('loading-spinner').style.display = 'none';
+    } else {
+      // showProgress(`❌VM listing failed: ${data.message || 'Unknown error'}`, 'danger', 'list_vms');
+      // document.getElementById('vmsList').innerHTML = '<div class="text-danger p-3">Failed to load VMs</div>';
+    }
+    
+  } catch (error) {
+    console.error('Error:', error);
+    showDetails(error.message);
   }
-  
-  // Load VMs
-  await loadVms();
-});
+}
+
+// Update contextual help based on VM status
+// function updateHelpBasedOnStatus(vm_status, vmIp = null) {
+//   if (vm_status === 'simulation_running' || status === 'running') {
+//     showHelp('upload', vmIp);
+//   } else if (status === 'hibernated') {
+//     showHelp('restore', vmIp);
+//   }
+// }
+
 
 async function loadVms() {
 

@@ -174,6 +174,23 @@ function showDetails(data) {
 }
 
 
+function showDetailsMarkdown(data) {
+  const detailsPanel = document.getElementById('detailsPanel');
+  if (!detailsPanel) return;
+  
+  try {
+    // Try to parse and pretty-print if it's JSON
+    const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+    detailsPanel.innerHTML = `<pre>${JSON.stringify(parsed, null, 2)}</pre>`;
+  } catch (e) {
+    // If not JSON, just display as-is
+    detailsPanel.textContent = data;
+  }
+  
+  detailsPanel.style.display = 'block';
+}
+
+
 function getActionLabel(action) {
   const labels = {
     'run_simulation': '▶️ Starting Simulation',
@@ -220,6 +237,7 @@ function subscribeToStatusUpdates(requestId, action) {
             table: 'vm_creation_requests',
             filter: `form_submission_unique_id=eq.${requestId}`},
             (payload) => {
+              console.log('Update payload:', payload);
               handleRealtimeUpdate(payload.new, action);
             }
         )
@@ -258,9 +276,9 @@ function handleRealtimeUpdate(data, action) {
   
   // Determine completion states based on action
   const isComplete = 
-    (action === 'create_vm' && data.request_status === 'simulation_running') ||
+    (action === 'create_vm' && data.request_status === 'running') ||
     (action === 'hibernate_vm' && data.request_status === 'hibernated') ||
-    (action === 'restore_vm' && data.request_status === 'simulation_running') ||
+    (action === 'restore_vm' && data.request_status === 'running') ||
     (action === 'stop_simulation' && data.request_status === 'deleted');
   
   const isError = 
@@ -270,6 +288,7 @@ function handleRealtimeUpdate(data, action) {
 
   if (isComplete && resolver) {
     showMessage(`✅ ${action} completed successfully!`, 'success');
+    displayVmDetailsFromSupabaseUpdate(data);
     addToHistory(action, JSON.stringify(data), 'success');
     resolver.resolve(data); // Cleanup happens in resolve wrapper
   } 
@@ -302,6 +321,212 @@ async function pollCurrentStatus(requestId) {
     console.error('Failed to poll status:', err);
     return null;
   }
+}
+
+// Display VM details nicely
+function displayVmDetails(data) {
+  if (!data || !data.success) {
+    document.getElementById('markdown-content').innerHTML = `
+      <div class="alert alert-danger">
+        <strong>Error:</strong> ${data?.message || 'Failed to retrieve VM details'}
+      </div>
+    `;
+    return;
+  }
+  
+  // Store IP for commands
+  currentVmIp = data.public_ip;
+  
+  // Map status to friendly display
+  const statusMap = {
+    'simulation_running': { label: 'Running', class: 'success', icon: '✓' },
+    'simulation_paused': { label: 'Hibernated', class: 'warning', icon: '⏸️' },
+    'simulation_complete': { label: 'Stopped', class: 'secondary', icon: '■' },
+    'error': { label: 'Error', class: 'danger', icon: '⚠️' }
+  };
+  
+  const status = statusMap[data.vm_status] || { label: data.vm_status, class: 'info', icon: 'ℹ️' };
+  
+  document.getElementById('markdown-content').innerHTML = `
+    <div class="row g-0">
+      <!-- Status Badge -->
+      <div class="col-12">
+        <div class="alert alert-${status.class} mb-0" role="alert">
+          <h5 class="mb-0">${status.icon} Status: ${status.label}</h5>
+        </div>
+      </div>
+
+      <!-- Connection Info -->
+      <div class="col-sm-6">
+        <div class="card border-primary">
+          <div class="card-body">
+            <h6 class="card-subtitle mb-2 text-muted">Connection</h6>
+            <p class="mb-1"><strong>IP Address:</strong></p>
+            <code style="font-size: 1.1rem;">${data.public_ip}</code>
+            <button class="btn btn-sm btn-outline-primary mt-2" onclick="copyCommand('${data.public_ip}')">
+              📋 Copy IP
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Cost Info -->
+      <div class="col-sm-6">
+        <div class="card border-success">
+          <div class="card-body">
+            <h6 class="card-subtitle mb-2 text-muted">Billing</h6>
+            <p class="mb-1"><strong>Total Cost :</strong></p>
+            <span style="font-size: 1.5rem; font-weight: bold; color: #28a745;">
+              $${data.total_cost.toFixed(2)}
+            </span>
+          </div>
+        </div>
+      </div>
+       
+      <!-- Configuration -->
+      <div class="col-12">
+        <table class="table table-sm table-hover">
+          <tbody>
+            <tr>
+              <td class="text-muted" style="width: 40%;"><strong>Hardware</strong></td>
+              <td>${escapeHtml(data.hardware_flavor)}</td>
+            </tr>
+            <tr>
+              <td class="text-muted"><strong>Base Image</strong></td>
+              <td>${escapeHtml(data.base_image)}</td>
+            </tr>
+            <tr>
+              <td class="text-muted"><strong>Environment</strong></td>
+              <td><code>${escapeHtml(data.environment)}</code></td>
+            </tr>
+            <tr>
+              <td class="text-muted"><strong>Created</strong></td>
+              <td>${escapeHtml(data.created_at)}</td>
+            </tr>
+            <tr>
+              <td class="text-muted"><strong>User</strong></td>
+              <td>${escapeHtml(data.user_id)}</td>
+            </tr>
+            ${data.total_paused_time > 0 ? `
+            <tr>
+              <td class="text-muted"><strong>Paused Time</strong></td>
+              <td>${formatTime(data.total_paused_time)}</td>
+            </tr>
+            ` : ''}
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Quick Actions -->
+      <div class="col-12">
+        <div class="alert alert-info" role="alert">
+          <strong>💡 Quick Tip:</strong> Click actions in the sidebar for copy-ready commands
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Display VM details nicely
+function displayVmDetailsFromSupabaseUpdate(data) {
+  // if (!data || !data.request_status == running) {
+  //   document.getElementById('markdown-content-create').innerHTML = `
+  //     <div class="alert alert-danger">
+  //       <strong>Error:</strong> ${data?.message || 'Failed to retrieve VM details'}
+  //     </div>
+  //   `;
+  //   return;
+  // }
+  
+  // Store IP for commands
+  currentVmIp = data.user_vm_ip;
+  
+  // Map status to friendly display
+  const statusMap = {
+    'running': { label: 'Running', class: 'success', icon: '✓' },
+    'hibernated': { label: 'Hibernated', class: 'warning', icon: '⏸️' },
+    'deleted': { label: 'Deleted', class: 'secondary', icon: '■' },
+    'error': { label: 'Error', class: 'danger', icon: '⚠️' }
+  };
+  
+  const status = statusMap[data.request_status] || { label: data.request_status, class: 'info', icon: 'ℹ️' };
+  
+  document.getElementById('markdown-content-create').innerHTML = `
+    <div class="row g-0">
+      <!-- Status Badge -->
+      <div class="col-12">
+        <div class="alert alert-${status.class} mb-0" role="alert">
+          <h5 class="mb-0">${status.icon} Status: ${status.label}</h5>
+        </div>
+      </div>
+
+      <!-- Connection Info -->
+      <div class="col-sm-6">
+        <div class="card border-primary">
+          <div class="card-body">
+            <h6 class="card-subtitle mb-2 text-muted">Connection</h6>
+            <p class="mb-1"><strong>IP Address:</strong></p>
+            <code style="font-size: 1.1rem;">${data.user_vm_ip}</code>
+            <button class="btn btn-sm btn-outline-primary mt-2" onclick="copyCommand('${data.user_vm_ip}')">
+              📋 Copy IP
+            </button>
+          </div>
+        </div>
+      </div>
+       
+      <!-- Configuration -->
+      <div class="col-12">
+        <table class="table table-sm table-hover">
+          <tbody>
+            <tr>
+              <td class="text-muted" style="width: 40%;"><strong>Name</strong></td>
+              <td>${escapeHtml(data.user_vm_name.replace(/_[^_]*$/, ''))}</td>
+            </tr>
+            <tr>
+              <td class="text-muted" style="width: 40%;"><strong>Hardware</strong></td>
+              <td>${escapeHtml(data.hardware_flavor)}</td>
+            </tr>
+            <tr>
+              <td class="text-muted"><strong>Base Image</strong></td>
+              <td>${escapeHtml(data.base_image)}</td>
+            </tr>
+            <tr>
+              <td class="text-muted"><strong>Environment</strong></td>
+              <td><code>${escapeHtml(data.environment_name)}</code></td>
+            </tr>
+            <tr>
+              <td class="text-muted"><strong>Created</strong></td>
+              <td>${new Date(data.created_at).toLocaleString('en-GB', { timeZone: 'Asia/Qatar', dateStyle: 'medium', timeStyle: 'short', hour12: false })}</td>
+            </tr>
+            <tr>
+              <td class="text-muted"><strong>User</strong></td>
+              <td>${escapeHtml(data.user_id)}</td>
+            </tr>
+            ${data.total_paused_time > 0 ? `
+            <tr>
+              <td class="text-muted"><strong>Paused Time</strong></td>
+              <td>${formatTime(data.total_paused_time)}</td>
+            </tr>
+            ` : ''}
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Quick Actions -->
+      <div class="col-12">
+        <div class="alert alert-info" role="alert">
+          <strong>💡 Quick Tip:</strong> Click actions in the sidebar for copy-ready commands
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Format time helper
+function formatTime(seconds) {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  return `${hours}h ${minutes}m`;
 }
 
 function formatResponseData(data, action) {
@@ -403,10 +628,17 @@ function formatResponseData(data, action) {
     });
   }
 
+  // if (data.request_status) {
+  // details.push({
+  //   label: 'GPU VM Status',
+  //   value: `<span class="badge bg-info">${escapeHtml(data.request_status)}</span>`
+  // });
+  // }
+
   if (data.request_status) {
   details.push({
     label: 'GPU VM Status',
-    value: `<span class="badge bg-info">${escapeHtml(data.request_status)}</span>`
+    value: `<span class="alert alert-primary">${escapeHtml(data.request_status)}</span>`
   });
   }
   
@@ -438,13 +670,22 @@ function formatStatusUpdate(data) {
     'provisioning_vm': '🔄 Creating your VM...',
     'vm_ready': '✅ VM is ready!',
     'uploading_data': '📤 Uploading your data...',
-    'simulation_running': '🚀 Simulation is running!',
+    'running': '🚀 VM is running!',
     'simulation_paused': '⏸️ Simulation paused',
     'simulation_complete': '✅ Simulation complete!',
     'deleted': '❌ Deleting VM'
   };
   
   return statusMessages[data.request_status] || `Status: ${data.request_status}`;
+}
+
+function clearProgressPanel() {
+  const progressContent = document.getElementById('progress-content');
+  progressContent.innerHTML = ''; 
+  progressContent.innerHTML = 'Ready, waiting for user action.';
+
+  // Optional: Reset the alert class for a neutral look if needed
+  progressContent.className = 'alert alert-light';
 }
 
 // ============================================

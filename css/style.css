@@ -1,52 +1,4 @@
-/* Top Navigation Bar */
-.top-nav {
-    background: white;
-    border-bottom: 1px solid #e0e0e0;
-    padding: 12px 0;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-.top-nav .container {
-    max-width: 1200px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-.top-nav .logo {
-    height: 46px;
-    width: auto;
-}
 
-/* .top-nav .logo {
-  height: 36px;         /* tune to fit your bar */
-  /* width: auto;
-  display: inline-block;
-  vertical-align: middle;
-} */
-
-/* optional: prevent the image from stretching on small screens */
-.top-nav .container { display: flex; justify-content: space-between; align-items: center; } */
-
-
-.top-nav .title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #333;
-    margin-left: 15px;
-}
-.top-nav .links a {
-    color: #667eea;
-    text-decoration: none;
-    font-size: 0.9rem;
-    margin-left: 20px;
-}
-.top-nav .links a:hover {
-    text-decoration: underline;
-}
 /* Footer */
 .footer {
     position: fixed;
@@ -67,23 +19,162 @@
     text-decoration: underline;
 }
 
-body { 
+/* body { 
     padding: 20px; 
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
+} */
+
+
+body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+    margin: 0;
 }
-.container { 
+.main-wrapper {
+    /* max-width: none; */
+    max-width: 2000px;
+    /* width: 100%; */
+    margin: 0 auto;
+    display: flex;
+    gap: 20px;
+    padding-top: 80px;
+    justify-content: center;
+}
+
+.leftside {
+    display: flex; 
+    flex-direction: column; 
+    align-items: flex-end; 
+    flex: 1 1 auto;
+}
+
+.main-content {
+    flex: 0 0 612px;
+}
+
+.rightside {
+    /* flex: 1 1 auto;
+    width: 200px; */
+    /* display: flex; */
+    /* max-width: 400px; */
+    /* flex-direction: column;  */
+
+
+    flex: 0 0 200;
+    min-width: 200px; 
+    max-width: 200px;
+}
+
+/* .main-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px;
+  padding-top: 80px;
+} */
+
+/* Left grows leftward */
+/* .leftside {
+  right: 50%;
+  transform: translateX(-20px);
+  align-items: flex-end;
+} */
+
+/* Keep the main content fixed in the horizontal center */
+/* .main-content {
+  position: relative;
+  flex: 0 0 612px;
+  min-width: 612px;
+  max-width: 612px;
+  z-index: 2;
+} */
+
+/* Right grows rightward */
+/* .rightside {
+  left: 50%;
+  transform: translateX(20px);
+  align-items: flex-start;
+} */
+
+
+/* Make side panels absolutely positioned relative to the wrapper */
+/* .leftside, .rightside {
+  position: absolute;
+  top: 80px; 
+  display: flex;
+  flex-direction: column;
+} */
+
+
+.workflow-sidebar {
+/* Keep max-width to constrain its size */
+    max-width: 250px;
+    width: auto;
+    /* FIX: Force alignment to the right */
+    /* margin-left: auto; */
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    height: fit-content;
+    position: sticky;
+    top: 90px;
+}
+
+/* Help Card */
+.help-card {
+    /* width: 100%;*/
+    max-width: 700px;
+    width: auto;
+    /* FIX: Force alignment to the right */
+    margin-left: auto;
+    /* min-height: fit-content; */
+    background: #fff9e6;
+    border-left: 4px solid #ffc107;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+.help-card .copy-btn {
+    font-size: 0.85rem;
+    padding: 4px 8px;
+}
+
+/* To make the fixed-width rightside elements align properly */
+/* .rightside > div { */
+    /* Ensure child divs take up the full 600px width of the rightside container */
+    /* width: 100%; 
+} */
+
+
+/* .container { 
     max-width: 500px; 
-}
+} */
+
 .card { 
     box-shadow: 0 8px 16px rgba(0,0,0,0.2);
     border: none;
-    max-width: 100%;
+    /* max-width: 100%; */
     overflow: hidden;
+    /* This makes it responsive but caps its size */
+    width: 100%; 
+    max-width: 600px;
 }
+
+/* .card {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: none;
+    border-radius: 10px;
+    margin-bottom: 20px;
+} */
+
 .card-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -181,3 +272,140 @@ body {
 #progress-panel th {
   background-color: transparent !important;
 }
+
+/* Workflow Sidebar */
+.workflow-step {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.workflow-step:hover {
+    background: #f8f9fa;
+}
+.workflow-step.active {
+    background: #667eea;
+    color: white;
+}
+.workflow-step.completed {
+    background: #d4edda;
+    color: #155724;
+}
+.workflow-step .icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    font-size: 12px;
+}
+.workflow-step.active .icon {
+    background: white;
+    color: #667eea;
+}
+.workflow-step.completed .icon {
+    background: #28a745;
+    color: white;
+}
+
+
+/* .card {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: none;
+    border-radius: 10px;
+    margin-bottom: 20px;
+} */
+.card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 10px 10px 0 0;
+}
+
+/* VM List Items */
+.vm-item {
+    border-bottom: 1px solid #e0e0e0;
+    padding: 12px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+}
+.vm-item:hover {
+    background: #f8f9fa;
+}
+.vm-item:last-child {
+    border-bottom: none;
+}
+.vm-status {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.vm-status.running {
+    background: #d4edda;
+    color: #155724;
+}
+.vm-status.simulation_running {
+    background: #d4edda;
+    color: #155724;
+}
+.vm-status.hibernated {
+    background: #fff3cd;
+    color: #856404;
+}
+.vm-status.error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.vm-status.deleted {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+
+/* This is the class for each item in your list */
+.vm-entry {
+  cursor: pointer;
+  padding: 8px 12px; /* Add some padding for better spacing */
+  border-bottom: 1px solid #f0f0f0; /* Optional: adds a line between items */
+}
+
+/* This is the hover effect */
+.vm-entry:hover {
+  background-color: #f8f9fa; /* A very light gray */
+}
+
+/* This is the class that will be added on click */
+.vm-entry.selected {
+  background-color: #cfe2ff; /* A standard light blue */
+  font-weight: 500;
+}
+
+.list-group-item.selected {
+  /* Highlight the selected row */
+  background-color: #eaf0ff; /* Light blue/purple to match gradient theme */
+  border-left: 5px solid #667eea !important;
+  font-weight: bold;
+}
+
+/* Responsive */
+/* @media (max-width: 768px) {
+    .main-wrapper {
+    flex-direction: column;
+    }
+    .workflow-sidebar {
+    width: 100%;
+    position: relative;
+    top: 0;
+    }
+} */
