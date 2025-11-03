@@ -67,12 +67,26 @@
 
   <!-- Main Content -->
   <main class="main-content">
+    <nav class="breadcrumbs" aria-label="breadcrumb">
+      <ol>
+        <li><a href="project_panel.html">🏠 Home</a></li>
+        <li class="active">Manage VMs</li>
+      </ol>
+    </nav>
     <!-- Main Card -->
     <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
       <div class="d-flex justify-content-between align-items-center">
         <div>
           <h2 class="mb-0">⚙️ Manage VMs</h2>
-            Project: <code id="projectIdDisplay" class="text-white">Loading...</code>
+          <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+            <span style="background: rgba(255,255,255,0.3); padding: 5px 15px; border-radius: 20px; font-weight: 600; font-size: 1rem; display: inline-flex; align-items: center; gap: 6px;">
+              <span style="font-size: 1.2rem;">📂</span>
+              <span id="projectNameDisplay">Loading...</span>
+            </span>
+            <small style="opacity: 0.75;">
+              <code class="text-white" id="projectIdDisplay" style="font-size: 0.85rem;">Loading...</code>
+            </small>
+          </div>
         </div>
         <button class="btn btn-light btn-sm" onclick="goBackToProjectPanel()">← Back</button>
       </div>
@@ -86,7 +100,7 @@
               <h6 class="mb-0">VMs (<span id="vmCount">0</span>)</h6>
             </div>
             <!-- Refresh Button -->
-            <button class="btn btn-primary btn-sm" style="width: fit-content;" onclick="loadVms()">
+            <button id="refreshVmsButton"  class="btn btn-primary btn-sm" style="width: fit-content;" onclick="loadVms()">
                 <span id="refreshBtn-text">🔄 Refresh GPU VMs</span>
                 <!-- <span id="refreshBtn-spinner" class="spinner-border spinner-border-sm ms-2" style="display: none;"></span> -->
             </button>
@@ -138,7 +152,7 @@
      <div id="progress-panel" class="card mt-1" style="box-shadow: none; border: 1px solid #757de7;">
       <div class="card-header" style="background: #757de7; padding: 6px 6px; line-height: 1.1;">
         <div class="d-flex justify-content-between align-items-center">
-            <h6 class="mb-0">Progress Panel</h6>
+            <h6 class="mb-0">🧩 Progress</h6>
         </div>
       </div>
       <div class="card-body" style="max-height: 160px; overflow-y: auto; padding: 0;">
@@ -184,16 +198,16 @@
         </div>
     </div> -->
 
-    <div class="card mt-4" style="box-shadow: none; border: 1px solid #8c8d92;">
-      <div class="card-header" style="background: #8c8d92; padding: 6px 6px; line-height: 1.1;">
+    <div class="card mt-4" style="box-shadow: none; border: 1px solid #7e3baa;">
+      <div class="card-header" style="background: #7e3baa; padding: 6px 6px; line-height: 1.1;">
         <div class="d-flex justify-content-between align-items-center">
           <div>
-            <h6 class="mb-0">Details</h6>
+            <h6 class="mb-0">🔍 Details</h6>
           </div>
         </div>
       </div>
 
-      <div class="card-body p-3" id="markdown-content">
+      <div class="card-body p-3" id="markdown-content-manage">
           <!-- Rendered markdown HTML goes here -->
       </div>
     </div>
@@ -203,6 +217,20 @@
         <div id="responseHistoryList" class="list-group" style="max-height:100px; overflow-y:auto;">
             <!-- History items will be injected here -->
         </div>
+    </div>
+
+    <div id="errorCard" class="card mt-4" style="display:none; box-shadow: none; border: 1px solid #e74a4a;">
+      <div class="card-header" style="background: #e74a4a; padding: 6px 6px; line-height: 1.1;">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="mb-0">🚫 Errors</h6>
+          </div>
+        </div>
+      </div>
+      <div id="errorPanel" style="max-height: 100px; overflow-y: auto; padding: 0;">
+        <div class="text-center text-muted p-3">
+        </div>
+      </div>
     </div>
   </rightside>
 </div>
@@ -236,7 +264,6 @@
 
 // Example: load data via API (pseudo)
 // fetch(`/api/vms?project_id=${projectId}`).then(...)
-document.getElementById('deleteVmButton').onclick = deleteVm;
 
 let projectId = null;
 
@@ -248,9 +275,20 @@ window.addEventListener('load', () => {
     showMessage('No project ID provided', 'danger');
     return;
   }
+  // document.getElementById('projectNameDisplay').textContent = projectId;
+  // console.log('Project Name:', projectId);
+
   document.getElementById('projectIdDisplay').textContent = projectId;
   console.log('Project ID:', projectId);
 //   document.querySelector('.card p-3').innerHTML = `<h4>Create a new GPU VM - Project: <code>${projectId}</code></h4>`;
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  // const projectId = localStorage.getItem('currentProjectId') || 'Unknown';
+  const projectName = localStorage.getItem('currentProjectName') || 'Untitled Project';
+  
+  // document.getElementById('projectIdDisplay').textContent = projectId;
+  document.getElementById('projectNameDisplay').textContent = projectName;
 });
 
 window.addEventListener('load', async () => {
@@ -390,6 +428,11 @@ document.getElementById("deleteVmButton").addEventListener("click", async () => 
     console.error('Unhandled error in createVm:', err);
     showMessage(`Unexpected error: ${err.message}`, 'danger');
   }
+  // } finally {
+  //   // 3️⃣ Re-enable and restore button text
+  //   deleteVmButton.disabled = false;
+  //   deleteVmButton.innerHTML = originalHTML;
+  // }
 });
 
 function selectVm(vmName) {
@@ -474,12 +517,29 @@ async function deleteVm() {
   confirmDeleteBtn.replaceWith(confirmDeleteBtn.cloneNode(true));
   const newConfirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 
-  // Handle deletion
+  // // Handle deletion
+  // newConfirmDeleteBtn.addEventListener('click', async () => {
+  // When user confirms deletion
   newConfirmDeleteBtn.addEventListener('click', async () => {
+    const deleteVmButton = document.getElementById('deleteVmButton');
+    const originalHTML = deleteVmButton.innerHTML;
+
     try {
-      newConfirmDeleteBtn.disabled = true;
-      newConfirmDeleteBtn.innerHTML = 'Deleting... ⏳';
+      // Close modal
       deleteModal.hide();
+
+      // newConfirmDeleteBtn.disabled = true;
+      // newConfirmDeleteBtn.innerHTML = 'Deleting... ⏳';
+      // deleteModal.hide();
+
+      // Disable and show spinner on main button
+      deleteVmButton.disabled = true;
+      deleteVmButton.innerHTML = `
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        Deleting GPU VM...
+      `;
+
+      // Perform delete action
       await triggerDeleteAction({ user_vm_name: vmNameInput });
 
       showMessage('GPU VM deleted successfully', 'success');
@@ -487,8 +547,11 @@ async function deleteVm() {
       console.error('Error deleting VM:', err);
       showMessage('Failed to delete GPU VM', 'danger');
     } finally {
-      newConfirmDeleteBtn.disabled = false;
-      newConfirmDeleteBtn.innerHTML = 'Yes, delete it';
+      // newConfirmDeleteBtn.disabled = false;
+      // newConfirmDeleteBtn.innerHTML = 'Yes, delete it';
+      // Restore button
+      deleteVmButton.disabled = false;
+      deleteVmButton.innerHTML = originalHTML;
     }
   });
 
@@ -535,26 +598,24 @@ async function triggerDeleteAction(vmName) {
     }
     
     showProgress("VM deletion started", 'info', 'delete_vm');
+    CheckVmStatus(vmName.user_vm_name);
     console.log('Response received:', data);
     
     if (data.success) {
       showProgress('VM deletion is over', 'info', 'delete_vm');
-      // Subscribe to real-time updates if request_id provided
-      // if (data.request_id) {
-      //   subscribeToStatusUpdates(data.request_id, action);
-      // }
-      showDetails(JSON.stringify(data));
+      // CheckVmStatus(vmName.user_vm_name);
+      displayVmDetails(data);
       return;
     } else {
         showProgress(`VM deletion failed: ${data.message || 'Unknown error'}`, 'danger', 'delete_vm');
-        showDetails(JSON.stringify(data));
+        showError(JSON.stringify(data));
         throw new Error(data.message || 'Action failed');
     }
     
   } catch (error) {
     console.error('Error:', error);
     showProgress(`Error: ${error.message}`, 'danger', 'delete_vm');
-    showDetails(error.message);
+    showError(error.message);
     throw error; // Re-throw so caller knows it failed
   }
 }
@@ -567,6 +628,24 @@ async function triggerLongAction(action) {
     showMessage('Please enter a VM Name', 'warning');
     return;
   }
+
+  // Identify the clicked button dynamically
+  const button = event.target;
+  const originalHTML = button.innerHTML;
+
+  // Determine action label for spinner text
+  const actionLabels = {
+    hibernate_vm: 'Hibernating...',
+    restore_vm: 'Restoring...'
+  };
+  const label = actionLabels[action] || 'Processing...';
+
+  // Disable and show spinner
+  button.disabled = true;
+  button.innerHTML = `
+    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+    ${label}
+  `;
 
   const payload = { 
     vm_name: vmNameInput, 
@@ -597,10 +676,13 @@ async function triggerLongAction(action) {
     }
     
     showProgress('✅ Request accepted. Monitoring status...', 'success', action);
-    showDetails(JSON.stringify(data));
+    // showDetails(JSON.stringify(data));
+    displayVmDetails(data);
     
     if (!data.request_id) {
       // No real-time tracking available
+      button.disabled = false;
+      button.innerHTML = originalHTML;
       return data;
     }
     
@@ -626,10 +708,16 @@ async function triggerLongAction(action) {
       actionResolvers[requestId] = { 
         resolve: (data) => {
           cleanup();
+          // ✅ Action finished successfully → re-enable button
+          button.disabled = false;
+          button.innerHTML = originalHTML;
           resolve(data);
         },
         reject: (error) => {
           cleanup();
+          // ❌ Action failed → re-enable anyway
+          button.disabled = false;
+          button.innerHTML = originalHTML;
           reject(error);
         },
         timeout
@@ -650,7 +738,7 @@ async function triggerLongAction(action) {
       // Start subscription
       // subscribeToStatusUpdates(requestId, action).catch(reject);
     });
-    
+    displayVmDetails(data);
     return finalData;
     
   } catch (error) {
@@ -665,9 +753,14 @@ async function triggerLongAction(action) {
     }
     
     showProgress(`❌ Error: ${error.message}`, 'danger');
-    showDetails(error.message);
+    showError(error.message);
     addToHistory(action, error.message, 'danger');
+    // Ensure button resets even on early error
+    button.disabled = false;
+    button.innerHTML = originalHTML;
     throw error; // Re-throw so caller knows it failed
+  } finally {
+    CheckVmStatus(vmNameInput);
   }
 }
 
@@ -717,47 +810,6 @@ function displayVmsList(responseData) {
   document.getElementById('vmSelectedDisplay').style.display = 'none';
 }
 
-async function CheckVmStatus(vmName) {
-  console.log('Test', vmName);
-  const payload = { vm_name: vmName };
-
-  // Show loading state
-  // document.getElementById('progress-content').innerHTML = 
-  //   `<strong>Checking status for ${escapeHtml(vmName)}...</strong>`;
-  // document.getElementById('loading-spinner').style.display = 'block';
-
-  try {
-    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/check_vm_status`;
-    
-    console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
-    // showProgress("VMs listing", 'info', 'list_vms');
-    
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    
-    const data = await response.json();
-    console.log('Response received:', data);
-    
-    if (data.success) {
-      //Display the VM details
-      // updateHelpBasedOnStatus(data.vm_status);
-      showDetails(JSON.stringify(data));
-      displayVmDetails(data);
-      // document.getElementById('loading-spinner').style.display = 'none';
-    } else {
-      // showProgress(`❌VM listing failed: ${data.message || 'Unknown error'}`, 'danger', 'list_vms');
-      // document.getElementById('vmsList').innerHTML = '<div class="text-danger p-3">Failed to load VMs</div>';
-    }
-    
-  } catch (error) {
-    console.error('Error:', error);
-    showDetails(error.message);
-  }
-}
-
 // Update contextual help based on VM status
 // function updateHelpBasedOnStatus(vm_status, vmIp = null) {
 //   if (vm_status === 'simulation_running' || status === 'running') {
@@ -769,6 +821,17 @@ async function CheckVmStatus(vmName) {
 
 
 async function loadVms() {
+  const refreshBtn = document.getElementById('refreshVmsButton');
+  const refreshText = document.getElementById('refreshBtn-text');
+
+  // Disable button immediately and show spinner
+  refreshBtn.disabled = true;
+  const originalHTML = refreshBtn.innerHTML;
+
+  refreshBtn.innerHTML = `
+    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+    Refreshing GPU VMs...
+  `;
 
   const payload = { project_id: projectId };
 
@@ -784,16 +847,6 @@ async function loadVms() {
       body: JSON.stringify(payload)
     });
     
-    // const responseText = await response.text();
-    // console.log('📡 Response:', responseText);
-
-    // let data;
-    // try {
-    //   data = JSON.parse(responseText);
-    // } catch (e) {
-    //   console.error('Failed to parse JSON:', responseText);
-    //   throw new Error('Invalid response from server');
-    // }
     const data = await response.json();
     console.log('Response received:', data);
     
@@ -810,7 +863,11 @@ async function loadVms() {
   } catch (error) {
     console.error('Error:', error);
     showProgress(`Error: ${error.message}`, 'danger', 'list_vms');
-    showDetails(error.message);
+    showError(error.message);
+  } finally {
+    // 2️⃣ Re-enable button and restore original content
+    refreshBtn.disabled = false;
+    refreshBtn.innerHTML = originalHTML;
   }
 }
 

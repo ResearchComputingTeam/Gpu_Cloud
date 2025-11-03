@@ -153,8 +153,8 @@ function displayProjectInfo(data, isSuccess) {
       <strong>✅ Project Valid</strong>
       <hr style="margin: 8px 0;">
       <small>
+        <div><strong>Project Name:</strong><big> <span class="badge bg-success"> ${data.project_name} </big></span></div>
         <div><strong>Project Responsible:</strong> ${data.pi_name}</div>
-        <div><strong>Project Name:</strong> ${data.project_name}</div>
         <div><strong>Project ID:</strong> ${data.project_id}</div>
         <div><strong>Status:</strong> ${data.status || 'Active'}</div>
         <div><strong>Remaining Credits:</strong> $${((data.credits ?? 0) - (data.used_credits ?? 0)).toFixed(2)}</div>
@@ -213,6 +213,10 @@ async function checkProjectStatus() {
     if (data.success) {
       projectState.isValid = true;
       projectState.projectData = data;
+
+      // Store both ID and name
+      localStorage.setItem('currentProjectId', data.project_id);
+      localStorage.setItem('currentProjectName', data.project_name || 'My Project');
       
       // Enable action buttons
       enableActionButtons();

@@ -53,13 +53,27 @@
 
   <!-- Main Content -->
   <main class="main-content">
+    <nav class="breadcrumbs" aria-label="breadcrumb">
+      <ol>
+        <li><a href="project_panel.html">🏠 Home</a></li>
+        <li class="active">Create VM</li>
+      </ol>
+    </nav>
     <!-- Main Form Card -->
     <!-- <div class="card"> -->
       <div class="card-header">
         <div class="d-flex justify-content-between align-items-center">
           <div>
             <h2 class="mb-0">➕ Create new VM</h2>
-            Project: <code id="projectIdDisplay" class="text-white">Loading...</code>
+            <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+              <span style="background: rgba(255,255,255,0.3); padding: 5px 15px; border-radius: 20px; font-weight: 600; font-size: 1rem; display: inline-flex; align-items: center; gap: 6px;">
+                <span style="font-size: 1.2rem;">📂</span>
+                <span id="projectNameDisplay">Loading...</span>
+              </span>
+              <small style="opacity: 0.75;">
+                <code class="text-white" id="projectIdDisplay" style="font-size: 0.85rem;">Loading...</code>
+              </small>
+            </div>
           </div>
           <button class="btn btn-light btn-sm" onclick="goBackToProjectPanel()">← Back</button>
         </div>
@@ -114,7 +128,6 @@
                     placeholder="VM Name"
                     onkeypress="handleEnter(event)">
         </div>
-        <!-- <button class="btn btn-primary" onclick="createVm()">▶️ Create GPU VM</button> -->
         <button id="createVmButton" class="btn btn-primary">▶️ Create GPU VM</button>
       </div>
         <!-- Help Card (contextual) -->
@@ -140,7 +153,7 @@
     <div id="progress-panel" class="card mt-1" style="box-shadow: none; border: 1px solid #757de7;">
       <div class="card-header" style="background: #757de7; padding: 6px 6px; line-height: 1.1;">
         <div class="d-flex justify-content-between align-items-center">
-            <h6 class="mb-0">Progress Panel</h6>
+            <h6 class="mb-0">🧩 Progress</h6>
         </div>
       </div>
       <div class="card-body" style="max-height: 160px; overflow-y: auto; padding: 0;">
@@ -164,26 +177,13 @@
             <!-- Rendered markdown HTML goes here -->
         <!-- </div>
     </div> -->
-<!-- 
-    <div class="card mt-4" style="box-shadow: none; border: 1px solid #8c8d92;">
-      <div class="card-header" style="background: #8c8d92; padding: 6px 6px; line-height: 1.1;">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <h6 class="mb-0">Details</h6>
-          </div>
-        </div>
-      </div>
-      <div id="detailsPanel" style="max-height: 100px; overflow-y: auto; padding: 0;">
-        <div class="text-center text-muted p-3">
-        </div>
-      </div>
-    </div> -->
 
-    <div class="card mt-4" style="box-shadow: none; border: 1px solid #8c8d92;">
-      <div class="card-header" style="background: #8c8d92; padding: 6px 6px; line-height: 1.1;">
+
+    <div class="card mt-4" style="box-shadow: none; border: 1px solid #7e3baa;">
+      <div class="card-header" style="background: #7e3baa; padding: 6px 6px; line-height: 1.1;">
         <div class="d-flex justify-content-between align-items-center">
           <div>
-            <h6 class="mb-0">Details</h6>
+            <h6 class="mb-0">🔍 Details</h6>
           </div>
         </div>
       </div>
@@ -200,8 +200,21 @@
           <!-- History items will be injected here -->
       </div>
     </div>
-  </rightside>
   
+    <div id="errorCard" class="card mt-4" style="display:none; box-shadow: none; border: 1px solid #e74a4a;">
+      <div class="card-header" style="background: #e74a4a; padding: 6px 6px; line-height: 1.1;">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="mb-0">🚫 Errors</h6>
+          </div>
+        </div>
+      </div>
+      <div id="errorPanel" style="max-height: 100px; overflow-y: auto; padding: 0;">
+        <div class="text-center text-muted p-3">
+        </div>
+      </div>
+    </div>
+  </rightside>
 </div>
 
 <script src="utils.js"></script>
@@ -220,6 +233,14 @@ window.addEventListener('load', () => {
   document.getElementById('projectIdDisplay').textContent = projectId;
   console.log('Project ID:', projectId);
 //   document.querySelector('.card p-3').innerHTML = `<h4>Create a new GPU VM - Project: <code>${projectId}</code></h4>`;
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  // const projectId = localStorage.getItem('currentProjectId') || 'Unknown';
+  const projectName = localStorage.getItem('currentProjectName') || 'Untitled Project';
+  
+  // document.getElementById('projectIdDisplay').textContent = projectId;
+  document.getElementById('projectNameDisplay').textContent = projectName;
 });
 
 // Help content for each workflow step
@@ -322,11 +343,36 @@ function validateFormInputs(inputs) {
 }
 
 document.getElementById("createVmButton").addEventListener("click", async () => {
+  const createVmButton = document.getElementById("createVmButton");
+
+  // Disable button immediately
+  createVmButton.disabled = true;
+  const originalText = createVmButton.textContent;
+  // createVmButton.textContent = "⏳ Creating VM...";
+
+  // visual polish (change color while disabled)
+  createVmButton.classList.remove("btn-primary");
+  createVmButton.classList.add("btn-secondary");
+
+  // Show spinner + text
+  createVmButton.innerHTML = `
+    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+    ⏳ Creating VM...
+  `;
+
   try {
     await createVm();
   } catch (err) {
     console.error('Unhandled error in createVm:', err);
     showMessage(`Unexpected error: ${err.message}`, 'danger');
+  } finally {
+    // Re-enable button after all async work is done
+    createVmButton.disabled = false;
+    createVmButton.textContent = originalText;
+
+    // Restore original color
+    createVmButton.classList.remove("btn-secondary");
+    createVmButton.classList.add("btn-primary");
   }
 });
 
@@ -345,6 +391,10 @@ async function createVm() {
 }
 
 async function triggerVmAction(action, inputs) {
+  // document.querySelectorAll('#createVmButton button').forEach(button => {
+  //   button.disabled = true;
+  // });
+  
   let requestId = null;
   try {
     const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/${action}`;
@@ -369,7 +419,7 @@ async function triggerVmAction(action, inputs) {
     }
     
     showProgress('✅ Request accepted. Monitoring status...', 'success', action);
-    showDetails(JSON.stringify(data));
+    // showDetails(JSON.stringify(data));
     
     if (!data.request_id) {
       // No real-time tracking available
@@ -422,7 +472,7 @@ async function triggerVmAction(action, inputs) {
       // Start subscription
       // subscribeToStatusUpdates(requestId, action).catch(reject);
     });
-    
+    // displayVmDetails(data);
     return finalData;
     
   } catch (error) {
@@ -437,7 +487,7 @@ async function triggerVmAction(action, inputs) {
     }
     
     showProgress(`❌ Error: ${error.message}`, 'danger');
-    showDetails(error.message);
+    showError(error.message);
     addToHistory(action, error.message, 'danger');
     throw error; // Re-throw so caller knows it failed
   }
@@ -496,6 +546,7 @@ function handleEnter(event) {
     createVm();
   }
 }
+
 
 </script>
 

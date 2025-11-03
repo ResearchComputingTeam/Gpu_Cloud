@@ -157,20 +157,24 @@ function showProgress(message, type = 'info', action = '') {
 //   markdownDiv.innerHTML = marked.parse(markdownText);
 // }
 
-function showDetails(data) {
-  const detailsPanel = document.getElementById('detailsPanel');
-  if (!detailsPanel) return;
+function showError(data) {
+  const errorPanel = document.getElementById('errorPanel');
+  const errorCard = document.getElementById('errorCard'); 
+  
+  if (!errorPanel || !errorCard) return;
   
   try {
     // Try to parse and pretty-print if it's JSON
     const parsed = typeof data === 'string' ? JSON.parse(data) : data;
-    detailsPanel.innerHTML = `<pre>${JSON.stringify(parsed, null, 2)}</pre>`;
+    errorPanel.innerHTML = `<pre>${JSON.stringify(parsed, null, 2)}</pre>`;
   } catch (e) {
     // If not JSON, just display as-is
-    detailsPanel.textContent = data;
+    errorPanel.textContent = data;
   }
-  
-  detailsPanel.style.display = 'block';
+
+  // Make both visible
+  errorCard.style.display = 'block';
+  errorPanel.style.display = 'block';
 }
 
 
@@ -271,7 +275,10 @@ function handleRealtimeUpdate(data, action) {
   // Update progress and details panels
   // requestAnimationFrame(() => {
   showProgress(formatResponseData(data, 'status_update'), 'success', `Status: ${data.request_status}`);
-  showDetails(JSON.stringify(data));
+  // showDetails(JSON.stringify(data));
+  // CheckVmStatus(data.user_vm_name);
+  displayVmDetails(data);
+
   // });
   
   // Determine completion states based on action
@@ -288,7 +295,8 @@ function handleRealtimeUpdate(data, action) {
 
   if (isComplete && resolver) {
     showMessage(`✅ ${action} completed successfully!`, 'success');
-    displayVmDetailsFromSupabaseUpdate(data);
+    // displayVmDetailsFromSupabaseUpdate(data);
+    displayVmDetails(data);
     addToHistory(action, JSON.stringify(data), 'success');
     resolver.resolve(data); // Cleanup happens in resolve wrapper
   } 
@@ -296,6 +304,7 @@ function handleRealtimeUpdate(data, action) {
     const errorMsg = data.error_message || data.message || 'Unknown error';
     showMessage(`❌ ${action} failed: ${errorMsg}`, 'danger');
     showProgress(errorMsg, 'danger', action);
+    showError(errorMsg);
     addToHistory(action, JSON.stringify(data), 'danger');
     resolver.reject(new Error(errorMsg)); // Cleanup happens in reject wrapper
   }
@@ -323,204 +332,145 @@ async function pollCurrentStatus(requestId) {
   }
 }
 
-// Display VM details nicely
-function displayVmDetails(data) {
-  if (!data || !data.success) {
-    document.getElementById('markdown-content').innerHTML = `
-      <div class="alert alert-danger">
-        <strong>Error:</strong> ${data?.message || 'Failed to retrieve VM details'}
-      </div>
-    `;
-    return;
-  }
-  
-  // Store IP for commands
-  currentVmIp = data.public_ip;
-  
-  // Map status to friendly display
-  const statusMap = {
-    'simulation_running': { label: 'Running', class: 'success', icon: '✓' },
-    'simulation_paused': { label: 'Hibernated', class: 'warning', icon: '⏸️' },
-    'simulation_complete': { label: 'Stopped', class: 'secondary', icon: '■' },
-    'error': { label: 'Error', class: 'danger', icon: '⚠️' }
-  };
-  
-  const status = statusMap[data.vm_status] || { label: data.vm_status, class: 'info', icon: 'ℹ️' };
-  
-  document.getElementById('markdown-content').innerHTML = `
-    <div class="row g-0">
-      <!-- Status Badge -->
-      <div class="col-12">
-        <div class="alert alert-${status.class} mb-0" role="alert">
-          <h5 class="mb-0">${status.icon} Status: ${status.label}</h5>
-        </div>
-      </div>
+async function CheckVmStatus(vmName) {
+  console.log('Test', vmName);
+  const payload = { vm_name: vmName };
 
-      <!-- Connection Info -->
-      <div class="col-sm-6">
-        <div class="card border-primary">
-          <div class="card-body">
-            <h6 class="card-subtitle mb-2 text-muted">Connection</h6>
-            <p class="mb-1"><strong>IP Address:</strong></p>
-            <code style="font-size: 1.1rem;">${data.public_ip}</code>
-            <button class="btn btn-sm btn-outline-primary mt-2" onclick="copyCommand('${data.public_ip}')">
-              📋 Copy IP
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Cost Info -->
-      <div class="col-sm-6">
-        <div class="card border-success">
-          <div class="card-body">
-            <h6 class="card-subtitle mb-2 text-muted">Billing</h6>
-            <p class="mb-1"><strong>Total Cost :</strong></p>
-            <span style="font-size: 1.5rem; font-weight: bold; color: #28a745;">
-              $${data.total_cost.toFixed(2)}
-            </span>
-          </div>
-        </div>
-      </div>
-       
-      <!-- Configuration -->
-      <div class="col-12">
-        <table class="table table-sm table-hover">
-          <tbody>
-            <tr>
-              <td class="text-muted" style="width: 40%;"><strong>Hardware</strong></td>
-              <td>${escapeHtml(data.hardware_flavor)}</td>
-            </tr>
-            <tr>
-              <td class="text-muted"><strong>Base Image</strong></td>
-              <td>${escapeHtml(data.base_image)}</td>
-            </tr>
-            <tr>
-              <td class="text-muted"><strong>Environment</strong></td>
-              <td><code>${escapeHtml(data.environment)}</code></td>
-            </tr>
-            <tr>
-              <td class="text-muted"><strong>Created</strong></td>
-              <td>${escapeHtml(data.created_at)}</td>
-            </tr>
-            <tr>
-              <td class="text-muted"><strong>User</strong></td>
-              <td>${escapeHtml(data.user_id)}</td>
-            </tr>
-            ${data.total_paused_time > 0 ? `
-            <tr>
-              <td class="text-muted"><strong>Paused Time</strong></td>
-              <td>${formatTime(data.total_paused_time)}</td>
-            </tr>
-            ` : ''}
-          </tbody>
-        </table>
-      </div>
-      
-      <!-- Quick Actions -->
-      <div class="col-12">
-        <div class="alert alert-info" role="alert">
-          <strong>💡 Quick Tip:</strong> Click actions in the sidebar for copy-ready commands
-        </div>
-      </div>
-    </div>
-  `;
+  // Show loading state
+  // document.getElementById('progress-content').innerHTML = 
+  //   `<strong>Checking status for ${escapeHtml(vmName)}...</strong>`;
+  // document.getElementById('loading-spinner').style.display = 'block';
+
+  try {
+    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/check_vm_status`;
+    
+    console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
+    // showProgress("VMs listing", 'info', 'list_vms');
+    
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    const data = await response.json();
+    console.log('Response received:', data);
+    
+    if (data.success) {
+      //Display the VM details
+      // updateHelpBasedOnStatus(data.vm_status);
+      // showDetails(JSON.stringify(data));
+      displayVmDetails(data);
+      // document.getElementById('loading-spinner').style.display = 'none';
+    } else {
+      // showProgress(`❌VM listing failed: ${data.message || 'Unknown error'}`, 'danger', 'list_vms');
+      // document.getElementById('vmsList').innerHTML = '<div class="text-danger p-3">Failed to load VMs</div>';
+    }
+    
+  } catch (error) {
+    console.error('Error:', error);
+    showError(error.message);
+  }
 }
 
-// Display VM details nicely
-function displayVmDetailsFromSupabaseUpdate(data) {
-  // if (!data || !data.request_status == running) {
-  //   document.getElementById('markdown-content-create').innerHTML = `
-  //     <div class="alert alert-danger">
-  //       <strong>Error:</strong> ${data?.message || 'Failed to retrieve VM details'}
-  //     </div>
-  //   `;
-  //   return;
-  // }
+function displayVmDetails(data) {
+  // Pick the correct container depending on which page we are on
+  const targetEl = 
+    document.getElementById('markdown-content-create') || 
+    document.getElementById('markdown-content-manage');
+
+  if (!targetEl) {
+    console.warn('No VM details container found on this page.');
+    return;
+  }
   
   // Store IP for commands
   currentVmIp = data.user_vm_ip;
   
   // Map status to friendly display
   const statusMap = {
-    'running': { label: 'Running', class: 'success', icon: '✓' },
+    'running': { label: 'Running', class: 'success', icon: '🟢' },
     'hibernated': { label: 'Hibernated', class: 'warning', icon: '⏸️' },
-    'deleted': { label: 'Deleted', class: 'secondary', icon: '■' },
+    'deleted': { label: 'Deleted', class: 'secondary', icon: '🔴' },
     'error': { label: 'Error', class: 'danger', icon: '⚠️' }
   };
   
   const status = statusMap[data.request_status] || { label: data.request_status, class: 'info', icon: 'ℹ️' };
   
-  document.getElementById('markdown-content-create').innerHTML = `
-    <div class="row g-0">
-      <!-- Status Badge -->
-      <div class="col-12">
-        <div class="alert alert-${status.class} mb-0" role="alert">
-          <h5 class="mb-0">${status.icon} Status: ${status.label}</h5>
+  const statusColor = status.class === 'success' ? '#28a745' : status.class === 'warning' ? '#ffc107' : status.class === 'secondary' ? '#da1021ff' : '#6c757d';
+  
+  targetEl.innerHTML = `
+    <div style="display: flex; font-size: 12px;">
+      <!-- Left Sidebar - Key Info -->
+      <div style="flex: 0 0 140px; padding: 12px; background: #f8f9fa; border-right: 1px solid #dee2e6;">
+        <div style="margin-bottom: 12px;">
+          <div style="font-size: 10px; color: #6c757d; margin-bottom: 4px;">STATUS</div>
+          <div style="font-size: 12px; font-weight: 600; color: ${statusColor};">
+            ${status.icon} ${status.label}
+          </div>
         </div>
-      </div>
-
-      <!-- Connection Info -->
-      <div class="col-sm-6">
-        <div class="card border-primary">
-          <div class="card-body">
-            <h6 class="card-subtitle mb-2 text-muted">Connection</h6>
-            <p class="mb-1"><strong>IP Address:</strong></p>
-            <code style="font-size: 1.1rem;">${data.user_vm_ip}</code>
-            <button class="btn btn-sm btn-outline-primary mt-2" onclick="copyCommand('${data.user_vm_ip}')">
-              📋 Copy IP
-            </button>
+        
+        <div style="margin-bottom: 8px;">
+          <div style="font-size: 10px; color: #6c757d; margin-bottom: 4px;">IP ADDRESS</div>
+          <code style="font-size: 16px; display: block; word-break: break-all;">
+            ${data.user_vm_ip}
+          </code>
+          <button class="btn btn-sm btn-outline-primary" 
+                  style="margin-top: 6px; font-size: 11px; width: 100%; padding: 4px 10px;"
+                  onclick="copyCommand('${data.user_vm_ip}')">
+            📋 Copy IP
+          </button>
+        </div>
+        
+        <div>
+          <div style="font-size: 10px; color: #6c757d; margin-bottom: 4px;">COST</div>
+          <div style="font-size: 20px; font-weight: bold; color: #28a745;">
+            $${(data.total_cost ?? 0).toFixed(2)}
           </div>
         </div>
       </div>
-       
-      <!-- Configuration -->
-      <div class="col-12">
-        <table class="table table-sm table-hover">
+
+      <!-- Right Column - Details -->
+      <div style="flex: 1; padding: 12px;">
+        <table style="width: 100%; border-collapse: collapse;">
           <tbody>
-            <tr>
-              <td class="text-muted" style="width: 40%;"><strong>Name</strong></td>
-              <td>${escapeHtml(data.user_vm_name.replace(/_[^_]*$/, ''))}</td>
+            <tr style="border-bottom: 1px solid #e9ecef;">
+              <td style="padding: 5px 0; color: #6c757d; width: 30%; font-size: 11px;">Name</td>
+              <td style="padding: 5px 0; font-size: 11px;">${escapeHtml(data.user_vm_name.replace(/_[^_]*$/, ''))}</td>
             </tr>
-            <tr>
-              <td class="text-muted" style="width: 40%;"><strong>Hardware</strong></td>
-              <td>${escapeHtml(data.hardware_flavor)}</td>
+            <tr style="border-bottom: 1px solid #e9ecef;">
+              <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">Hardware</td>
+              <td style="padding: 5px 0; font-size: 11px;">${escapeHtml(data.hardware_flavor)}</td>
             </tr>
-            <tr>
-              <td class="text-muted"><strong>Base Image</strong></td>
-              <td>${escapeHtml(data.base_image)}</td>
+            <tr style="border-bottom: 1px solid #e9ecef;">
+              <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">Image</td>
+              <td style="padding: 5px 0; font-size: 11px;">${escapeHtml(data.base_image)}</td>
             </tr>
-            <tr>
-              <td class="text-muted"><strong>Environment</strong></td>
-              <td><code>${escapeHtml(data.environment_name)}</code></td>
+            <tr style="border-bottom: 1px solid #e9ecef;">
+              <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">Environment</td>
+              <td style="padding: 5px 0; font-size: 11px;"><code style="font-size: 11px;">${escapeHtml(data.environment_name)}</code></td>
             </tr>
-            <tr>
-              <td class="text-muted"><strong>Created</strong></td>
-              <td>${new Date(data.created_at).toLocaleString('en-GB', { timeZone: 'Asia/Qatar', dateStyle: 'medium', timeStyle: 'short', hour12: false })}</td>
+            <tr style="border-bottom: 1px solid #e9ecef;">
+              <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">Created</td>
+              <td style="padding: 5px 0; font-size: 11px;">${new Date(data.created_at).toLocaleString('en-GB', { timeZone: 'Asia/Qatar', dateStyle: 'short', timeStyle: 'short', hour12: false })}</td>
             </tr>
-            <tr>
-              <td class="text-muted"><strong>User</strong></td>
-              <td>${escapeHtml(data.user_id)}</td>
+            <tr${data.total_paused_time > 0 ? ' style="border-bottom: 1px solid #e9ecef;"' : ''}>
+              <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">User</td>
+              <td style="padding: 5px 0; font-size: 11px;">${escapeHtml(data.user_id)}</td>
             </tr>
             ${data.total_paused_time > 0 ? `
             <tr>
-              <td class="text-muted"><strong>Paused Time</strong></td>
-              <td>${formatTime(data.total_paused_time)}</td>
+              <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">Paused Time</td>
+              <td style="padding: 5px 0; font-size: 11px;">${formatTime(data.total_paused_time)}</td>
             </tr>
             ` : ''}
           </tbody>
         </table>
       </div>
-      
-      <!-- Quick Actions -->
-      <div class="col-12">
-        <div class="alert alert-info" role="alert">
-          <strong>💡 Quick Tip:</strong> Click actions in the sidebar for copy-ready commands
-        </div>
-      </div>
     </div>
   `;
 }
+
 
 // Format time helper
 function formatTime(seconds) {
