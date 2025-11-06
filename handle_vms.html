@@ -9,6 +9,9 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <link href="css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
 </head>
 
 <body>
@@ -307,8 +310,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     return;
   }
 
-  // Check credits from cached status
-  const hasCredits = c(projectId);
+  // Check credits
+  const hasCredits = checkCredits(projectId);
   
   if (!hasCredits) {
     console.log('💰❌ Project is out of credits - interface disabled');
@@ -436,6 +439,16 @@ function copyCommand(text) {
 function goBackToProjectPanel() {
   window.location.href = `project_panel.html?project_id=${encodeURIComponent(projectId)}`;
 }
+
+function goToCreateVmPage() {
+  // window.location.href = `create_vm.html?project_id=${encodeURIComponent(projectId)}`;
+  // Pass project ID to new page via URL parameter
+  const creatVmUrl = `create_vm.html?project_id=${encodeURIComponent(projectId)}`;
+  // window.location.href = handleVmsUrl;
+  // Open in new tab
+  window.open(creatVmUrl, '_blank');
+}
+
 
 
 document.getElementById("deleteVmButton").addEventListener("click", async () => {
@@ -874,7 +887,7 @@ async function loadVms() {
       displayVmsList(data);
     } else {
       // showProgress(`❌VM listing failed: ${data.message || 'Unknown error'}`, 'danger', 'list_vms');
-      document.getElementById('vmsList').innerHTML = '<div class="text-danger p-3">Failed to load VMs</div>';
+      document.getElementById('vmsList').innerHTML = '<div class="text-secondary p-3">No VMs to display, go to "Create VM" page: <button class="btn btn-primary btn-sm" onclick="goToCreateVmPage()">Create VM</button></div>';
     }
     
   } catch (error) {
