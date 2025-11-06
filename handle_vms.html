@@ -267,36 +267,53 @@
 
 let projectId = null;
 
-window.addEventListener('load', () => {
-  console.log('Create VM page loaded');
-  projectId = getProjectIdFromUrl();
+// window.addEventListener('load', () => {
+//   console.log('Create VM page loaded');
+//   projectId = getProjectIdFromUrl();
   
+//   if (!projectId) {
+//     showMessage('No project ID provided', 'danger');
+//     return;
+//   }
+//   // document.getElementById('projectNameDisplay').textContent = projectId;
+//   // console.log('Project Name:', projectId);
+
+//   document.getElementById('projectIdDisplay').textContent = projectId;
+//   console.log('Project ID:', projectId);
+// //   document.querySelector('.card p-3').innerHTML = `<h4>Create a new GPU VM - Project: <code>${projectId}</code></h4>`;
+// });
+
+// document.addEventListener('DOMContentLoaded', function() {
+//   // const projectId = localStorage.getItem('currentProjectId') || 'Unknown';
+//   const projectName = localStorage.getItem('currentProjectName') || 'Untitled Project';
+  
+//   // document.getElementById('projectIdDisplay').textContent = projectId;
+//   document.getElementById('projectNameDisplay').textContent = projectName;
+// });
+
+document.addEventListener('DOMContentLoaded', async function() {
+  console.log('Create VM page loaded');
+  // Load project info
+  // const projectId = localStorage.getItem('currentProjectId') || 'Unknown';
+  projectId = getProjectIdFromUrl();
+  console.log('Project ID=', projectId);
+  const projectName = localStorage.getItem('currentProjectName') || 'Untitled Project';
+  
+  document.getElementById('projectIdDisplay').textContent = projectId;
+  document.getElementById('projectNameDisplay').textContent = projectName;
+
   if (!projectId) {
     showMessage('No project ID provided', 'danger');
     return;
   }
-  // document.getElementById('projectNameDisplay').textContent = projectId;
-  // console.log('Project Name:', projectId);
 
-  document.getElementById('projectIdDisplay').textContent = projectId;
-  console.log('Project ID:', projectId);
-//   document.querySelector('.card p-3').innerHTML = `<h4>Create a new GPU VM - Project: <code>${projectId}</code></h4>`;
-});
-
-document.addEventListener('DOMContentLoaded', function() {
-  // const projectId = localStorage.getItem('currentProjectId') || 'Unknown';
-  const projectName = localStorage.getItem('currentProjectName') || 'Untitled Project';
+  // Check credits from cached status
+  const hasCredits = c(projectId);
   
-  // document.getElementById('projectIdDisplay').textContent = projectId;
-  document.getElementById('projectNameDisplay').textContent = projectName;
-});
-
-window.addEventListener('load', async () => {
-  projectId = getProjectIdFromUrl();
-  
-  if (!projectId) {
-    showMessage('No project ID provided', 'danger');
-    return;
+  if (!hasCredits) {
+    console.log('💰❌ Project is out of credits - interface disabled');
+  } else {
+    console.log('✅ Project has credits - interface enabled');
   }
   
   // Load VMs

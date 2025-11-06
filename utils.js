@@ -373,6 +373,40 @@ async function CheckVmStatus(vmName) {
   }
 }
 
+async function checkCredits(projectId) {
+  try {
+    // Call n8n webhook to validate project
+    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/project_id_check`;
+    
+    console.log('🔍 Checking project status for:', projectId);
+
+    const response = await fetch(webhookUrl, { 
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project_id: projectId })
+    });
+
+   if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    // Handle response
+    if (data.out_of_credits) {
+      showOutOfCreditsState();
+      return false;
+    } else {
+      return true;
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    showProgress(`Error: ${error.message}`, 'danger', 'delete_vm');
+    showError(error.message);
+    throw error; // Re-throw so caller knows it failed
+  }
+}
+
 function displayVmDetails(data) {
   // Pick the correct container depending on which page we are on
   const targetEl = 
@@ -471,6 +505,77 @@ function displayVmDetails(data) {
   `;
 }
 
+// Check if project has credits (using cached status)
+function checkCreditsFromCache() {
+  const hasCredits = localStorage.getItem('hasCredits') === 'true';
+  
+  if (!hasCredits) {
+    showOutOfCreditsState();
+    return false;
+  }
+  
+  return true;
+}
+
+// Show "out of credits" banner
+function showOutOfCreditsState() {
+  // Create banner
+  const existingBanner = document.getElementById('credits-banner');
+  if (existingBanner) return; // Already showing
+  
+  const banner = document.createElement('div');
+  banner.id = 'credits-banner';
+  banner.className = 'alert alert-danger';
+  banner.style.cssText = `
+    position: fixed;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    min-width: 400px;
+    max-width: 90%;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+  `;
+  banner.innerHTML = `
+    <div class="d-flex align-items-center">
+      <span style="font-size: 2rem; margin-right: 15px;">💰❌</span>
+      <div>
+        <strong>Project Out of Credits</strong><br>
+        <small>Please contact your administrator to add more credits.</small>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(banner);
+  
+  // Disable all actions
+  disableAllActions();
+}
+
+// Disable all interactive elements
+function disableAllActions() {
+  // Disable all buttons except back button
+  const buttons = document.querySelectorAll('button:not([onclick*="goBack"])');
+  buttons.forEach(btn => {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
+    btn.title = 'Project is out of credits';
+  });
+  
+  // Disable all inputs
+  const inputs = document.querySelectorAll('input:not([readonly]), select, textarea');
+  inputs.forEach(input => {
+    input.disabled = true;
+    input.style.opacity = '0.5';
+  });
+  
+  // Disable radio buttons
+  const radios = document.querySelectorAll('input[type="radio"]');
+  radios.forEach(radio => {
+    radio.disabled = true;
+  });
+}
 
 // Format time helper
 function formatTime(seconds) {

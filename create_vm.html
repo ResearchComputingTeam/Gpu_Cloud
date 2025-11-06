@@ -222,25 +222,31 @@
 
 let projectId = null;
 
-window.addEventListener('load', () => {
+document.addEventListener('DOMContentLoaded', function() {
   console.log('Create VM page loaded');
-  projectId = getProjectIdFromUrl();
-  
+  // const projectId = localStorage.getItem('currentProjectId') || 'Unknown';
+  const projectId = getProjectIdFromUrl();
+  const projectName = localStorage.getItem('currentProjectName') || 'Untitled Project';
+
+  // Validate project ID
   if (!projectId) {
     showMessage('No project ID provided', 'danger');
     return;
   }
-  document.getElementById('projectIdDisplay').textContent = projectId;
-  console.log('Project ID:', projectId);
-//   document.querySelector('.card p-3').innerHTML = `<h4>Create a new GPU VM - Project: <code>${projectId}</code></h4>`;
-});
 
-document.addEventListener('DOMContentLoaded', function() {
-  // const projectId = localStorage.getItem('currentProjectId') || 'Unknown';
-  const projectName = localStorage.getItem('currentProjectName') || 'Untitled Project';
+  // Check credits
+  const hasCredits = checkCredits(projectId);
   
-  // document.getElementById('projectIdDisplay').textContent = projectId;
+  if (!hasCredits) {
+    console.log('💰❌ Project is out of credits - interface disabled');
+  } else {
+    console.log('✅ Project has credits - interface enabled');
+  }
+
+ // Display project info
+  document.getElementById('projectIdDisplay').textContent = projectId;
   document.getElementById('projectNameDisplay').textContent = projectName;
+  console.log('Project ID:', projectId);
 });
 
 // Help content for each workflow step
@@ -324,6 +330,8 @@ function getFormInputs() {
   
   // Get VM name
   const vmName = document.getElementById('vmName').value.trim();
+
+  const projectIdinput = getProjectIdFromUrl();
   
   return {
     flavor,
@@ -377,6 +385,16 @@ document.getElementById("createVmButton").addEventListener("click", async () => 
 });
 
 async function createVm() {
+  // Check credits
+  const projectIdlocal = getProjectIdFromUrl();
+  const hasCredits = checkCredits(projectIdlocal);
+  console.log('checkCredits called with project id', projectIdlocal);
+  if (!hasCredits) {
+    console.log('💰❌ Project is out of credits - interface disabled');
+  } else {
+    console.log('✅ Project has credits - interface enabled');
+  }
+
   // Get and validate inputs
   const inputs = getFormInputs();
   const errors = validateFormInputs(inputs);
@@ -385,6 +403,8 @@ async function createVm() {
     showMessage(errors.join(' | '), 'warning');
     return;
   }
+
+
   
   console.log('Creating VM with inputs:', inputs);
   return await triggerVmAction('create_vm', inputs);

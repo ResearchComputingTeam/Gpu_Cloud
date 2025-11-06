@@ -141,37 +141,46 @@ function setButtonLoading(isLoading) {
 }
 
 // Display project info
-function displayProjectInfo(data, isSuccess) {
-  console.log('CheckStatuspayload:', data);
-  const infoDiv = document.getElementById('project-info');
-  const contentDiv = document.getElementById('project-info-content');
+// function displayProjectInfo(data, isSuccess) {
+//   console.log('CheckStatuspayload:', data);
+//   const infoDiv = document.getElementById('project-info');
+//   const contentDiv = document.getElementById('project-info-content');
   
-  if (isSuccess) {
-    infoDiv.classList.add('success');
-    infoDiv.classList.remove('error');
-    contentDiv.innerHTML = `
-      <strong>✅ Project Valid</strong>
-      <hr style="margin: 8px 0;">
-      <small>
-        <div><strong>Project Name:</strong><big> <span class="badge bg-success"> ${data.project_name} </big></span></div>
-        <div><strong>Project Responsible:</strong> ${data.pi_name}</div>
-        <div><strong>Project ID:</strong> ${data.project_id}</div>
-        <div><strong>Status:</strong> ${data.status || 'Active'}</div>
-        <div><strong>Remaining Credits:</strong> $${((data.credits ?? 0) - (data.used_credits ?? 0)).toFixed(2)}</div>
-      </small>
-    `;
-  } else {
-    infoDiv.classList.add('error');
-    infoDiv.classList.remove('success');
-    contentDiv.innerHTML = `
-      <strong>❌ Project Not Found</strong>
-      <hr style="margin: 8px 0;">
-      <small>The project ID you entered is not valid. Please check and try again.</small>
-    `;
-  }
+//   if (isSuccess) {
+//     infoDiv.classList.add('success');
+//     infoDiv.classList.remove('error');
+//     contentDiv.innerHTML = `
+//       <strong>✅ Project Valid</strong>
+//       <hr style="margin: 8px 0;">
+//       <small>
+//         <div><strong>Project Name:</strong><big> <span class="badge bg-success"> ${data.project_name} </big></span></div>
+//         <div><strong>Project Responsible:</strong> ${data.pi_name}</div>
+//         <div><strong>Project ID:</strong> ${data.project_id}</div>
+//         <div><strong>Status:</strong> ${data.status || 'Active'}</div>
+//         <div><strong>Remaining Credits:</strong> $${((data.credits ?? 0) - (data.used_credits ?? 0)).toFixed(2)}</div>
+//       </small>
+//     `;
+//   } else {
+//     infoDiv.classList.add('error');
+//     infoDiv.classList.remove('success');
+//     if (data.error == "not_existing") {
+//       contentDiv.innerHTML = `
+//         <strong>❌ Project Not Found</strong>
+//         <hr style="margin: 8px 0;">
+//         <small>The project ID you entered is not valid. Please check and try again.</small>
+//       `;
+//     } else {
+//       contentDiv.innerHTML = `
+//         <strong>💰❌ No Credits Remaining</strong>
+//         <hr style="margin: 8px 0;">
+//         <small>The project ID you entered has ran out of credits. Please contact RCCG.</small>
+//       `;
+//     }
+//   }
   
-  infoDiv.classList.add('visible');
-}
+//   infoDiv.classList.add('visible');
+// }
+
 
 // Check project status
 async function checkProjectStatus() {
@@ -248,6 +257,69 @@ async function checkProjectStatus() {
     showMessage(`Error: ${error.message}`, 'danger');
   } finally {
     setButtonLoading(false);
+  }
+}
+
+function displayProjectInfo(data, isSuccess) {
+  const projectInfo = document.getElementById('project-info');
+  const projectInfoContent = document.getElementById('project-info-content');
+  
+  if (isSuccess) {
+    // Calculate remaining credits
+    const remainingCredits = (data.credits || 0) - (data.used_credits || 0);
+    
+    projectInfo.className = 'project-info visible success';
+    projectInfoContent.innerHTML = `
+      <strong>✓ Project Validated</strong><br>
+      <small>Project: ${escapeHtml(data.project_name || 'My Project')}</small><br>
+      <small>Project Responsible:${data.pi_name}</small><br>
+      <small>ID: ${escapeHtml(data.project_id)}</small><br>
+      <small>Status: ${data.status || 'Active'}</small><br>
+      <small>Remaining Credits: ${remainingCredits.toFixed(2)}</small>
+    `;
+    
+    // Check if out of credits
+    if (remainingCredits <= 0) {
+      projectInfo.className = 'project-info visible error';
+      projectInfoContent.innerHTML = `
+        <strong>💰❌ Project Out of Credits</strong><br>
+        <small>Project: ${escapeHtml(data.project_name || 'My Project')}</small><br>
+        <small>ID: ${escapeHtml(data.project_id)}</small><br>
+        <small style="color: #dc3545; font-weight: bold;">
+          Credits exhausted: ${data.used_credits.toFixed(2)} / ${data.credits.toFixed(2)}
+        </small><br>
+        <small>Please contact RCCG to add more credits.</small>
+      `;
+      
+      // Store credit status
+      localStorage.setItem('hasCredits', 'false');
+      
+      // Keep buttons disabled
+      disableActionButtons();
+      document.getElementById('disabledInfo').innerHTML = 
+        '💰❌ Project is out of credits';
+      
+    } else {
+      // Store credit status
+      localStorage.setItem('hasCredits', 'true');
+    }
+    
+  } else {
+    projectInfo.className = 'project-info visible error';
+    projectInfoContent.innerHTML = `
+      <strong>✗ Validation Failed</strong><br>
+      <small>${escapeHtml(data.message || 'Unknown error')}</small>
+    `;
+    localStorage.setItem('hasCredits', 'false');
+    projectInfo.classList.add('error');
+    projectInfo.classList.remove('success');
+    // if (data.error == "not_existing") {
+    //   projectInfoContent.innerHTML = `
+    //     <strong>❌ Project Not Found</strong>
+    //     <hr style="margin: 8px 0;">
+    //     <small>The project ID you entered is not valid. Please check and try again.</small>
+    //   `;
+    // }
   }
 }
 
