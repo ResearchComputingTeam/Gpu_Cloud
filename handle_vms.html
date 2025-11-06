@@ -133,7 +133,8 @@
       </div>
 
       <div class="d-grid gap-2" id="vmActionButtons">
-          <div class="button-group">
+          <div class="btn-group d-flex gap-2">
+              <button class="btn btn-primary" onclick="goToCreateVmPage()">▶️ Create GPU VM</button>
               <button class="btn btn-warning" onclick="triggerLongAction('hibernate_vm')">⏸️ Hibernate GPU VM</button>
               <button class="btn btn-success" onclick="triggerLongAction('restore_vm')">♻️ Restore GPU VM</button>
           </div>
@@ -887,7 +888,7 @@ async function loadVms() {
       displayVmsList(data);
     } else {
       // showProgress(`❌VM listing failed: ${data.message || 'Unknown error'}`, 'danger', 'list_vms');
-      document.getElementById('vmsList').innerHTML = '<div class="text-secondary p-3">No VMs to display, go to "Create VM" page: <button class="btn btn-primary btn-sm" onclick="goToCreateVmPage()">Create VM</button></div>';
+      document.getElementById('vmsList').innerHTML = '<div class="text-secondary p-3">No VMs to display, go to "Create VM" page: <button class="btn btn-primary btn-sm" onclick="goToCreateVmPage()">▶️ Create VM</button></div>';
     }
     
   } catch (error) {
