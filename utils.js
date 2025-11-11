@@ -197,12 +197,10 @@ function showDetailsMarkdown(data) {
 
 function getActionLabel(action) {
   const labels = {
-    'run_simulation': '▶️ Starting Simulation',
-    'pause_simulation': '⏸️ Pausing Simulation',
-    'resume_simulation': '🔁 Resuming Simulation',
-    'stop_simulation': '🛑 Stopping Simulation',
-    'get_workflow_status': '🔍 Checking Status',
-    'show_credits': '💰 Credit Information'
+    'create_vm': '▶️ VM is Creating',
+    'hibernate_vm': '⏸️ VM is Hibernating',
+    'restore_vm': '🔁 VM is Restoring',
+    'delete_vm': '🛑 VM is getting deleted',
   };
   return labels[action] || action;
 }
@@ -500,6 +498,11 @@ function displayVmDetails(data) {
             ` : ''}
           </tbody>
         </table>
+        <div class="col-12">
+          <button class="btn btn-primary w-100" onclick="connectToTerminal('${data.user_vm_ip}', '${escapeHtml(data.environment_name)}')" ${data.request_status !== 'running' || !data.user_vm_ip || data.user_vm_ip === 'N/A' ? 'disabled' : ''}>
+            🖥️ Open Web Terminal
+          </button>
+      </div>
       </div>
     </div>
   `;
@@ -756,4 +759,99 @@ function getRequestIdFromUrl() {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get('request_id');
 }
+
+// ============================================
+// INTEGRATED TERMINAL STUFFS
+// ============================================
+
+let term = null;
+let socket = null;
+
+function connectToTerminal(vmIp, vmName) {
+  // Get project info from localStorage
+  const projectId = localStorage.getItem('currentProjectId');
+  const projectName = localStorage.getItem('currentProjectName');
+  
+  if (!projectId) {
+    alert('Error: Project ID not found. Please refresh and try again.');
+    return;
+  }
+  
+  if (!projectName) {
+    alert('Error: Project Name not found. Please refresh and try again.');
+    return;
+  }
+  
+  // Show terminal card
+  document.getElementById('terminal-card').style.display = 'block';
+  document.getElementById('terminal-vm-name').textContent = vmName || vmIp;
+  
+  if (term) {
+    term.dispose();
+  }
+  
+  term = new Terminal({
+    cursorBlink: true,
+    fontSize: 14,
+    fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+    theme: {
+      background: '#1e1e1e',
+      foreground: '#f0f0f0',
+      cursor: '#ffffff'
+    }
+  });
+  
+  fitAddon = new FitAddon.FitAddon();
+  term.loadAddon(fitAddon);
+  
+  const terminalContainer = document.getElementById('terminal');
+  terminalContainer.innerHTML = '';
+  term.open(terminalContainer);
+  fitAddon.fit();
+  
+  term.writeln('\x1b[33m⏳ Connecting to ' + vmIp + '...\x1b[0m\r');
+
+  // Add project_id to WebSocket URL
+  // const wsUrl = `wss://51.20.114.36/ssh?host=${vmIp}&port=22&project_id=${projectId}`;
+  // const wsUrl = `wss:nonserially-unpent-jin.ngrok-free.dev?host=${vmIp}&port=22&project_id=${projectId}`;
+  const wsUrl = `wss://adolfo-unpersonalizing-unnarrowly.ngrok-free.dev?host=${vmIp}&port=22&project_id=${projectId}&project_name=${encodeURIComponent(projectName)}`;
+ 
+  console.log('WebSocket URL=', wsUrl);
+  socket = new WebSocket(wsUrl);
+
+  socket.onopen = () => {
+    console.log('WebSocket connected for project:', projectName, '(' + projectId + ')');
+    term.writeln('\x1b[32m✅ Connected to ' + vmIp + '\x1b[0m\r');
+  };
+  
+  socket.onmessage = (event) => {
+    term.write(event.data);
+  };
+  
+  socket.onerror = (error) => {
+    term.writeln('\r\n\x1b[31m❌ Connection error\x1b[0m\r\n');
+    console.error('WebSocket error:', error);
+  };
+  
+  socket.onclose = () => {
+    term.writeln('\r\n\r\n\x1b[33m🔌 Connection closed\x1b[0m');
+  };
+  
+  term.onData((data) => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(data);
+    }
+  });
+}
+
+function disconnectTerminal() {
+  if (socket) {
+    socket.close();
+  }
+  if (term) {
+    term.dispose();
+  }
+  document.getElementById('terminal-card').style.display = 'none';
+}
+
 

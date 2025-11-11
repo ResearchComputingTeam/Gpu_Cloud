@@ -8,6 +8,9 @@
   <link href="css/style.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+  <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
 </head>
 
 <body>
@@ -137,8 +140,21 @@
             <p class="mb-2 mt-2">Select your GPU flavor and base image, then create your VM. This typically takes 2-3 minutes.</p>
           </div>
         </div>
-      <!-- </div> -->
-    <!-- </div> -->
+
+      <!-- Terminal container -->
+      <div class="card mt-3" id="terminal-card" style="display: none;">
+        <div class="card-header" style="background: #1e1e1e; color: white;">
+          <div class="d-flex justify-content-between align-items-center">
+            <strong>🖥️ SSH Terminal - <span id="terminal-vm-name"></span></strong>
+            <button class="btn btn-sm btn-outline-light" onclick="disconnectTerminal()">
+              Disconnect
+            </button>
+          </div>
+        </div>
+        <div class="card-body p-0" style="background: #1e1e1e;">
+          <div id="terminal" style="padding: 10px;"></div>
+        </div>
+      </div>
   </main>
 
   <rightside>

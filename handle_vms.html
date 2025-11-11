@@ -150,6 +150,21 @@
       </div>
     </div>
 
+    <!-- Terminal container -->
+    <div class="card mt-3" id="terminal-card" style="display: none;">
+      <div class="card-header" style="background: #1e1e1e; color: white;">
+        <div class="d-flex justify-content-between align-items-center">
+          <strong>🖥️ SSH Terminal - <span id="terminal-vm-name"></span></strong>
+          <button class="btn btn-sm btn-outline-light" onclick="disconnectTerminal()">
+            Disconnect
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-0" style="background: #1e1e1e;">
+        <div id="terminal" style="padding: 10px;"></div>
+      </div>
+    </div>
+
   </main>
 
   <rightside>
@@ -259,7 +274,14 @@
   </div>
 </div>
 
-<!-- </div> -->
+<!-- Footer -->
+<!-- <div class="footer">
+  <small class="text-muted">
+    Powered by <a href="https://rccg.hbku.edu.qa/wiki/Main_Page" target="_blank">RCCG</a> | 
+    Hamad Bin Khalifa University | 
+    <a href="mailto:rccg@hbku.edu.qa">Support</a>
+  </small>
+</div> -->
 
 <script>
 // const urlParams = new URLSearchParams(window.location.search);
@@ -459,11 +481,6 @@ document.getElementById("deleteVmButton").addEventListener("click", async () => 
     console.error('Unhandled error in createVm:', err);
     showMessage(`Unexpected error: ${err.message}`, 'danger');
   }
-  // } finally {
-  //   // 3️⃣ Re-enable and restore button text
-  //   deleteVmButton.disabled = false;
-  //   deleteVmButton.innerHTML = originalHTML;
-  // }
 });
 
 function selectVm(vmName) {
@@ -636,6 +653,7 @@ async function triggerDeleteAction(vmName) {
       showProgress('VM deletion is over', 'info', 'delete_vm');
       // CheckVmStatus(vmName.user_vm_name);
       displayVmDetails(data);
+      loadVms();
       return;
     } else {
         showProgress(`VM deletion failed: ${data.message || 'Unknown error'}`, 'danger', 'delete_vm');
