@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create a new VM</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+
+<body>
+
+<div class="main-wrapper">
+  <!-- Workflow Sidebar -->
+  <leftside>
+    <div class="workflow-sidebar mb-3">
+      <h6 class="mb-3"><strong>Workflow Guide</strong></h6>
+      
+      <div class="workflow-step active" onclick="showHelp('create')">
+        <div class="icon">1</div>
+        <div>Create Volume</div>
+      </div>
+
+      <div class="workflow-step" onclick="showHelp('volume')">
+        <div class="icon">A</div>
+        <div>Volume Handling</div>
+      </div>
+<!-- 
+      <div class="mt-3 p-2" style="background: #e8f4f8; border-radius: 6px; font-size: 0.8rem; border-left: 3px solid #667eea;">
+        <strong>💡 Quick Help</strong><br>
+        <small class="text-muted">Click any action above for copy-ready commands</small>
+      </div> -->
+
+    </div>
+  </leftside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <nav class="breadcrumbs" aria-label="breadcrumb">
+      <ol>
+        <li><a href="project_panel.html">🏠 Home</a></li>
+        <li class="active">Create Volume</li>
+      </ol>
+    </nav>
+    <!-- Main Form Card -->
+    <!-- <div class="card"> -->
+      <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h2 class="mb-0">➕💾 Create New Volume</h2>
+            <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+              <span style="background: rgba(255,255,255,0.3); padding: 5px 15px; border-radius: 20px; font-weight: 600; font-size: 1rem; display: inline-flex; align-items: center; gap: 6px;">
+                <span style="font-size: 1.2rem;">📂</span>
+                <span id="projectNameDisplay">Loading...</span>
+              </span>
+              <small style="opacity: 0.75;">
+                <code class="text-white" id="projectIdDisplay" style="font-size: 0.85rem;">Loading...</code>
+              </small>
+            </div>
+          </div>
+          <button class="btn btn-light btn-sm" onclick="goBackToProjectPanel()">← Back</button>
+        </div>
+      </div>
+
+      <div class="card-body" style="background:white; padding: 5px;">
+        <div class="row">
+          <div class="col-md-6">
+              <label class="form-label"><strong>Small/Medium Volume</strong></label>
+              <div class="form-check">
+                  <input class="form-check-input" type="radio" name="volume_size" id="50GB" value="50">
+                  <label class="form-check-label" for="50GB">50GB <small><span class="text-muted">$0.00485/hour</span></small></label>
+              </div>
+              <div class="form-check">
+                  <input class="form-check-input" type="radio" name="volume_size" id="100GB" value="100">
+                  <label class="form-check-label" for="100GB">100GB <small><span class="text-muted">$0.0097/hour</span></small></label>
+              </div>
+              <div class="form-check">
+                  <input class="form-check-input" type="radio" name="volume_size" id="200GB" value="200">
+                  <label class="form-check-label" for="200GB">200GB <small><span class="text-muted">$0.0194/hour</span></small></label>
+              </div>
+              <div class="form-check">
+                  <input class="form-check-input" type="radio" name="volume_size" id="400GB" value="400">
+                  <label class="form-check-label" for="400GB">400GB <small><span class="text-muted">$0.0388/hour</span></small></label>
+              </div>
+              <div class="form-check">
+                  <input class="form-check-input" type="radio" name="volume_size" id="500GB" value="500">
+                  <label class="form-check-label" for="500GB">500GB <small><span class="text-muted">$0.0485/hour</span></small></label>
+              </div>
+          </div>
+          <div class="col-md-6">
+              <label class="form-label"><strong>Large Volume</strong></label>
+              <div class="form-check">
+                  <input class="form-check-input" type="radio" name="volume_size" id="1TB" value="1000">
+                  <label class="form-check-label" for="1TB">1TB <small><span class="text-muted">$0.097/hour</span></small></label>
+              </div>
+              <div class="form-check">
+                  <input class="form-check-input" type="radio" name="volume_size" id="2TB" value="2000">
+                  <label class="form-check-label" for="2TB">2TB <small><span class="text-muted">$0.194/hour</span></small></label>
+              </div>
+              <div class="form-check">
+                  <input class="form-check-input" type="radio" name="volume_size" id="4TB" value="4000">
+                  <label class="form-check-label" for="4TB">4TB <small><span class="text-muted">$0.388/hour</span></small></label>
+              </div>
+              <div class="form-check">
+                  <input class="form-check-input" type="radio" name="volume_size" id="5TB" value="5000">
+                  <label class="form-check-label" for="5TB">5TB <small><span class="text-muted">$0.485/hour</span></small></label>
+              </div>
+              <div class="form-check">
+                  <input class="form-check-input" type="radio" name="volume_size" id="10TB" value="10000">
+                  <label class="form-check-label" for="10TB">10TB <small><span class="text-muted">$0.97/hour</span></small></label>
+              </div>
+          </div>
+        </div>
+        <div class="mb-3">
+            <!-- <label for="projectId" class="form-label"><strong>VM Name</strong></label> -->
+            <input type="text" 
+                    id="volumeName" 
+                    class="form-control" 
+                    placeholder="Volume Name"
+                    onkeypress="handleEnter(event)">
+        </div>
+        <button id="createVolumeButton" class="btn btn-primary">▶️ Create Volume</button>
+      </div>
+
+      <!-- Help Card (contextual) -->
+      <div class="help-card mt-3" id="helpCard" >
+        <div id="helpContent">
+          <strong>📋 Step 1: Create Your VM</strong>
+          <p class="mb-2 mt-2">Select your GPU flavor and base image, then create your VM. This typically takes 2-3 minutes.</p>
+        </div>
+      </div>
+
+  </main>
+
+  <rightside>
+    <!-- <div style="max-width: 600px;"> -->
+    <!-- <div id="progress-panel" class="mt-1">
+      <h5>Progress Panel</h5>
+      <div id="progress-content" class="alert alert-info" role="alert">
+          Ready, waiting for user action.
+      </div>
+    </div> -->
+
+    <div id="progress-panel" class="card mt-1" style="box-shadow: none; border: 1px solid #757de7;">
+      <div class="card-header" style="background: #757de7; padding: 6px 6px; line-height: 1.1;">
+        <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">🧩 Progress</h6>
+        </div>
+      </div>
+      <div class="card-body" style="max-height: 160px; overflow-y: auto; padding: 0;">
+          <div id="progress-content" class="alert alert-info" role="alert">
+            Ready, waiting for user action.
+          </div>
+      </div>
+    </div>
+
+    <div class="card mt-4" style="box-shadow: none; border: 1px solid #7e3baa;">
+      <div class="card-header" style="background: #7e3baa; padding: 6px 6px; line-height: 1.1;">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="mb-0">🔍 Details</h6>
+          </div>
+        </div>
+      </div>
+      <div class="card-body p-3" id="markdown-volume">
+          <!-- Rendered markdown HTML goes here -->
+      </div>
+    </div>
+
+    <!-- </div> -->
+    <div id="status-message"></div>
+  
+    <div id="errorCard" class="card mt-4" style="display:none; box-shadow: none; border: 1px solid #e74a4a;">
+      <div class="card-header" style="background: #e74a4a; padding: 6px 6px; line-height: 1.1;">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="mb-0">🚫 Errors</h6>
+          </div>
+        </div>
+      </div>
+      <div id="errorPanel" style="max-height: 100px; overflow-y: auto; padding: 0;">
+        <div class="text-center text-muted p-3">
+        </div>
+      </div>
+    </div>
+  </rightside>
+</div>
+
+<script src="utils.js"></script>
+<script>
+
+let projectId = null;
+
+document.addEventListener('DOMContentLoaded', async function() {
+  console.log('Create VM page loaded');
+  projectId = getProjectIdFromUrl();
+  const projectName = await getProjectNameFromSupabase(projectId);
+  console.log('Project Name:', projectName);
+  // const projectName = localStorage.getItem('currentProjectName') || 'Untitled Project';
+
+  // Validate project ID
+  if (!projectId) {
+    showMessage('No project ID provided', 'danger');
+  } else {
+    console.log('Project ID loaded:', projectId);
+  }
+
+  // Check credits
+  const hasCredits = checkCredits(projectId);
+  
+  if (!hasCredits) {
+    console.log('💰❌ Project is out of credits - interface disabled');
+  } else {
+    console.log('✅ Project has credits - interface enabled');
+  }
+
+ // Display project info
+  document.getElementById('projectIdDisplay').textContent = projectId;
+  document.getElementById('projectNameDisplay').textContent = projectName;
+  console.log('Project ID:', projectId);
+});
+
+// Help content for each workflow step
+const helpContent = {
+  create: {
+    title: '📋 Step 1: Create Your Volume',
+    content: 'Select your size, and give it a name, then click on "Create Volume". This typically takes 2 to 5 minutes.'
+  },
+  volume: {
+    title: 'Appendix A: Volume Handling',
+    content: `<strong>Shared Storage Volumes (SSVs)</strong>:<br>
+    <ul>
+      <li> Persistent, network-based SSDs that retain data across VM lifecycles. Each VM can attach up to 10 volumes.</li>
+      <li> Ideal for storing input datasets, scripts, and output results.</li>
+      <li> But, they are not free: Volume Cost = $0.097 /TB/hour (i.e. ~$36 for 1TB Volume for 2 weeks) </li>
+      <li> Also, the management is not automatic. You need to mount them at VM startup/restore and unmont them <strong>before</strong> VM hibernate/delete ⇨ More details in <strong> Volume Handling </strong> section </li>
+    </ul>`
+  }
+};
+
+function showHelp(step) {
+  const help = helpContent[step];
+  document.getElementById('helpContent').innerHTML = `
+    <strong>${help.title}</strong>
+    <p class="mb-0 mt-2">${help.content}</p>
+  `;
+  
+  // Update active state
+  document.querySelectorAll('.workflow-step').forEach(el => {
+    el.classList.remove('active');
+  });
+  event.currentTarget.classList.add('active');
+}
+
+function copyCommand(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    event.target.textContent = '✓ Copied!';
+    setTimeout(() => {
+      event.target.textContent = '📋 Copy';
+    }, 2000);
+  });
+}
+
+
+function goBackToProjectPanel() {
+  window.location.href = `project_panel.html?project_id=${encodeURIComponent(projectId)}`;
+}
+
+function getFormInputs() {
+  // Get selected volume size
+  const volumeSizeRadios = document.querySelectorAll('input[name="volume_size"]:checked');
+  const volume_size = volumeSizeRadios.length > 0 ? volumeSizeRadios[0].value : null;
+  
+  // Get Volume name
+  const volume_name = document.getElementById('volumeName').value.trim();
+  
+  console.log('volumeSize:', volume_size, 'volumeName:', volume_name, 'projectId:', projectId);
+  
+  return { volume_size, volume_name, projectId };
+}
+
+function validateFormInputs(inputs) {
+  const errors = [];
+  if (!inputs.volume_size) { errors.push('Please select a volume size'); }
+  if (!inputs.volume_name) { errors.push('Please enter a volume name'); }
+  if (!inputs.projectId) { errors.push('Project ID is missing'); }
+  return errors;
+}
+
+document.getElementById("createVolumeButton").addEventListener("click", async () => {
+  const createVolumeButton = document.getElementById("createVolumeButton");
+
+  // Disable button immediately
+  createVolumeButton.disabled = true;
+  const originalText = createVolumeButton.textContent;
+  // createVmButton.textContent = "⏳ Creating VM...";
+
+  // visual polish (change color while disabled)
+  createVolumeButton.classList.remove("btn-primary");
+  createVolumeButton.classList.add("btn-secondary");
+
+  // Show spinner + text
+  createVolumeButton.innerHTML = `
+    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+    ⏳ Creating Volume...
+  `;
+
+  try {
+    await createVolume();
+  } catch (err) {
+    console.error('Unhandled error in createVm:', err);
+    showMessage(`Unexpected error: ${err.message}`, 'danger');
+  } finally {
+    // Re-enable button after all async work is done
+    createVolumeButton.disabled = false;
+    createVolumeButton.textContent = originalText;
+
+    // Restore original color
+    createVolumeButton.classList.remove("btn-secondary");
+    createVolumeButton.classList.add("btn-primary");
+  }
+});
+
+async function createVolume() {
+  // Check credits
+  const hasCredits = checkCredits(projectId);
+  console.log('checkCredits called with project id', projectId);
+  if (!hasCredits) {
+    console.log('💰❌ Project is out of credits - interface disabled');
+  } else {
+    console.log('✅ Project has credits - interface enabled');
+  }
+
+  // Get and validate inputs
+  const inputs = getFormInputs();
+  const errors = validateFormInputs(inputs);
+  
+  if (errors.length > 0) {
+    showMessage(errors.join(' | '), 'warning');
+    return;
+  }
+  
+  console.log('Creating VM with inputs:', inputs);
+  return await triggerVolumeCreation('create_volume', inputs);
+}
+
+async function triggerVolumeCreation(action, inputs) {
+  
+  // let requestId = null;
+  try {
+    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/${action}`;
+    
+    console.log('Calling webhook:', webhookUrl, 'with payload:', inputs);
+    showProgress("Volume Creation is starting", 'info', 'create_volume');
+    
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(inputs)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.message || 'Action failed');
+    }
+    
+    showProgress("Volume creation is starting", 'info', 'volume_creation');
+    //CheckVolumeStatus(volumeName.user_vm_name);
+    console.log('Response received:', data);
+    
+    if (data.success) {
+      showProgress('Volume creation is over', 'info', 'vm_available');
+      displayVolumeDetails(data);
+      // loadVolumes();
+      return;
+    } else {
+        showProgress(`Volume creation failed: ${data.message || 'Unknown error'}`, 'danger', 'volume_error');
+        showError(JSON.stringify(data));
+        throw new Error(data.message || 'Action failed');
+    }
+    
+  } catch (error) {
+    console.error('Error:', error);
+    showProgress(`Error: ${error.message}`, 'danger', 'volume_error');
+    showError(error.message);
+    throw error; // Re-throw so caller knows it failed
+  }
+}
+
+async function loadVolumes() {
+  const refreshBtn = document.getElementById('refreshVmsButton');
+  const refreshText = document.getElementById('refreshBtn-text');
+
+  // Disable button immediately and show spinner
+  refreshBtn.disabled = true;
+  const originalHTML = refreshBtn.innerHTML;
+
+  refreshBtn.innerHTML = `
+    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+    Refreshing GPU VMs...
+  `;
+
+  const payload = { project_id: projectId };
+
+  try {
+    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/list_vms`;
+    
+    console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
+    // showProgress("VMs listing", 'info', 'list_vms');
+    
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    const data = await response.json();
+    console.log('Response received:', data);
+    
+    if (data.success) {
+      showMessage(`🔄 VM list updated`, 'success');
+      // showProgress('.', 'info', 'list_vms');
+      //list the VMs
+      displayVmsList(data);
+    } else {
+      // showProgress(`❌VM listing failed: ${data.message || 'Unknown error'}`, 'danger', 'list_vms');
+      document.getElementById('vmsList').innerHTML = '<div class="text-secondary p-3">No VMs to display, go to "Create VM" page: <button class="btn btn-primary btn-sm" onclick="goToCreateVmPage()">▶️ Create VM</button></div>';
+    }
+    
+  } catch (error) {
+    console.error('Error:', error);
+    showProgress(`Error: ${error.message}`, 'danger', 'list_vms');
+    showError(error.message);
+  } finally {
+    // 2️⃣ Re-enable button and restore original content
+    refreshBtn.disabled = false;
+    refreshBtn.innerHTML = originalHTML;
+  }
+}
+
+function handleEnter(event) {
+  if (event.key === 'Enter') {
+    createVolume();
+  }
+}
+
+
+</script>
+
+</body>

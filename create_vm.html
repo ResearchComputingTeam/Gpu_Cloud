@@ -46,10 +46,15 @@
         <div>Cleanup</div>
       </div>
 
+      <div class="workflow-step" onclick="showHelp('volume')">
+        <div class="icon">A</div>
+        <div>Volume Handling</div>
+      </div>
+<!-- 
       <div class="mt-3 p-2" style="background: #e8f4f8; border-radius: 6px; font-size: 0.8rem; border-left: 3px solid #667eea;">
         <strong>💡 Quick Help</strong><br>
         <small class="text-muted">Click any action above for copy-ready commands</small>
-      </div>
+      </div> -->
 
     </div>
   </leftside>
@@ -133,13 +138,14 @@
         </div>
         <button id="createVmButton" class="btn btn-primary">▶️ Create GPU VM</button>
       </div>
-        <!-- Help Card (contextual) -->
-        <div class="help-card mt-3" id="helpCard">
-          <div id="helpContent">
-            <strong>📋 Step 1: Create Your VM</strong>
-            <p class="mb-2 mt-2">Select your GPU flavor and base image, then create your VM. This typically takes 2-3 minutes.</p>
-          </div>
+
+      <!-- Help Card (contextual) -->
+      <div class="help-card mt-3" id="helpCard" >
+        <div id="helpContent">
+          <strong>📋 Step 1: Create Your VM</strong>
+          <p class="mb-2 mt-2">Select your GPU flavor and base image, then create your VM. This typically takes 2-3 minutes.</p>
         </div>
+      </div>
 
       <!-- Terminal container -->
       <div class="card mt-3" id="terminal-card" style="display: none;">
@@ -238,10 +244,12 @@
 
 let projectId = null;
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
   console.log('Create VM page loaded');
   projectId = getProjectIdFromUrl();
-  const projectName = localStorage.getItem('currentProjectName') || 'Untitled Project';
+  const projectName = await getProjectNameFromSupabase(projectId);
+  console.log('Project Name:', projectName);
+  // const projectName = localStorage.getItem('currentProjectName') || 'Untitled Project';
 
   // Validate project ID
   if (!projectId) {
@@ -269,16 +277,40 @@ document.addEventListener('DOMContentLoaded', function() {
 const helpContent = {
   create: {
     title: '📋 Step 1: Create Your VM',
-    content: 'Select your GPU flavor and base image, then create your VM. This typically takes 2-3 minutes.'
+    content: 'Select your GPU flavor and base image, then create your VM. This typically takes 2 to 5 minutes.'
   },
   upload: {
     title: '📤 Step 2: Upload Your Code',
-    content: `Once your VM is running, upload your code and data:<br><br>
-      <code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
-        rsync -avz --progress ./local-folder/ ubuntu@VM_IP:/remote/path/
-      </code>
-      <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyCommand('rsync -avz --progress ./local-folder/ user@VM_IP:/remote/path/')">📋 Copy</button>
-      <br><br><small class="text-muted">Replace VM_IP with your actual VM IP address</small>`
+    content: `<p>Once your VM is running, you can upload your code, data, and dependencies. Hyperstack VMs offer <strong>3 types of storage</strong>:</p>
+<ul>
+  <li><strong>Root Disk</strong>: Automatically mounted at boot and preserved at hibernation. This 100GB NVMe drive is ideal for OS, essential system files and software packages. It's fast but limited in size.</li>
+  <li><strong>Ephemeral Storage</strong>: Used for active workloads during runtime. It's fast, local, free and huge (750GB per GPU), but <em>not persistent</em>. Data is lost when the VM is stopped or deleted. Always back up important data before hibernation or deletion.</li>
+    <ul>
+      <li> It's fast, local and free. </li>
+      <li> It's huge: 750GB per GPU (i.e. if you have a 4*A100 GPU VM, you will obtain 3200GB of ephemeural storage). </li>
+      <li> But it's <em>not persistent</em>. Data is lost when the VM is hibernated or deleted. </li>
+    </ul>
+  <li><strong>Shared Storage Volumes (SSVs)</strong>: 
+    <ul>
+      <li> Persistent, network-based SSDs that retain data across VM lifecycles. Each VM can attach up to 10 volumes.</li>
+      <li> Ideal for storing input datasets, scripts, and output results.</li>
+      <li> But, they are not free: Volume Cost = $0.097 /TB/hour (i.e. ~$36 for 1TB Volume for 2 weeks) </li>
+      <li> Also, the management is not automatic. You need to mount them at VM startup/restore and unmont them <strong>before</strong> VM hibernate/delete ⇨ More details in <strong> Volume Handling </strong> section </li>
+    </ul>
+</ul>
+<h5>Recommended Upload Strategy</h5>
+<p>Use <code>rsync</code> to transfer files securely:</p>
+<code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
+  rsync -avz --progress ./local-folder/ ubuntu@VM_IP:/remote/path/
+</code>
+<button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyCommand('rsync -avz --progress ./local-folder/ ubuntu@VM_IP:/remote/path/')">📋 Copy</button> <br>
+<p><strong>📌 Tip:</strong></p>
+<ul>
+  <li>Place your <em>scripts and input data</em> on <strong>Volumes</strong> if you want them to persist after VM hibernation/deletion.</li>
+  <li>Use <strong>ephemeral storage</strong> for temporary computations and intermediate results.</li>
+  <li>Use <strong>root disk</strong> for data smaller than 50GB, it's free, and auto preserved as long as your VM is not deleted.</li>
+</ul>
+<br><br><small class="text-muted">Replace VM_IP with your actual VM IP address</small>`
   },
   run: {
     title: '🚀 Step 3: Run Your Tasks',
@@ -304,6 +336,12 @@ const helpContent = {
       • <strong>Hibernate:</strong> Pause VM, resume later (storage fees apply)<br>
       • <strong>Delete:</strong> Permanently remove VM and data<br><br>
       <small class="text-muted">Go to "Manage VMs" to perform these actions</small>`
+  },
+  volume: {
+    title: 'Appendix A: Volume Handling',
+    content: `This is how you can create and manage your volumes:<br><br>
+      • <strong>Create Volume:</strong> TEXT <br>
+      • <strong>Delete Volume:</strong> TEXT <br><br>`
   }
 };
 

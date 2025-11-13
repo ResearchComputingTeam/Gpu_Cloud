@@ -361,8 +361,8 @@ async function CheckVmStatus(vmName) {
       displayVmDetails(data);
       // document.getElementById('loading-spinner').style.display = 'none';
     } else {
-      // showProgress(`❌VM listing failed: ${data.message || 'Unknown error'}`, 'danger', 'list_vms');
-      // document.getElementById('vmsList').innerHTML = '<div class="text-danger p-3">Failed to load VMs</div>';
+      showProgress(`❌VM listing failed: ${data.message || 'Unknown error'}`, 'danger', 'list_vms');
+      document.getElementById('vmsList').innerHTML = '<div class="text-danger p-3">Failed to load VMs</div>';
     }
     
   } catch (error) {
@@ -502,7 +502,75 @@ function displayVmDetails(data) {
           <button class="btn btn-primary w-100" onclick="connectToTerminal('${data.user_vm_ip}', '${escapeHtml(data.environment_name)}')" ${data.request_status !== 'running' || !data.user_vm_ip || data.user_vm_ip === 'N/A' ? 'disabled' : ''}>
             🖥️ Open Web Terminal
           </button>
+        </div>
       </div>
+    </div>
+  `;
+}
+
+function displayVolumeDetails(data) {
+  // Pick the correct container depending on which page we are on
+  const targetEl = document.getElementById('markdown-volume')
+
+  if (!targetEl) {
+    console.warn('No volume details container found on this page.');
+    return;
+  }
+  
+  // Map status to friendly display
+  const volumeStatusMap = {
+    'available': { label: 'available', class: 'success', icon: '🟢' },
+    'attached': { label: 'attached', class: 'primary', icon: '📌' },
+    'detached': { label: 'detached', class: 'warning', icon: '💤' },
+    'deleted': { label: 'deleted', class: 'secondary', icon: '🔴' },
+    'error': { label: 'Error', class: 'danger', icon: '⚠️' }
+  };
+  
+  const status = volumeStatusMap[data.volume_state] || { label: data.volume_state, class: 'info', icon: 'ℹ️' };
+  
+  const statusColor = status.class === 'success' ? '#28a745' : status.class === 'warning' ? '#ffc107' : status.class === 'secondary' ? '#da1021ff' : '#6c757d';
+  
+  targetEl.innerHTML = `
+    <div style="display: flex; font-size: 12px;">
+      <!-- Left Sidebar - Key Info -->
+      <div style="flex: 0 0 140px; padding: 12px; background: #f8f9fa; border-right: 1px solid #dee2e6;">
+        <div style="margin-bottom: 12px;">
+          <div style="font-size: 10px; color: #6c757d; margin-bottom: 4px;">STATUS</div>
+          <div style="font-size: 12px; font-weight: 600; color: ${statusColor};">
+            ${status.icon} ${status.label}
+          </div>
+        </div>
+        
+        <div>
+          <div style="font-size: 10px; color: #6c757d; margin-bottom: 4px;">COST</div>
+          <div style="font-size: 20px; font-weight: bold; color: #28a745;">
+            $${(data.volume_total_cost ?? 0).toFixed(2)}
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column - Details -->
+      <div style="flex: 1; padding: 12px;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <tbody>
+            <tr style="border-bottom: 1px solid #e9ecef;">
+              <td style="padding: 5px 0; color: #6c757d; width: 30%; font-size: 11px;">Name</td>
+              <td style="padding: 5px 0; font-size: 11px;">${escapeHtml(data.volume_name.replace(/_[^_]*$/, ''))}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e9ecef;">
+              <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">Size </td>
+              <td style="padding: 5px 0; font-size: 11px;">${escapeHtml(data.volume_size_gb)}GB</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e9ecef;">
+              <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">Created</td>
+              <td style="padding: 5px 0; font-size: 11px;">${new Date(data.created_at).toLocaleString('en-GB', { timeZone: 'Asia/Qatar', dateStyle: 'short', timeStyle: 'short', hour12: false })}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e9ecef;">
+              <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">Owner</td>
+              <td style="padding: 5px 0; font-size: 11px;">${escapeHtml(data.user_id)}</td> 
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   `;
@@ -759,6 +827,71 @@ function getRequestIdFromUrl() {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get('request_id');
 }
+// Initialize Supabase client
+// const SUPABASE_URL = "https://dgttklfdlwaxvxjubcxx.supabase.co";
+// const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRndHRrbGZkbHdheHZ4anViY3h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3MTkzNTAsImV4cCI6MjA3NDI5NTM1MH0.ZggUBEE_GN0e_-b4TQL8yaXfe5ckoD6AglORC7NdYwQ"; // from your Supabase project settings
+// const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function getProjectNameFromSupabase(projectId) {
+
+  // Direct connection to database
+  // const { data, error } = await supabase
+  //   .from('gpu_cloud_requests')
+  //   .select('project_name')
+  //   .eq('project_unique_id', projectId)
+  //   .maybeSingle();
+
+  // if (error) {
+  //   console.error('Error fetching project name:', error.message);
+  //   return null;
+  // } else {
+  //   console.log('Project Name=', data);
+  // }
+
+  // return data?.project_name || null;
+  let project_name = null;
+  // Connection through n8n, more secure
+  try {
+    // Call n8n webhook to validate project
+    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/get_project_name?project_id=${encodeURIComponent(projectId)}`;
+    
+    console.log('🔍 Retrieving project name for:', projectId);
+
+    const response = await fetch(webhookUrl, { 
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project_id: projectId })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.message || 'Action failed');
+    }
+    
+    console.log('Response received:', data);
+
+    // Handle response
+    if (data.success) {
+      project_name = data.project_name;
+    
+      console.log('✅ Project name:', project_name);
+      
+    } else {
+      showMessage(`❌ Project name retrieval failed: ${data.message || 'Unknown error'}`, 'danger');
+      console.log('❌ Project name is not retrievd', data);
+    }
+
+  } catch (error) {
+    console.error('Error:', error);
+    showMessage(`Error: ${error.message}`, 'danger');
+  }
+  return project_name;
+}
 
 // ============================================
 // INTEGRATED TERMINAL STUFFS
@@ -767,10 +900,14 @@ function getRequestIdFromUrl() {
 let term = null;
 let socket = null;
 
-function connectToTerminal(vmIp, vmName) {
+async function connectToTerminal(vmIp, vmName) {
   // Get project info from localStorage
-  const projectId = localStorage.getItem('currentProjectId');
-  const projectName = localStorage.getItem('currentProjectName');
+  // const projectId = localStorage.getItem('currentProjectId');
+  const projectId = getProjectIdFromUrl();
+  console.log('Project ID=', projectId);
+  const projectName = await getProjectNameFromSupabase(projectId);
+  console.log('Project Name:', projectName);
+  // const projectName = localStorage.getItem('currentProjectName');
   
   if (!projectId) {
     alert('Error: Project ID not found. Please refresh and try again.');

@@ -70,14 +70,31 @@
                 onclick="openCreateVmPage()" 
                 disabled
                 title="Validate project first">
-          ➕ Create VM
+          ➕🖥️ Create VM
         </button>
-        <button class="btn btn-info" 
+        <button class="btn btn-warning" 
                 id="handleVmsBtn" 
                 onclick="openHandleVmsPage()" 
                 disabled
                 title="Validate project first">
-          ⚙️ Manage VMs
+          ⚙️🖥️ Manage VMs
+        </button>
+      </div>
+
+      <div class="button-group">
+        <button class="btn btn-dark" 
+                id="createVolumeBtn" 
+                onclick="openCreateVolumePage()" 
+                disabled
+                title="Validate project first">
+          ➕💾 Create Volume
+        </button>
+        <button class="btn btn-secondary" 
+                id="handleVolumesBtn" 
+                onclick="openHandleVolumesPage()" 
+                disabled
+                title="Validate project first">
+          ⚙️💾 Manage Volumes
         </button>
       </div>
 
@@ -272,7 +289,7 @@ function displayProjectInfo(data, isSuccess) {
     projectInfoContent.innerHTML = `
       <strong>✓ Project Validated</strong><br>
       <small>Project: ${escapeHtml(data.project_name || 'My Project')}</small><br>
-      <small>Project Responsible:${data.pi_name}</small><br>
+      <small>Project Responsible: ${data.pi_name}</small><br>
       <small>ID: ${escapeHtml(data.project_id)}</small><br>
       <small>Status: ${data.status || 'Active'}</small><br>
       <small>Remaining Credits: ${remainingCredits.toFixed(2)}</small>
@@ -327,10 +344,15 @@ function displayProjectInfo(data, isSuccess) {
 function enableActionButtons() {
   const createVmBtn = document.getElementById('createVmBtn');
   const handleVmsBtn = document.getElementById('handleVmsBtn');
+  const createVolumeBtn = document.getElementById('createVolumeBtn');
+  const handleVolumesBtn = document.getElementById('handleVolumesBtn');
   const disabledInfo = document.getElementById('disabledInfo');
   
   createVmBtn.disabled = false;
   handleVmsBtn.disabled = false;
+  createVolumeBtn.disabled = false;
+  handleVolumesBtn.disabled = false;
+
   createVmBtn.title = 'Click to create a new VM';
   handleVmsBtn.title = 'Click to manage existing VMs';
   disabledInfo.style.display = 'none';
@@ -385,6 +407,40 @@ function openHandleVmsPage() {
   
   // Alternative: Open in new tab
   window.open(handleVmsUrl, '_blank');
+}
+
+// Open Create Volume page
+function openCreateVolumePage() {
+  if (!projectState.isValid) {
+    showMessage('Please validate your project first', 'warning');
+    return;
+  }
+  
+  console.log('📄 Opening Create Volume page for project:', projectState.projectId);
+  
+  // Pass project ID to new page via URL parameter
+  const createVolumeUrl = `create_volume.html?project_id=${encodeURIComponent(projectState.projectId)}`;
+  //window.location.href = createVmUrl;
+  
+  // Open in new tab
+  window.open(createVolumeUrl, '_blank');
+}
+
+// Open Handle Volume page
+function openHandleVolumesPage() {
+  if (!projectState.isValid) {
+    showMessage('Please validate your project first', 'warning');
+    return;
+  }
+  
+  console.log('📄 Opening Handle Volumes page for project:', projectState.projectId);
+  
+  // Pass project ID to new page via URL parameter
+  const handleVolumesUrl = `handle_volumes.html?project_id=${encodeURIComponent(projectState.projectId)}`;
+  // window.location.href = handleVmsUrl;
+  
+  // Open in new tab
+  window.open(handleVolumesUrl, '_blank');
 }
 
 // Handle Enter key on input field

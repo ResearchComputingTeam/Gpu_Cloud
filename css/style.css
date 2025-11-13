@@ -130,10 +130,13 @@ body {
 /* Help Card */
 .help-card {
     /* width: 100%;*/
-    max-width: 700px;
-    width: auto;
+    /* max-width: 700px;
+    width: auto; */
     /* FIX: Force alignment to the right */
-    margin-left: auto;
+    margin-left: -245px;
+    /* position: relative; */
+    max-width: calc(700px + 245px);
+    width: auto;
     /* min-height: fit-content; */
     background: #fff9e6;
     border-left: 4px solid #ffc107;
@@ -146,6 +149,7 @@ body {
     font-size: 0.85rem;
     padding: 4px 8px;
 }
+
 
 /* To make the fixed-width rightside elements align properly */
 /* .rightside > div { */
@@ -368,6 +372,30 @@ body {
 }
 
 .vm-status.deleted {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+
+.volume-status {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.volume-status.available {
+    background: #d4edda;
+    color: #155724;
+}
+
+.volume-status.volume_init {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.volume-status.deleted {
     background: #f8d7da;
     color: #721c24;
 }
