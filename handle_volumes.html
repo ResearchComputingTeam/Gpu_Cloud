@@ -199,7 +199,6 @@ document.addEventListener('DOMContentLoaded', async function() {
   console.log('Project ID=', projectId);
   const projectName = await getProjectNameFromSupabase(projectId);
   console.log('Project Name:', projectName);
-  // const projectName = localStorage.getItem('currentProjectName') || 'Untitled Project';
   
   document.getElementById('projectIdDisplay').textContent = projectId;
   document.getElementById('projectNameDisplay').textContent = projectName;
@@ -522,16 +521,6 @@ function displayVolumesList(responseData) {
   document.getElementById('volumeSelectedDisplay').style.display = 'none';
 }
 
-// Update contextual help based on VM status
-// function updateHelpBasedOnStatus(vm_status, vmIp = null) {
-//   if (vm_status === 'simulation_running' || status === 'running') {
-//     showHelp('upload', vmIp);
-//   } else if (status === 'hibernated') {
-//     showHelp('restore', vmIp);
-//   }
-// }
-
-
 async function loadVolumes() {
 
   // 🧹 Reset / clear any previous error display
@@ -569,11 +558,9 @@ async function loadVolumes() {
     
     if (data.success) {
       showMessage(`🔄 VM list updated`, 'success');
-      // showProgress('.', 'info', 'list_volumes');
       //list the VMs
       displayVolumesList(data);
     } else {
-      // showProgress(`❌VM listing failed: ${data.message || 'Unknown error'}`, 'danger', 'list_volumes');
       document.getElementById('volumesList').innerHTML = '<div class="text-secondary p-3">No VMs to display, go to "Create VM" page: <button class="btn btn-primary btn-sm" onclick="goToCreateVolumePage()">▶️ Create VM</button></div>';
     }
     

@@ -9,25 +9,7 @@
 </head>
 
 <body>
-<!-- Top Navigation Bar -->
 
-
-<!-- Top Navigation Bar -->
-<!-- <nav class="top-nav">
-  <div class="container">
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <a href="https://www.hbku.edu.qa" target="_blank" aria-label="Hamad Bin Khalifa University home">
-        <img src="https://commons.wikimedia.org/wiki/Special:FilePath/HBKU_logo.svg"
-             alt="HBKU logo"
-             class="logo" />
-      </a>
-    </div>
-    <div class="links">
-      <a href="https://www.hbku.edu.qa" target="_blank">HBKU</a>
-      <a href="https://rccg.hbku.edu.qa/wiki/Main_Page" target="_blank">RCCG</a>
-    </div>
-  </div>
-</nav> -->
 <div class="container">
   <div class="card mx-auto">
 
@@ -156,48 +138,6 @@ function setButtonLoading(isLoading) {
     text.style.opacity = '1';
   }
 }
-
-// Display project info
-// function displayProjectInfo(data, isSuccess) {
-//   console.log('CheckStatuspayload:', data);
-//   const infoDiv = document.getElementById('project-info');
-//   const contentDiv = document.getElementById('project-info-content');
-  
-//   if (isSuccess) {
-//     infoDiv.classList.add('success');
-//     infoDiv.classList.remove('error');
-//     contentDiv.innerHTML = `
-//       <strong>✅ Project Valid</strong>
-//       <hr style="margin: 8px 0;">
-//       <small>
-//         <div><strong>Project Name:</strong><big> <span class="badge bg-success"> ${data.project_name} </big></span></div>
-//         <div><strong>Project Responsible:</strong> ${data.pi_name}</div>
-//         <div><strong>Project ID:</strong> ${data.project_id}</div>
-//         <div><strong>Status:</strong> ${data.status || 'Active'}</div>
-//         <div><strong>Remaining Credits:</strong> $${((data.credits ?? 0) - (data.used_credits ?? 0)).toFixed(2)}</div>
-//       </small>
-//     `;
-//   } else {
-//     infoDiv.classList.add('error');
-//     infoDiv.classList.remove('success');
-//     if (data.error == "not_existing") {
-//       contentDiv.innerHTML = `
-//         <strong>❌ Project Not Found</strong>
-//         <hr style="margin: 8px 0;">
-//         <small>The project ID you entered is not valid. Please check and try again.</small>
-//       `;
-//     } else {
-//       contentDiv.innerHTML = `
-//         <strong>💰❌ No Credits Remaining</strong>
-//         <hr style="margin: 8px 0;">
-//         <small>The project ID you entered has ran out of credits. Please contact RCCG.</small>
-//       `;
-//     }
-//   }
-  
-//   infoDiv.classList.add('visible');
-// }
-
 
 // Check project status
 async function checkProjectStatus() {
@@ -330,13 +270,6 @@ function displayProjectInfo(data, isSuccess) {
     localStorage.setItem('hasCredits', 'false');
     projectInfo.classList.add('error');
     projectInfo.classList.remove('success');
-    // if (data.error == "not_existing") {
-    //   projectInfoContent.innerHTML = `
-    //     <strong>❌ Project Not Found</strong>
-    //     <hr style="margin: 8px 0;">
-    //     <small>The project ID you entered is not valid. Please check and try again.</small>
-    //   `;
-    // }
   }
 }
 
@@ -458,8 +391,6 @@ function initializeFromUrl() {
   if (projectIdFromUrl) {
     document.getElementById('projectId').value = projectIdFromUrl;
     console.log('📍 Project ID from URL:', projectIdFromUrl);
-    // Optionally auto-check
-    // checkProjectStatus();
   }
 }
 

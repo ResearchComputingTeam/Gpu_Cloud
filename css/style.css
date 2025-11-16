@@ -19,16 +19,6 @@
     text-decoration: underline;
 }
 
-/* body { 
-    padding: 20px; 
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-} */
-
-
 body {
     min-height: 100vh;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -58,59 +48,10 @@ body {
 }
 
 .rightside {
-    /* flex: 1 1 auto;
-    width: 200px; */
-    /* display: flex; */
-    /* max-width: 400px; */
-    /* flex-direction: column;  */
-
-
     flex: 0 0 200;
     min-width: 200px; 
     max-width: 200px;
 }
-
-/* .main-wrapper {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 20px;
-  padding-top: 80px;
-} */
-
-/* Left grows leftward */
-/* .leftside {
-  right: 50%;
-  transform: translateX(-20px);
-  align-items: flex-end;
-} */
-
-/* Keep the main content fixed in the horizontal center */
-/* .main-content {
-  position: relative;
-  flex: 0 0 612px;
-  min-width: 612px;
-  max-width: 612px;
-  z-index: 2;
-} */
-
-/* Right grows rightward */
-/* .rightside {
-  left: 50%;
-  transform: translateX(20px);
-  align-items: flex-start;
-} */
-
-
-/* Make side panels absolutely positioned relative to the wrapper */
-/* .leftside, .rightside {
-  position: absolute;
-  top: 80px; 
-  display: flex;
-  flex-direction: column;
-} */
-
 
 .workflow-sidebar {
 /* Keep max-width to constrain its size */
@@ -150,18 +91,6 @@ body {
     padding: 4px 8px;
 }
 
-
-/* To make the fixed-width rightside elements align properly */
-/* .rightside > div { */
-    /* Ensure child divs take up the full 600px width of the rightside container */
-    /* width: 100%; 
-} */
-
-
-/* .container { 
-    max-width: 500px; 
-} */
-
 .card { 
     box-shadow: 0 8px 16px rgba(0,0,0,0.2);
     border: none;
@@ -171,13 +100,6 @@ body {
     width: 100%; 
     max-width: 600px;
 }
-
-/* .card {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    border: none;
-    border-radius: 10px;
-    margin-bottom: 20px;
-} */
 
 .card-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -318,13 +240,6 @@ body {
     color: white;
 }
 
-
-/* .card {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    border: none;
-    border-radius: 10px;
-    margin-bottom: 20px;
-} */
 .card-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -404,11 +319,6 @@ body {
     background: #f8d7da;
     color: #721c24;
 }
-
-/* .volume-status.attached {
-    background: #e99a07;
-    color: #f5f4f0;
-} */
 
 .volume-status.in-use {
     background: #8e13be;

@@ -27,11 +27,6 @@
         <div class="icon">A</div>
         <div>Volume Handling</div>
       </div>
-<!-- 
-      <div class="mt-3 p-2" style="background: #e8f4f8; border-radius: 6px; font-size: 0.8rem; border-left: 3px solid #667eea;">
-        <strong>💡 Quick Help</strong><br>
-        <small class="text-muted">Click any action above for copy-ready commands</small>
-      </div> -->
 
     </div>
   </leftside>
@@ -135,13 +130,6 @@
   </main>
 
   <rightside>
-    <!-- <div style="max-width: 600px;"> -->
-    <!-- <div id="progress-panel" class="mt-1">
-      <h5>Progress Panel</h5>
-      <div id="progress-content" class="alert alert-info" role="alert">
-          Ready, waiting for user action.
-      </div>
-    </div> -->
 
     <div id="progress-panel" class="card mt-1" style="box-shadow: none; border: 1px solid #757de7;">
       <div class="card-header" style="background: #757de7; padding: 6px 6px; line-height: 1.1;">
@@ -198,8 +186,6 @@ document.addEventListener('DOMContentLoaded', async function() {
   projectId = getProjectIdFromUrl();
   const projectName = await getProjectNameFromSupabase(projectId);
   console.log('Project Name:', projectName);
-  // const projectName = localStorage.getItem('currentProjectName') || 'Untitled Project';
-
   // Validate project ID
   if (!projectId) {
     showMessage('No project ID provided', 'danger');

@@ -135,28 +135,6 @@ function showProgress(message, type = 'info', action = '') {
   }, 100);
 }
 
-// function showDetails(msg) {
-//   const markdownDiv = document.getElementById('markdown-content');
-//   let markdownText = '';
-
-//   try {
-//     // Try to parse as JSON and extract 'message' field
-//     const data = typeof msg === 'string' ? JSON.parse(msg) : msg;
-//     if (data.message) {
-//       markdownText = data.message;
-//     } else {
-//       // If no 'message' field, fallback to stringified object
-//       markdownText = JSON.stringify(data, null, 2);
-//     }
-//   } catch (e) {
-//     // If not JSON, treat msg as markdown/text
-//     markdownText = msg;
-//   }
-
-//   // Parse markdown and display
-//   markdownDiv.innerHTML = marked.parse(markdownText);
-// }
-
 function showError(data) {
   const errorPanel = document.getElementById('errorPanel');
   const errorCard = document.getElementById('errorCard'); 
@@ -177,7 +155,6 @@ function showError(data) {
   errorPanel.style.display = 'block';
 }
 
-
 function showDetailsMarkdown(data) {
   const detailsPanel = document.getElementById('detailsPanel');
   if (!detailsPanel) return;
@@ -194,7 +171,6 @@ function showDetailsMarkdown(data) {
   detailsPanel.style.display = 'block';
 }
 
-
 function getActionLabel(action) {
   const labels = {
     'create_vm': '▶️ VM is Creating',
@@ -204,7 +180,6 @@ function getActionLabel(action) {
   };
   return labels[action] || action;
 }
-
 
 
 function showSpinner() {
@@ -271,14 +246,9 @@ function handleRealtimeUpdate(data, action) {
   console.log('✨ Real-time update received:', data);
   
   // Update progress and details panels
-  // requestAnimationFrame(() => {
   showProgress(formatResponseData(data, 'status_update'), 'success', `Status: ${data.request_status}`);
-  // showDetails(JSON.stringify(data));
-  // CheckVmStatus(data.user_vm_name);
   displayVmDetails(data);
 
-  // });
-  
   // Determine completion states based on action
   const isComplete = 
     (action === 'create_vm' && data.request_status === 'running') ||
@@ -293,7 +263,6 @@ function handleRealtimeUpdate(data, action) {
 
   if (isComplete && resolver) {
     showMessage(`✅ ${action} completed successfully!`, 'success');
-    // displayVmDetailsFromSupabaseUpdate(data);
     displayVmDetails(data);
     addToHistory(action, JSON.stringify(data), 'success');
     resolver.resolve(data); // Cleanup happens in resolve wrapper
@@ -331,16 +300,11 @@ async function pollCurrentStatus(requestId) {
 }
 
 async function CheckVmStatus(vmName) {
-  // 🧹 Reset any previous error display
+  // 🧹 Reset / clear any previous error display
   resetErrorCard();
 
   console.log('Test', vmName);
   const payload = { vm_name: vmName };
-
-  // Show loading state
-  // document.getElementById('progress-content').innerHTML = 
-  //   `<strong>Checking status for ${escapeHtml(vmName)}...</strong>`;
-  // document.getElementById('loading-spinner').style.display = 'block';
 
   try {
     const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/check_vm_status`;
@@ -359,10 +323,7 @@ async function CheckVmStatus(vmName) {
     
     if (data.success) {
       //Display the VM details
-      // updateHelpBasedOnStatus(data.vm_status);
-      // showDetails(JSON.stringify(data));
       displayVmDetails(data);
-      // document.getElementById('loading-spinner').style.display = 'none';
     } else {
       showProgress(`❌VM listing failed: ${data.message || 'Unknown error'}`, 'danger', 'list_vms');
       document.getElementById('vmsList').innerHTML = '<div class="text-danger p-3">Failed to load VMs</div>';
@@ -810,13 +771,6 @@ function formatResponseData(data, action) {
     });
   }
 
-  // if (data.request_status) {
-  // details.push({
-  //   label: 'GPU VM Status',
-  //   value: `<span class="badge bg-info">${escapeHtml(data.request_status)}</span>`
-  // });
-  // }
-
   if (data.request_status) {
   details.push({
     label: 'GPU VM Status',
@@ -883,28 +837,8 @@ function getRequestIdFromUrl() {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get('request_id');
 }
-// Initialize Supabase client
-// const SUPABASE_URL = "https://dgttklfdlwaxvxjubcxx.supabase.co";
-// const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRndHRrbGZkbHdheHZ4anViY3h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3MTkzNTAsImV4cCI6MjA3NDI5NTM1MH0.ZggUBEE_GN0e_-b4TQL8yaXfe5ckoD6AglORC7NdYwQ"; // from your Supabase project settings
-// const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 async function getProjectNameFromSupabase(projectId) {
-
-  // Direct connection to database
-  // const { data, error } = await supabase
-  //   .from('gpu_cloud_requests')
-  //   .select('project_name')
-  //   .eq('project_unique_id', projectId)
-  //   .maybeSingle();
-
-  // if (error) {
-  //   console.error('Error fetching project name:', error.message);
-  //   return null;
-  // } else {
-  //   console.log('Project Name=', data);
-  // }
-
-  // return data?.project_name || null;
   let project_name = null;
   // Connection through n8n, more secure
   try {
@@ -958,7 +892,6 @@ let socket = null;
 
 async function connectToTerminal(vmIp, vmName) {
   // Get project info from localStorage
-  // const projectId = localStorage.getItem('currentProjectId');
   const projectId = getProjectIdFromUrl();
   console.log('Project ID=', projectId);
   const projectName = await getProjectNameFromSupabase(projectId);
@@ -1005,8 +938,6 @@ async function connectToTerminal(vmIp, vmName) {
   term.writeln('\x1b[33m⏳ Connecting to ' + vmIp + '...\x1b[0m\r');
 
   // Add project_id to WebSocket URL
-  // const wsUrl = `wss://51.20.114.36/ssh?host=${vmIp}&port=22&project_id=${projectId}`;
-  // const wsUrl = `wss:nonserially-unpent-jin.ngrok-free.dev?host=${vmIp}&port=22&project_id=${projectId}`;
   const wsUrl = `wss://adolfo-unpersonalizing-unnarrowly.ngrok-free.dev?host=${vmIp}&port=22&project_id=${projectId}&project_name=${encodeURIComponent(projectName)}`;
  
   console.log('WebSocket URL=', wsUrl);
@@ -1078,21 +1009,6 @@ function openAttachVolumeModal(vmName, vmId) {
 async function fetchAvailableVolumes() {
   const projectId = getProjectIdFromUrl();
   console.log('Project ID from fetchAvailableVolumes: ', projectId);
-  
-  // fetch(`https://nonserially-unpent-jin.ngrok-free.dev/webhook/list_volumes?project_id=${projectId}`)
-  //   .then(response => response.json())
-  //   .then(data => {
-  //     if (data.success && data.volumes) {
-  //       availableVolumes = data.volumes;
-  //       // populateVolumeDropdown(data.volumes);
-  //     } else {
-  //       showAttachError('Failed to load volumes: ' + (data.message || 'Unknown error'));
-  //     }
-  //   })
-  //   .catch(error => {
-  //     console.error('Error fetching volumes:', error);
-  //     showAttachError('Error loading volumes. Please try again.');
-  //   });
   const payload = { project_id: projectId };
 
   try {
@@ -1241,75 +1157,11 @@ async function confirmAttachVolume() {
   }
 }
 
-
-
-  // Call backend API
-  // fetch(`YOUR_API_URL/attach-volume`, {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify({
-  //     vm_id: currentVmForAttach.id,
-  //     vm_name: currentVmForAttach.name,
-  //     volume_id: volumeId,
-  //     volume_name: volumeName,
-  //     project_id: projectId
-  //   })
-  // })
-  // .then(response => response.json())
-  // .then(data => {
-  //   if (data.success) {
-  //     // Close modal
-  //     bootstrap.Modal.getInstance(document.getElementById('attachVolumeModal')).hide();
-      
-  //     // Show success message
-  //     showMessage(`✓ Volume "${volumeName}" attached successfully!`, 'success');
-      
-  //     // Refresh VM details to show new volume
-  //     CheckVmStatus(currentVmForAttach.name);
-  //   } else {
-  //     showAttachError('Failed to attach volume: ' + (data.message || 'Unknown error'));
-  //     document.getElementById('confirmAttachBtn').disabled = false;
-  //     document.getElementById('confirmAttachBtn').innerHTML = 'Attach Volume';
-  //   }
-  // })
-  // .catch(error => {
-  //   console.error('Error attaching volume:', error);
-  //   showAttachError('Error attaching volume. Please try again.');
-  //   document.getElementById('confirmAttachBtn').disabled = false;
-  //   document.getElementById('confirmAttachBtn').innerHTML = 'Attach Volume';
-  // });
-
-// Detach volume (bonus feature)
+// Detach volume
 async function detachVolume(vmId, volumeId, vmName) {
   if (!confirm('Are you sure you want to detach this volume?')) {
     return;
   }
-  
-  // const projectId = localStorage.getItem('currentProjectId');
-  
-  // // Call backend API
-  // fetch(`YOUR_API_URL/detach-volume`, {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify({
-  //     vm_id: vmId,
-  //     volume_id: volumeId,
-  //     project_id: projectId
-  //   })
-  // })
-  // .then(response => response.json())
-  // .then(data => {
-  //   if (data.success) {
-  //     showMessage('✓ Volume detached successfully!', 'success');
-  //     CheckVmStatus(vmName);
-  //   } else {
-  //     showMessage('✗ Failed to detach volume: ' + data.message, 'danger');
-  //   }
-  // })
-  // .catch(error => {
-  //   console.error('Error detaching volume:', error);
-  //   showMessage('✗ Error detaching volume', 'danger');
-  // });
 
   // Disable button during request
   document.getElementById('detachBtn').disabled = true;

@@ -164,13 +164,6 @@
   </main>
 
   <rightside>
-    <!-- <div style="max-width: 600px;"> -->
-    <!-- <div id="progress-panel" class="mt-1">
-      <h5>Progress Panel</h5>
-      <div id="progress-content" class="alert alert-info" role="alert">
-          Ready, waiting for user action.
-      </div>
-    </div> -->
 
     <div id="progress-panel" class="card mt-1" style="box-shadow: none; border: 1px solid #757de7;">
       <div class="card-header" style="background: #757de7; padding: 6px 6px; line-height: 1.1;">
@@ -184,22 +177,6 @@
           </div>
       </div>
     </div>
-
-    <!-- <div id="loading-spinner" class="text-center my-3" style="display:none;">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-    </div> -->
-
-    <!-- <div class="card mt-3" id="markdown-panel" style="max-height: 400px; overflow-y: auto;">
-        <div class="card-header text-white">
-            <strong>Details</strong>
-        </div>
-            <div class="card-body" id="markdown-content"> -->
-            <!-- Rendered markdown HTML goes here -->
-        <!-- </div>
-    </div> -->
-
 
     <div class="card mt-4" style="box-shadow: none; border: 1px solid #7e3baa;">
       <div class="card-header" style="background: #7e3baa; padding: 6px 6px; line-height: 1.1;">
@@ -461,9 +438,6 @@ async function createVm() {
 }
 
 async function triggerVmAction(action, inputs) {
-  // document.querySelectorAll('#createVmButton button').forEach(button => {
-  //   button.disabled = true;
-  // });
   
   let requestId = null;
   try {
@@ -539,10 +513,7 @@ async function triggerVmAction(action, inputs) {
         }
       }
       
-      // Start subscription
-      // subscribeToStatusUpdates(requestId, action).catch(reject);
     });
-    // displayVmDetails(data);
     return finalData;
     
   } catch (error) {
@@ -562,54 +533,6 @@ async function triggerVmAction(action, inputs) {
     throw error; // Re-throw so caller knows it failed
   }
 }
-
-
-    // if (data.success) {
-    //   showProgress('✅ Request accepted. Monitoring status...', 'success', action);
-    //   showDetails(JSON.stringify(data)); // initial details
-    // // Subscribe to real-time updates if request_id provided
-    //   if (data.request_id) {
-    //     const requestId = data.request_id;
-        
-    //     // Create a promise that resolves when the action is complete
-    //     const completionPromise = new Promise((resolve, reject) => {
-    //       actionResolvers[requestId] = { resolve, reject };
-
-    //     // ⏳ Add a timeout (10 minutes = 600,000 ms)
-    //     const timeout = setTimeout(() => {
-    //       if (actionResolvers[requestId]) {
-    //         reject(new Error(`Timed out waiting for ${action} to complete.`));
-    //         delete actionResolvers[requestId];
-    //       }
-    //     }, 1800000); // 30 minutes
-
-    //     // Store the timeout reference so we can clear it later when done
-    //     actionResolvers[requestId].timeout = timeout;
-    //     });
-
-    //     await subscribeToStatusUpdates(requestId, action);
-
-    //     const finalData = await completionPromise;
-    //     return finalData;
-    //   }
-        // showProgress('VM creation started successfully!', 'success', action);
-        // showProgress(formatResponseData(data, 'status_update'), 'success', `Status: ${data.request_status}`);
-        // showDetails(JSON.stringify(data));
-        // return data;
-      
-//     } else {
-//         showProgress(`VM creation failed: ${data.message || 'Unknown error'}`, 'danger', action);
-//         showDetails(JSON.stringify(data));
-//         throw new Error(data.message || 'Action failed');
-//     }
-    
-//   } catch (error) {
-//     showProgress(`❌ Error: ${error.message}`, 'danger');
-//     showDetails(error.message);
-//     addToHistory(action, error.message, 'danger');
-//     return { success: false, error: error.message };
-//   }
-// }
 
 function handleEnter(event) {
   if (event.key === 'Enter') {

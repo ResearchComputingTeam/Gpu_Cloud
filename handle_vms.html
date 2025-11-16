@@ -15,12 +15,6 @@
 </head>
 
 <body>
-<!-- <div class="card p-3 mb-3"> -->
-    <!-- <h5>Handle existing VMs</h5> -->
-    <!-- <div class="mb-3" id="projectLabel">
-        <label for="vm_name" class="form-label">VM Name</label>
-        <input type="text" id="vm_name" class="form-control" placeholder="Enter the name of the VM you want to manage">
-    </div> -->
 
 <div class="main-wrapper">
   <!-- Workflow Sidebar -->
@@ -112,14 +106,6 @@
         </div>
       </div>
 
-      <!-- <div class="mb-1">
-        <label for="vmName" class="form-label mb-1"><strong></strong></label>
-        <input type="text" 
-              id="vmName" 
-              class="form-control" 
-              placeholder="[GPU VM to manage]">
-      </div> -->
-
       <div class="d-grid gap-2 mb-0">
         <input type="hidden" id="vmName" value=""> 
         <p id="vmSelectedDisplay" class="alert alert-info text-center mb-0 p-2" style="display:none;">
@@ -177,40 +163,6 @@
     </div>
 
     <div id="status-message"></div>
-      <!-- <div id="loading-spinner" class="text-center my-3" style="display:none;">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-      </div> -->
-    <!-- <div id="progress-panel" class="mt-3">
-        <h5>Progress Panel</h5>
-        <div id="progress-content" class="alert alert-info" role="alert">
-        Ready, waiting for user action.
-        </div>
-    </div> -->
-
-    <!-- <div id="loading-spinner" class="text-center my-3" style="display:none;">
-        <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
-        </div>
-    </div> -->
-
-    <!-- <div class="card mt-3" id="markdown-panel" style="max-height: 400px; overflow-y: auto;">
-        <div class="card-header text-white">
-          <strong>Details</strong>
-        </div>
-        <div class="card-body" id="markdown-content"> -->
-          <!-- Rendered markdown HTML goes here -->
-        <!-- </div>
-    </div> -->
-
-    <!-- <div id="detailsPanel" class="card mt-3" style="margin-top: 15px;">
-        <div class="card-header text-white">
-        <strong>Details</strong>
-        </div>
-        <div class="card-body" id="detailsPanel">
-        </div>
-    </div> -->
 
     <div class="card mt-4" style="box-shadow: none; border: 1px solid #7e3baa;">
       <div class="card-header" style="background: #7e3baa; padding: 6px 6px; line-height: 1.1;">
@@ -279,12 +231,6 @@
 </div> -->
 
 <script>
-// const urlParams = new URLSearchParams(window.location.search);
-// const projectId = urlParams.get("project_id");
-// document.getElementById("projectLabel").textContent = "Project ID: " + projectId;
-
-// Example: load data via API (pseudo)
-// fetch(`/api/vms?project_id=${projectId}`).then(...)
 
 let projectId = null;
 
@@ -372,19 +318,6 @@ const helpContent = {
   }
 };
 
-// function showHelp(action) {
-//   const help = helpContent[action];
-//   document.getElementById('helpContent').innerHTML = `
-//     <strong>${help.title}</strong>
-//     <p class="mb-0 mt-2">${help.content}</p>
-//   `;
-  
-//   // Update active state
-//   document.querySelectorAll('.workflow-step').forEach(el => {
-//     el.classList.remove('active');
-//   });
-//   event.currentTarget.classList.add('active');
-// }
 
 function showHelp(action, vmIp = null) {
   // ... update help content ...
@@ -437,10 +370,8 @@ function goBackToProjectPanel() {
 }
 
 function goToCreateVmPage() {
-  // window.location.href = `create_vm.html?project_id=${encodeURIComponent(projectId)}`;
   // Pass project ID to new page via URL parameter
   const creatVmUrl = `create_vm.html?project_id=${encodeURIComponent(projectId)}`;
-  // window.location.href = handleVmsUrl;
   // Open in new tab
   window.open(creatVmUrl, '_blank');
 }
@@ -485,44 +416,6 @@ function selectVm(vmName) {
     CheckVmStatus(vmName); 
 }
 
-
-// async function deleteVm() {
-//   const vmNameInput = document.getElementById('vmName').value.trim();
-//   if (!vmNameInput) {
-//     console.log('No VM Name given');
-//     showMessage('Please enter a VM Name', 'warning');
-//     return;
-//   }
-
-//   const deleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
-//   const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-
-//   deleteModal.show();
-//   confirmDeleteBtn.onclick = async () => {
-//     try {
-//       // Optional: show a spinner or disable the button
-//       confirmDeleteBtn.disabled = true;
-//       confirmDeleteBtn.innerHTML = 'Deleting... ⏳';
-
-//       // Call your async function and wait for it to finish
-//       await triggerDeleteAction({ user_vm_name: vmNameInput });
-
-//       // If it succeeds, hide the modal
-//       deleteModal.hide();
-
-//       // Optional: show a success message or refresh UI
-//       // showMessage('GPU VM deleted successfully', 'success');
-//     } catch (err) {
-//       console.error('Error deleting VM:', err);
-//       showMessage('Failed to delete GPU VM', 'danger');
-//     } finally {
-//       // Re-enable button and restore text
-//       confirmDeleteBtn.disabled = false;
-//       confirmDeleteBtn.innerHTML = 'Yes, delete it';
-//     }
-//   };
-// }
-
 async function deleteVm() {
   // 🧹 Reset any previous error display
   resetErrorCard();
@@ -542,7 +435,6 @@ async function deleteVm() {
   const newConfirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 
   // // Handle deletion
-  // newConfirmDeleteBtn.addEventListener('click', async () => {
   // When user confirms deletion
   newConfirmDeleteBtn.addEventListener('click', async () => {
     const deleteVmButton = document.getElementById('deleteVmButton');
@@ -551,10 +443,6 @@ async function deleteVm() {
     try {
       // Close modal
       deleteModal.hide();
-
-      // newConfirmDeleteBtn.disabled = true;
-      // newConfirmDeleteBtn.innerHTML = 'Deleting... ⏳';
-      // deleteModal.hide();
 
       // Disable and show spinner on main button
       deleteVmButton.disabled = true;
@@ -571,8 +459,6 @@ async function deleteVm() {
       console.error('Error deleting VM:', err);
       showMessage('Failed to delete GPU VM', 'danger');
     } finally {
-      // newConfirmDeleteBtn.disabled = false;
-      // newConfirmDeleteBtn.innerHTML = 'Yes, delete it';
       // Restore button
       deleteVmButton.disabled = false;
       deleteVmButton.innerHTML = originalHTML;
@@ -847,7 +733,6 @@ function displayVmsList(responseData) {
 //   }
 // }
 
-
 async function loadVms() {
   const refreshBtn = document.getElementById('refreshVmsButton');
   const refreshText = document.getElementById('refreshBtn-text');
@@ -880,11 +765,9 @@ async function loadVms() {
     
     if (data.success) {
       showMessage(`🔄 VM list updated`, 'success');
-      // showProgress('.', 'info', 'list_vms');
       //list the VMs
       displayVmsList(data);
     } else {
-      // showProgress(`❌VM listing failed: ${data.message || 'Unknown error'}`, 'danger', 'list_vms');
       document.getElementById('vmsList').innerHTML = '<div class="text-secondary p-3">No VMs to display, go to "Create VM" page: <button class="btn btn-primary btn-sm" onclick="goToCreateVmPage()">▶️ Create VM</button></div>';
     }
     
