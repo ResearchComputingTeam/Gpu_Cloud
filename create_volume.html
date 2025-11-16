@@ -323,7 +323,19 @@ document.getElementById("createVolumeButton").addEventListener("click", async ()
   }
 });
 
+function resetErrorCard() {
+  const errorPanel = document.getElementById('errorPanel');
+  const errorCard = document.getElementById('errorCard');
+  if (errorPanel && errorCard) {
+    errorPanel.innerHTML = '';          // Clear previous error content
+    errorCard.style.display = 'none';   // Hide the card
+  }
+}
+
 async function createVolume() {
+  // 🧹 Reset any previous error display
+  resetErrorCard();
+
   // Check credits
   const hasCredits = checkCredits(projectId);
   console.log('checkCredits called with project id', projectId);

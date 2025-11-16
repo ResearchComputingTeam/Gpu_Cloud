@@ -331,6 +331,9 @@ async function pollCurrentStatus(requestId) {
 }
 
 async function CheckVmStatus(vmName) {
+  // 🧹 Reset any previous error display
+  resetErrorCard();
+
   console.log('Test', vmName);
   const payload = { vm_name: vmName };
 
@@ -502,6 +505,49 @@ function displayVmDetails(data) {
           <button class="btn btn-primary w-100" onclick="connectToTerminal('${data.user_vm_ip}', '${escapeHtml(data.environment_name)}')" ${data.request_status !== 'running' || !data.user_vm_ip || data.user_vm_ip === 'N/A' ? 'disabled' : ''}>
             🖥️ Open Web Terminal
           </button>
+
+          <!-- Attached Volumes Section -->
+          <div class="col-12 mt-3">
+            <div class="card border-secondary">
+              <div class="card-header" style="background: #6c757d; color: white; padding: 8px 12px;">
+                <strong>💾 Attached Volumes</strong>
+              </div>
+              <div class="card-body p-2">
+                ${data.volume_attachments && data.volume_attachments.length > 0 ? `
+                <ul class="list-group list-group-flush">
+                  ${data.volume_attachments.map(vol => `
+                    <li class="list-group-item">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                          <strong>${escapeHtml(vol.volume.name.replace(/_[^_]*$/, '') || 'Volume')}</strong><br>
+                          <small class="text-muted">${vol.volume.size || 'N/A'} GB • ${vol.status}</small>
+                        </div>
+                        <button class="btn btn-sm btn-outline-danger" id="detachBtn"
+                                onclick="detachVolume('${data.user_vm_id}', '${vol.volume.id}', '${data.user_vm_name}')"
+                                title="Detach volume">
+                          DETACH
+                        </button>
+                      </div>
+                      <div class="mt-1">
+                        <small class="text-muted">Device: ${escapeHtml(vol.device)}</small>
+                      </div>
+                    </li>
+                  `).join('')}
+                </ul>
+                ` : `
+                  <p class="text-muted mb-0 text-center">No volumes attached</p>
+                `}
+              </div>
+            </div>
+          </div>
+
+          <!-- Attach Volume Button -->
+          <div class="col-12 mt-2">
+            <button class="btn btn-warning w-100" onclick="openAttachVolumeModal('${data.user_vm_name}', '${data.user_vm_id}')" ${data.request_status !== 'running' ? 'disabled' : ''} title="${data.request_status !== 'running' ? 'VM must be running to attach volumes' : 'Attach a volume to this VM'}">
+              📎 Attach Volume
+            </button>
+          </div>
+
         </div>
       </div>
     </div>
@@ -509,6 +555,7 @@ function displayVmDetails(data) {
 }
 
 function displayVolumeDetails(data) {
+  console.log('Project displayVolumeDetails called with data:', data);
   // Pick the correct container depending on which page we are on
   const targetEl = document.getElementById('markdown-volume')
 
@@ -574,6 +621,15 @@ function displayVolumeDetails(data) {
       </div>
     </div>
   `;
+}
+
+function resetErrorCard() {
+  const errorPanel = document.getElementById('errorPanel');
+  const errorCard = document.getElementById('errorCard');
+  if (errorPanel && errorCard) {
+    errorPanel.innerHTML = '';          // Clear previous error content
+    errorCard.style.display = 'none';   // Hide the card
+  }
 }
 
 // Check if project has credits (using cached status)
@@ -989,6 +1045,318 @@ function disconnectTerminal() {
     term.dispose();
   }
   document.getElementById('terminal-card').style.display = 'none';
+}
+
+// ATTACH VOLUMES STUFFS
+// Global variables for attach volume modal
+let currentVmForAttach = { name: '', id: '' };
+let availableVolumes = [];
+
+// Open attach volume modal and fetch volumes
+function openAttachVolumeModal(vmName, vmId) {
+  currentVmForAttach = { name: vmName, id: vmId };
+  
+  // Update modal title
+  document.getElementById('modalVmName').textContent = vmName;
+  
+  // Reset state
+  document.getElementById('volumeSelect').innerHTML = '<option value="">Loading volumes...</option>';
+  document.getElementById('volumeInfo').style.display = 'none';
+  document.getElementById('attachVolumeError').style.display = 'none';
+  document.getElementById('confirmAttachBtn').disabled = true;
+  
+  // Show modal
+  const modal = new bootstrap.Modal(document.getElementById('attachVolumeModal'));
+  modal.show();
+  
+  // Fetch available volumes
+  fetchAvailableVolumes();
+}
+
+// Fetch volumes list from backend
+async function fetchAvailableVolumes() {
+  const projectId = getProjectIdFromUrl();
+  console.log('Project ID from fetchAvailableVolumes: ', projectId);
+  
+  // fetch(`https://nonserially-unpent-jin.ngrok-free.dev/webhook/list_volumes?project_id=${projectId}`)
+  //   .then(response => response.json())
+  //   .then(data => {
+  //     if (data.success && data.volumes) {
+  //       availableVolumes = data.volumes;
+  //       // populateVolumeDropdown(data.volumes);
+  //     } else {
+  //       showAttachError('Failed to load volumes: ' + (data.message || 'Unknown error'));
+  //     }
+  //   })
+  //   .catch(error => {
+  //     console.error('Error fetching volumes:', error);
+  //     showAttachError('Error loading volumes. Please try again.');
+  //   });
+  const payload = { project_id: projectId };
+
+  try {
+    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/list_volumes?project_id=${projectId}`;
+    
+    console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.message || 'Action failed');
+    }
+    
+    console.log('Response received from fetchAvailableVolumes:', data);
+    
+    if (data.volumes) {
+      availableVolumes = data.volumes;
+      populateVolumeDropdown(data.volumes);
+    } else {
+      showAttachError('Failed to load volumes: ' + (data.message || 'Unknown error'));
+    }
+  } catch (error) {
+    console.error('Error fetching volumes:', error);
+    showAttachError('Error loading volumes. Please try again.');
+    throw error; // Re-throw so caller knows it failed
+  }
+
+}
+
+// Populate dropdown with volumes
+function populateVolumeDropdown(volumes) {
+  const select = document.getElementById('volumeSelect');
+  
+  if (!volumes || volumes.length === 0) {
+    select.innerHTML = '<option value="">No volumes available</option>';
+    showAttachError('No volumes found. Please create a volume first.');
+    return;
+  }
+  
+  // Filter out already-attached volumes (optional - or show them disabled)
+  select.innerHTML = volumes.map(volume => 
+    `<option value="${volume.volume_id}" data-name="${escapeHtml(volume.volume_name)}" data-size="${volume.volume_size_gb}">
+      ${escapeHtml(volume.volume_name)} (${volume.volume_size_gb} GB) - ${volume.volume_state || 'available'}
+    </option>`
+  ).join('');
+  
+  // Enable selection
+  select.onchange = function() {
+    const selectedOption = this.options[this.selectedIndex];
+    if (selectedOption.value) {
+      const volName = selectedOption.dataset.name;
+      const volSize = selectedOption.dataset.size;
+      
+      document.getElementById('volumeDetails').innerHTML = 
+        `<strong>${volName}</strong><br>Size: ${volSize} GB`;
+      document.getElementById('volumeInfo').style.display = 'block';
+      document.getElementById('confirmAttachBtn').disabled = false;
+    } else {
+      document.getElementById('volumeInfo').style.display = 'none';
+      document.getElementById('confirmAttachBtn').disabled = true;
+    }
+  };
+}
+
+// Show error in modal
+function showAttachError(message) {
+  const errorDiv = document.getElementById('attachVolumeError');
+  errorDiv.textContent = message;
+  errorDiv.style.display = 'block';
+}
+
+// Confirm and attach volume
+async function confirmAttachVolume() {
+  const select = document.getElementById('volumeSelect');
+  const selectedOption = select.options[select.selectedIndex];
+  
+  if (!selectedOption || !selectedOption.value) {
+    showAttachError('Please select a volume');
+    return;
+  }
+  
+  const volumeId = selectedOption.value;
+  const volumeName = selectedOption.dataset.name;
+  // const projectId = localStorage.getItem('currentProjectId');
+  const projectId = getProjectIdFromUrl();
+  
+  // Disable button during request
+  document.getElementById('confirmAttachBtn').disabled = true;
+  document.getElementById('confirmAttachBtn').innerHTML = '<span class="spinner-border spinner-border-sm"></span> Attaching...';
+  
+
+  const payload = {
+    vm_id: currentVmForAttach.id,
+    vm_name: currentVmForAttach.name,
+    volume_id: volumeId,
+    volume_name: volumeName,
+    project_id: projectId
+  };
+
+  try {
+    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/attach_volume`;
+    console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
+
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.success) {
+      showAttachError('Failed to attach volume: ' + (data.message || 'Unknown error'));
+      document.getElementById('confirmAttachBtn').disabled = false;
+      document.getElementById('confirmAttachBtn').innerHTML = 'Attach Volume';
+      return;
+    }
+    
+    console.log('Response received from confirmAttachVolume:', data);
+    // Close modal
+    bootstrap.Modal.getInstance(document.getElementById('attachVolumeModal')).hide();
+    // Show success message
+    showMessage(`✓ Volume "${volumeName}" attached successfully!`, 'success');
+    // Refresh VM details to show new volume
+    CheckVmStatus(currentVmForAttach.name);
+  } catch (error) {
+    console.error('Error attaching volume:', error);
+    showAttachError('Error attaching volume. Please try again.');
+    document.getElementById('confirmAttachBtn').disabled = false;
+    document.getElementById('confirmAttachBtn').innerHTML = 'Attach Volume';
+    throw error; // Re-throw so caller knows it failed
+  }
+}
+
+
+
+  // Call backend API
+  // fetch(`YOUR_API_URL/attach-volume`, {
+  //   method: 'POST',
+  //   headers: { 'Content-Type': 'application/json' },
+  //   body: JSON.stringify({
+  //     vm_id: currentVmForAttach.id,
+  //     vm_name: currentVmForAttach.name,
+  //     volume_id: volumeId,
+  //     volume_name: volumeName,
+  //     project_id: projectId
+  //   })
+  // })
+  // .then(response => response.json())
+  // .then(data => {
+  //   if (data.success) {
+  //     // Close modal
+  //     bootstrap.Modal.getInstance(document.getElementById('attachVolumeModal')).hide();
+      
+  //     // Show success message
+  //     showMessage(`✓ Volume "${volumeName}" attached successfully!`, 'success');
+      
+  //     // Refresh VM details to show new volume
+  //     CheckVmStatus(currentVmForAttach.name);
+  //   } else {
+  //     showAttachError('Failed to attach volume: ' + (data.message || 'Unknown error'));
+  //     document.getElementById('confirmAttachBtn').disabled = false;
+  //     document.getElementById('confirmAttachBtn').innerHTML = 'Attach Volume';
+  //   }
+  // })
+  // .catch(error => {
+  //   console.error('Error attaching volume:', error);
+  //   showAttachError('Error attaching volume. Please try again.');
+  //   document.getElementById('confirmAttachBtn').disabled = false;
+  //   document.getElementById('confirmAttachBtn').innerHTML = 'Attach Volume';
+  // });
+
+// Detach volume (bonus feature)
+async function detachVolume(vmId, volumeId, vmName) {
+  if (!confirm('Are you sure you want to detach this volume?')) {
+    return;
+  }
+  
+  // const projectId = localStorage.getItem('currentProjectId');
+  
+  // // Call backend API
+  // fetch(`YOUR_API_URL/detach-volume`, {
+  //   method: 'POST',
+  //   headers: { 'Content-Type': 'application/json' },
+  //   body: JSON.stringify({
+  //     vm_id: vmId,
+  //     volume_id: volumeId,
+  //     project_id: projectId
+  //   })
+  // })
+  // .then(response => response.json())
+  // .then(data => {
+  //   if (data.success) {
+  //     showMessage('✓ Volume detached successfully!', 'success');
+  //     CheckVmStatus(vmName);
+  //   } else {
+  //     showMessage('✗ Failed to detach volume: ' + data.message, 'danger');
+  //   }
+  // })
+  // .catch(error => {
+  //   console.error('Error detaching volume:', error);
+  //   showMessage('✗ Error detaching volume', 'danger');
+  // });
+
+  // Disable button during request
+  document.getElementById('detachBtn').disabled = true;
+  document.getElementById('detachBtn').innerHTML = '<span class="spinner-border spinner-border-sm"></span> Detaching...';
+
+
+  const payload = {
+    vm_id: vmId,
+    vm_name: vmName,
+    volume_id: volumeId,
+  };
+
+  try {
+    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/detach_volume`;
+    console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
+
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.success) {
+      showMessage('✗ Failed to detach volume: ' + data.message, 'danger');
+      console.error('Error detaching volume:', error);
+      document.getElementById('detachBtn').disabled = false;
+      document.getElementById('detachBtn').innerHTML = 'DETACH';
+      return;
+    }
+    
+    console.log('Response received from detach_volume:', data);
+
+    showMessage(`✓ Volume "${data.volume_name}" detached successfully!`, 'success');
+    // Refresh VM details to show new volume
+    CheckVmStatus(data.vm_name);
+  } catch (error) {
+    showMessage('✗ Failed to detach volume: ' + data.message, 'danger');
+    console.error('Error detaching volume:', error);
+    document.getElementById('detachBtn').disabled = false;
+    document.getElementById('detachBtn').innerHTML = 'DETACH';
+    throw error; // Re-throw so caller knows it failed
+  }
+
 }
 
 

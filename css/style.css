@@ -400,6 +400,15 @@ body {
     color: #721c24;
 }
 
+/* .volume-status.attached {
+    background: #e99a07;
+    color: #f5f4f0;
+} */
+
+.volume-status.attached {
+    background: #8e13be;
+    color: #f3f0f0;
+}
 
 /* This is the class for each item in your list */
 .vm-entry {
