@@ -8,6 +8,7 @@
   <link href="css/style.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="auth.js"></script>
 </head>
 
 <body>
@@ -183,6 +184,15 @@ let projectId = null;
 
 document.addEventListener('DOMContentLoaded', async function() {
   console.log('Create VM page loaded');
+
+  // check if user is allowed
+  currentUser = await requireAuth();
+  if (!currentUser) {
+    showMessage('You are not logged-in as an authenticated user', 'danger');
+    return;
+  }
+  
+
   projectId = getProjectIdFromUrl();
   const projectName = await getProjectNameFromSupabase(projectId);
   console.log('Project Name:', projectName);

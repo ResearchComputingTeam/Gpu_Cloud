@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - GPU Cloud</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-card {
+      max-width: 450px;
+      width: 100%;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    }
+    .card-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-card">
+  <div class="card">
+    <div class="card-header text-center py-4">
+      <h2 class="mb-0">🚀 GPU Cloud</h2>
+      <small>Hamad Bin Khalifa University</small>
+    </div>
+    <div class="card-body p-4">
+      
+      <!-- Tab Navigation -->
+      <ul class="nav nav-tabs mb-4" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button">
+            Login
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="signup-tab" data-bs-toggle="tab" data-bs-target="#signup" type="button">
+            Sign Up
+          </button>
+        </li>
+      </ul>
+
+      <!-- Tab Content -->
+      <div class="tab-content">
+        
+        <!-- Login Tab -->
+        <div class="tab-pane fade show active" id="login" role="tabpanel">
+          <form onsubmit="handleLogin(event)">
+            <div class="mb-3">
+              <label for="loginEmail" class="form-label">Email</label>
+              <input type="email" class="form-control" id="loginEmail" required 
+                     placeholder="your.email@hbku.edu.qa">
+            </div>
+            <div class="mb-3">
+              <label for="loginPassword" class="form-label">Password</label>
+              <input type="password" class="form-control" id="loginPassword" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100" id="loginBtn">
+              <span id="loginBtnText">Login</span>
+              <span id="loginBtnSpinner" class="spinner-border spinner-border-sm ms-2" style="display:none;"></span>
+            </button>
+          </form>
+          <div class="mt-3 text-center">
+            <a href="#" onclick="handleForgotPassword()" style="text-decoration: none; color: #667eea;">
+              Forgot password?
+            </a>
+          </div>
+        </div>
+
+        <!-- Sign Up Tab -->
+        <div class="tab-pane fade" id="signup" role="tabpanel">
+          <form onsubmit="handleSignup(event)">
+            <div class="mb-3">
+              <label for="signupName" class="form-label">Full Name</label>
+              <input type="text" class="form-control" id="signupName" required>
+            </div>
+            <div class="mb-3">
+              <label for="signupEmail" class="form-label">Email</label>
+              <input type="email" class="form-control" id="signupEmail" required 
+                     placeholder="your.email@hbku.edu.qa">
+              <small class="text-muted">Use your HBKU email address</small>
+            </div>
+            <div class="mb-3">
+              <label for="signupPassword" class="form-label">Password</label>
+              <input type="password" class="form-control" id="signupPassword" required minlength="8">
+              <small class="text-muted">At least 8 characters</small>
+            </div>
+            <div class="mb-3">
+              <label for="signupPasswordConfirm" class="form-label">Confirm Password</label>
+              <input type="password" class="form-control" id="signupPasswordConfirm" required>
+            </div>
+            <button type="submit" class="btn btn-success w-100" id="signupBtn">
+              <span id="signupBtnText">Sign Up</span>
+              <span id="signupBtnSpinner" class="spinner-border spinner-border-sm ms-2" style="display:none;"></span>
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- Messages -->
+      <div id="authMessage" class="mt-3"></div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// Initialize Supabase Client - CORRECT WAY
+const SUPABASE_URL = 'https://dgttklfdlwaxvxjubcxx.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRndHRrbGZkbHdheHZ4anViY3h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3MTkzNTAsImV4cCI6MjA3NDI5NTM1MH0.ZggUBEE_GN0e_-b4TQL8yaXfe5ckoD6AglORC7NdYwQ';
+
+
+// Create client using the global supabase object from CDN
+const { createClient } = supabase;
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Check if already logged in
+async function checkExistingSession() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session) {
+    window.location.href = 'project_panel.html';
+  }
+}
+checkExistingSession();
+
+// Handle invite links
+const urlParams = new URLSearchParams(window.location.search);
+const inviteProjectId = urlParams.get('invite');
+const inviteRole = urlParams.get('role');
+
+if (inviteProjectId) {
+  showMessage(`You've been invited to join a project! Please sign up or log in to continue.`, 'info');
+}
+
+// Handle Login
+async function handleLogin(event) {
+  event.preventDefault();
+  
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  
+  // Show loading
+  setLoading('login', true);
+  clearMessage();
+  
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
+    
+    if (error) throw error;
+    
+    showMessage('✓ Login successful! Redirecting...', 'success');
+    
+    // Check if there's a pending invite
+    if (inviteProjectId && data.user) {
+      await acceptInvite(data.user, inviteProjectId, inviteRole);
+    }
+    
+    // Redirect to main app
+    setTimeout(() => {
+      window.location.href = 'project_panel.html';
+    }, 1000);
+    
+  } catch (error) {
+    console.error('Login error:', error);
+    showMessage('✗ Login failed: ' + error.message, 'danger');
+    setLoading('login', false);
+  }
+}
+
+// Handle Sign Up
+async function handleSignup(event) {
+  event.preventDefault();
+  
+  const name = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const password = document.getElementById('signupPassword').value;
+  const passwordConfirm = document.getElementById('signupPasswordConfirm').value;
+  
+  // Validate
+  if (password !== passwordConfirm) {
+    showMessage('✗ Passwords do not match', 'danger');
+    return;
+  }
+  
+  if (password.length < 8) {
+    showMessage('✗ Password must be at least 8 characters', 'danger');
+    return;
+  }
+  
+  // Optional: Restrict to HBKU emails
+  if (!email.endsWith('@hbku.edu.qa')) {
+    showMessage('⚠️ Please use your HBKU email address', 'warning');
+    // Remove 'return' below if you want to allow other emails for testing
+    // return;
+  }
+  
+  // Show loading
+  setLoading('signup', true);
+  clearMessage();
+  
+  try {
+    const { data, error } = await supabaseClient.auth.signUp({
+      email: email,
+      password: password,
+      options: {
+        data: {
+          full_name: name
+        }
+      }
+    });
+    
+    if (error) throw error;
+    
+    showMessage('✓ Account created! Please check your email to verify your account.', 'success');
+    
+    // If there's an invite, accept it immediately
+    if (inviteProjectId && data.user) {
+      await acceptInvite(data.user, inviteProjectId, inviteRole);
+      showMessage('✓ Account created and added to project! Please verify your email.', 'success');
+    }
+    
+    // Switch to login tab
+    setTimeout(() => {
+      document.getElementById('login-tab').click();
+    }, 3000);
+    
+  } catch (error) {
+    console.error('Signup error:', error);
+    showMessage('✗ Sign up failed: ' + error.message, 'danger');
+  } finally {
+    setLoading('signup', false);
+  }
+}
+
+// Handle Forgot Password
+async function handleForgotPassword() {
+  const email = prompt('Enter your email address:');
+  if (!email) return;
+  
+  try {
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/reset-password.html'
+    });
+    
+    if (error) throw error;
+    
+    showMessage('✓ Password reset email sent! Check your inbox.', 'success');
+  } catch (error) {
+    showMessage('✗ Error: ' + error.message, 'danger');
+  }
+}
+
+// Accept invite when user signs up/logs in via invite link
+async function acceptInvite(user, projectId, role) {
+  try {
+    // Add user to project
+    await supabaseClient
+      .from('project_members')
+      .insert({
+        project_id: projectId,
+        user_id: user.id,
+        role: role || 'member'
+      });
+
+    // Mark invite as accepted
+    await supabaseClient
+      .from('pending_invites')
+      .update({ accepted_at: new Date().toISOString() })
+      .eq('project_id', projectId)
+      .eq('email', user.email);
+
+    console.log('Invite accepted successfully');
+  } catch (error) {
+    console.error('Error accepting invite:', error);
+  }
+}
+
+// UI Helpers
+function setLoading(type, isLoading) {
+  const btn = document.getElementById(type + 'Btn');
+  const text = document.getElementById(type + 'BtnText');
+  const spinner = document.getElementById(type + 'BtnSpinner');
+  
+  btn.disabled = isLoading;
+  text.style.display = isLoading ? 'none' : 'inline';
+  spinner.style.display = isLoading ? 'inline-block' : 'none';
+}
+
+function showMessage(message, type) {
+  document.getElementById('authMessage').innerHTML = `
+    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  `;
+}
+
+function clearMessage() {
+  document.getElementById('authMessage').innerHTML = '';
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

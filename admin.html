@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Assign Projects</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+    }
+    .card {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border: none;
+      border-radius: 10px;
+    }
+    .card-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 10px 10px 0 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h2 class="mb-0">🔐 Admin Panel</h2>
+        <small>Assign users to projects</small>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-info">
+          <strong>ℹ️ Note:</strong> Only use this page to assign users to projects. Users must create their own accounts first via the sign-up page.
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">Assign User to Project</h5>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label"><strong>User Email</strong></label>
+          <input type="email" id="userEmail" class="form-control" placeholder="user@hbku.edu.qa">
+          <small class="text-muted">Enter the email of an existing user</small>
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label"><strong>Project ID</strong></label>
+          <input type="text" id="projectId" class="form-control" placeholder="1399772910">
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label"><strong>Role</strong></label>
+          <select id="role" class="form-select">
+            <option value="owner">Owner (PI - Full control)</option>
+            <option value="admin">Admin (Can manage team)</option>
+            <option value="member" selected>Member (Standard access)</option>
+            <option value="viewer">Viewer (Read-only)</option>
+          </select>
+          <small class="text-muted">
+            <strong>Roles:</strong><br>
+            • Owner: PI, full control including team management<br>
+            • Admin: Can manage resources and team members<br>
+            • Member: Can create/manage VMs and volumes<br>
+            • Viewer: Can only view resources
+          </small>
+        </div>
+        
+        <button class="btn btn-primary w-100" onclick="assignProject()">
+          <span id="assignBtnText">Assign Project to User</span>
+          <span id="assignBtnSpinner" class="spinner-border spinner-border-sm ms-2" style="display:none;"></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Quick Actions</h5>
+      </div>
+      <div class="card-body">
+        <button class="btn btn-outline-primary me-2" onclick="viewAllAssignments()">
+          View All Assignments
+        </button>
+        <button class="btn btn-outline-secondary" onclick="window.location.href='index.html'">
+          Back to Dashboard
+        </button>
+      </div>
+    </div>
+    
+    <div id="message" class="mt-3"></div>
+    
+    <div id="assignmentsView" class="card mt-3" style="display: none;">
+      <div class="card-header">
+        <h5 class="mb-0">All Project Assignments</h5>
+      </div>
+      <div class="card-body" id="assignmentsList">
+        <div class="text-center">
+          <div class="spinner-border" role="status"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+let currentUser = null;
+
+// Check admin access
+document.addEventListener('DOMContentLoaded', async () => {
+  currentUser = await requireAuth();
+  if (!currentUser) return;
+  
+  // Check if user is admin
+  const { data: profile, error } = await supabaseClient
+    .from('user_profiles')
+    .select('is_admin')
+    .eq('id', currentUser.id)
+    .single();
+  
+  if (error || !profile?.is_admin) {
+    alert('Access denied. Admin privileges required.');
+    window.location.href = 'index.html';
+    return;
+  }
+  // For now, any logged-in user can access (change this in production!)
+  console.log('Admin panel loaded for:', currentUser.email);
+});
+
+async function assignProject() {
+  const email = document.getElementById('userEmail').value.trim().toLowerCase();
+  const projectId = document.getElementById('projectId').value.trim();
+  const role = document.getElementById('role').value;
+  
+  if (!email || !projectId) {
+    showMessage('Please fill in all fields', 'warning');
+    return;
+  }
+  
+  // Show loading
+  setLoading(true);
+  console.log('check if user exists with: ', email);
+
+  try {
+    // First, check if user exists by email
+    const { data: profiles, error: profileError } = await supabaseClient
+      .from('user_profiles')
+      .select('id, email, full_name')
+      .eq('email', email);
+    
+    if (profileError) {
+      console.error('Profile error:', profileError);
+      throw new Error('Error looking up user: ' + profileError.message);
+    }
+    
+    if (!profiles || profiles.length === 0) {
+      showMessage(`❌ User with email "${email}" not found. User must sign up first.`, 'danger');
+      setLoading(false);
+      return;
+    }
+    
+    const userProfile = profiles[0];
+    console.log('Found user:', userProfile);
+    
+    // Check if user is already assigned to this project
+    const { data: existingAssignment, error: checkError } = await supabaseClient
+      .from('project_members')
+      .select('id, role')
+      .eq('project_id', projectId)
+      .eq('user_id', userProfile.id)
+      .maybeSingle(); // Use maybeSingle instead of single to avoid error if not found
+    
+    if (checkError) {
+      console.error('Check error:', checkError);
+      throw new Error('Error checking existing assignment: ' + checkError.message);
+    }
+    
+    if (existingAssignment) {
+      showMessage(`⚠️ User "${email}" is already assigned to project ${projectId} with role: ${existingAssignment.role}`, 'warning');
+      setLoading(false);
+      return;
+    }
+    
+    console.log('No existing assignment, proceeding to insert...');
+
+    console.log('Assign project to user called with:', userProfile.id, projectId, role);
+
+
+    // console.log('Assign project to user called with:', projectId, userProfile.id, role, currentUser.id);
+    
+    // Assign project to user
+    const { data, error } = await supabaseClient
+      .from('project_members')
+      .insert({
+        project_id: projectId,
+        user_id: userProfile.id,
+        role: role,
+        added_by: currentUser.id
+      })
+      .select();
+    
+    if (error) {
+      console.error('Insert error:', error);
+      throw new Error('Error assigning project: ' + error.message);
+    }
+    
+    console.log('Assignment successful:', data);
+    showMessage(`✅ Success! User "${userProfile.full_name || email}" assigned to project ${projectId} with role: ${role}`, 'success');
+    
+    // Clear form
+    document.getElementById('userEmail').value = '';
+    document.getElementById('projectId').value = '';
+    document.getElementById('role').value = 'member';
+    
+  } catch (error) {
+    console.error('Error assigning project:', error);
+    showMessage('❌ Error: ' + error.message, 'danger');
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function viewAllAssignments() {
+  document.getElementById('assignmentsView').style.display = 'block';
+  document.getElementById('assignmentsList').innerHTML = `
+    <div class="text-center">
+      <div class="spinner-border" role="status"></div>
+      <p>Loading assignments...</p>
+    </div>
+  `;
+  
+  try {
+    const { data, error } = await supabaseClient
+      .from('project_members')
+      .select(`
+        id,
+        project_id,
+        role,
+        added_at,
+        user_profiles (
+          full_name,
+          email
+        )
+      `)
+      .order('added_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    if (!data || data.length === 0) {
+      document.getElementById('assignmentsList').innerHTML = 
+        '<p class="text-muted text-center">No assignments found</p>';
+      return;
+    }
+    
+    let html = '<div class="table-responsive"><table class="table table-hover">';
+    html += `
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Email</th>
+          <th>Project ID</th>
+          <th>Role</th>
+          <th>Added</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+    `;
+    
+    data.forEach(assignment => {
+      const profile = assignment.user_profiles;
+      html += `
+        <tr>
+          <td>${escapeHtml(profile?.full_name || 'Unknown')}</td>
+          <td>${escapeHtml(profile?.email || 'N/A')}</td>
+          <td><code>${escapeHtml(assignment.project_id)}</code></td>
+          <td><span class="badge bg-${getRoleBadgeColor(assignment.role)}">${assignment.role}</span></td>
+          <td><small>${new Date(assignment.added_at).toLocaleDateString()}</small></td>
+          <td>
+            <button class="btn btn-sm btn-outline-danger" onclick="removeAssignment('${assignment.id}', '${escapeHtml(profile?.email || 'user')}', '${assignment.project_id}')">
+              Remove
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+    
+    html += '</tbody></table></div>';
+    document.getElementById('assignmentsList').innerHTML = html;
+    
+  } catch (error) {
+    console.error('Error loading assignments:', error);
+    document.getElementById('assignmentsList').innerHTML = 
+      `<div class="alert alert-danger">Error: ${error.message}</div>`;
+  }
+}
+
+async function removeAssignment(assignmentId, userEmail, projectId) {
+  if (!confirm(`Remove ${userEmail} from project ${projectId}?`)) {
+    return;
+  }
+  
+  try {
+    const { error } = await supabaseClient
+      .from('project_members')
+      .delete()
+      .eq('id', assignmentId);
+    
+    if (error) throw error;
+    
+    showMessage(`✅ Removed ${userEmail} from project ${projectId}`, 'success');
+    viewAllAssignments(); // Refresh list
+    
+  } catch (error) {
+    showMessage('❌ Error: ' + error.message, 'danger');
+  }
+}
+
+function getRoleBadgeColor(role) {
+  const colors = {
+    'owner': 'primary',
+    'admin': 'info',
+    'member': 'success',
+    'viewer': 'secondary'
+  };
+  return colors[role] || 'secondary';
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function setLoading(isLoading) {
+  const btn = document.querySelector('.btn-primary');
+  const text = document.getElementById('assignBtnText');
+  const spinner = document.getElementById('assignBtnSpinner');
+  
+  btn.disabled = isLoading;
+  text.style.display = isLoading ? 'none' : 'inline';
+  spinner.style.display = isLoading ? 'inline-block' : 'none';
+}
+
+function showMessage(message, type) {
+  document.getElementById('message').innerHTML = `
+    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  `;
+  
+  // Auto-dismiss after 5 seconds
+  setTimeout(() => {
+    document.getElementById('message').innerHTML = '';
+  }, 5000);
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

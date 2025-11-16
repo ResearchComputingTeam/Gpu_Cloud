@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
   <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+  <script src="auth.js"></script>
 </head>
 
 <body>
@@ -218,11 +219,21 @@
 
 <script src="utils.js"></script>
 <script>
+let currentUser = null;
+
 
 let projectId = null;
 
 document.addEventListener('DOMContentLoaded', async function() {
   console.log('Create VM page loaded');
+  // check if user is allowed
+  currentUser = await requireAuth();
+  if (!currentUser) {
+    showMessage('You are not logged-in as an authenticated user', 'danger');
+    return;
+  }
+  
+
   projectId = getProjectIdFromUrl();
   const projectName = await getProjectNameFromSupabase(projectId);
   console.log('Project Name:', projectName);

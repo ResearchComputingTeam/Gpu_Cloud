@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GPU Cloud - Project Panel</title>
@@ -115,6 +117,47 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+let currentUser = null;
+let userProjects = [];
+
+// Check authentication on page load
+document.addEventListener('DOMContentLoaded', async () => {
+  currentUser = await requireAuth();
+  
+  if (!currentUser) return; // Will redirect to login
+  
+  // Load user's projects
+  userProjects = await getUserProjects(currentUser.id);
+  
+  // Display user info
+  displayUserInfo();
+});
+
+function displayUserInfo() {
+  // Add user menu to page
+  const userMenu = `
+    <div style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
+      <div class="dropdown">
+        <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+          👤 ${currentUser.email}
+        </button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="#" onclick="showProfile()">Profile</a></li>
+          <li><a class="dropdown-item" href="#" onclick="logout()">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  `;
+  
+  document.body.insertAdjacentHTML('afterbegin', userMenu);
+}
+
+function showProfile() {
+  alert('Profile page coming soon!');
+}
+
+
+
 // State management
 let projectState = {
   projectId: null,
@@ -145,6 +188,14 @@ async function checkProjectStatus() {
   
   if (!projectIdInput) {
     showMessage('Please enter a Project ID', 'warning');
+    return;
+  }
+
+  // Check if user has access to this project
+  const hasAccess = userProjects.some(p => p.project_id === projectIdInput);
+  
+  if (!hasAccess) {
+    showMessage('⚠️ You do not have access to this project. Please contact the project owner.', 'warning');
     return;
   }
 
