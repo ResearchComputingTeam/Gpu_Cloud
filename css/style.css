@@ -400,12 +400,17 @@ body {
     color: #721c24;
 }
 
+.volume-status.DELETED {
+    background: #f8d7da;
+    color: #721c24;
+}
+
 /* .volume-status.attached {
     background: #e99a07;
     color: #f5f4f0;
 } */
 
-.volume-status.attached {
+.volume-status.in-use {
     background: #8e13be;
     color: #f3f0f0;
 }

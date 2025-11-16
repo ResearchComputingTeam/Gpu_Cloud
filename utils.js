@@ -567,7 +567,7 @@ function displayVolumeDetails(data) {
   // Map status to friendly display
   const volumeStatusMap = {
     'available': { label: 'available', class: 'success', icon: '🟢' },
-    'attached': { label: 'attached', class: 'primary', icon: '📌' },
+    'in-use': { label: 'in-use', class: 'primary', icon: '📌' },
     'detached': { label: 'detached', class: 'warning', icon: '💤' },
     'deleted': { label: 'deleted', class: 'secondary', icon: '🔴' },
     'error': { label: 'Error', class: 'danger', icon: '⚠️' }
@@ -1063,6 +1063,7 @@ function openAttachVolumeModal(vmName, vmId) {
   document.getElementById('volumeSelect').innerHTML = '<option value="">Loading volumes...</option>';
   document.getElementById('volumeInfo').style.display = 'none';
   document.getElementById('attachVolumeError').style.display = 'none';
+  document.getElementById('confirmAttachBtn').innerHTML = 'Attach Volume';
   document.getElementById('confirmAttachBtn').disabled = true;
   
   // Show modal
@@ -1224,6 +1225,7 @@ async function confirmAttachVolume() {
     }
     
     console.log('Response received from confirmAttachVolume:', data);
+    document.getElementById('confirmAttachBtn').innerHTML = 'Attach Volume';
     // Close modal
     bootstrap.Modal.getInstance(document.getElementById('attachVolumeModal')).hide();
     // Show success message

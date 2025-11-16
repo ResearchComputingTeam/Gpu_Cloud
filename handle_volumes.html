@@ -509,7 +509,7 @@ function displayVolumesList(responseData) {
                 ${volume.volume_size_gb || 'N/A'}GB • $${(volume.volume_total_cost || 0).toFixed(2)}
               </small>
             </div>
-            <span class="volume-status ${volume.volume_state}">${volume.volume_state}</span>
+            <span class="volume-status ${volume.volume_state}">${volume.volume_state.toLowerCase()}</span>
           </div>
         </div>
       `).join('')}
@@ -533,6 +533,11 @@ function displayVolumesList(responseData) {
 
 
 async function loadVolumes() {
+
+  // 🧹 Reset / clear any previous error display
+  resetErrorCard();
+  clearProgressPanel();
+
   const refreshBtn = document.getElementById('refreshVolumesButton');
   const refreshText = document.getElementById('refreshVolumeBtn-text');
 

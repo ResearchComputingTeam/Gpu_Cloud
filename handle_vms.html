@@ -622,7 +622,7 @@ async function triggerDeleteAction(vmName) {
     }
     
     showProgress("VM deletion started", 'info', 'delete_vm');
-    CheckVmStatus(vmName.user_vm_name);
+    // CheckVmStatus(vmName.user_vm_name);
     console.log('Response received:', data);
     
     if (data.success) {
