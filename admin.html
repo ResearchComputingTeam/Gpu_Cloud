@@ -62,17 +62,13 @@
         <div class="mb-3">
           <label class="form-label"><strong>Role</strong></label>
           <select id="role" class="form-select">
-            <option value="owner">Owner (PI - Full control)</option>
-            <option value="admin">Admin (Can manage team)</option>
-            <option value="member" selected>Member (Standard access)</option>
-            <option value="viewer">Viewer (Read-only)</option>
+            <option value="owner">Owner (PI)</option>
+            <option value="member" selected>Member</option>
           </select>
           <small class="text-muted">
             <strong>Roles:</strong><br>
-            • Owner: PI, full control including team management<br>
-            • Admin: Can manage resources and team members<br>
-            • Member: Can create/manage VMs and volumes<br>
-            • Viewer: Can only view resources
+            • <strong>Owner (PI):</strong> Can manage project resources and invite team members<br>
+            • <strong>Member:</strong> Can manage project resources only
           </small>
         </div>
         
@@ -91,7 +87,7 @@
         <button class="btn btn-outline-primary me-2" onclick="viewAllAssignments()">
           View All Assignments
         </button>
-        <button class="btn btn-outline-secondary" onclick="window.location.href='index.html'">
+        <button class="btn btn-outline-secondary" onclick="window.location.href='project_panel.html'">
           Back to Dashboard
         </button>
       </div>
@@ -123,17 +119,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Check if user is admin
   const { data: profile, error } = await supabaseClient
     .from('user_profiles')
-    .select('is_admin')
+    .select('is_system_admin, full_name')
     .eq('id', currentUser.id)
     .single();
   
-  if (error || !profile?.is_admin) {
-    alert('Access denied. Admin privileges required.');
+  if (error || !profile?.is_system_admin) {
+    alert('⛔ Access denied. System admin privileges required.\n\nThis panel is only for Research Computing team members.');
     window.location.href = 'index.html';
     return;
   }
   // For now, any logged-in user can access (change this in production!)
-  console.log('Admin panel loaded for:', currentUser.email);
+  console.log('System Admin panel loaded for:', profile.full_name || currentUser.email);
 });
 
 async function assignProject() {

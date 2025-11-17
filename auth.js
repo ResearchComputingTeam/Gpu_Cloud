@@ -44,3 +44,17 @@ async function getUserProjects(userId) {
   
   return data;
 }
+
+// Add this function to auth.js
+async function isSystemAdmin() {
+  const user = await getCurrentUser();
+  if (!user) return false;
+  
+  const { data } = await supabaseClient
+    .from('user_profiles')
+    .select('is_system_admin')
+    .eq('id', user.id)
+    .single();
+  
+  return data?.is_system_admin || false;
+}

@@ -85,6 +85,12 @@
       <div class="btn-disabled-info" id="disabledInfo">
         ℹ️ Validate your project ID first
       </div>
+    
+      <div id="admin-access" style="display:none; margin-top: 10px; margin-bottom: 0; text-align:center;">
+        <button class="btn btn-outline-dark btn-sm" id="admin-btn">
+          Admin Panel
+        </button>
+      </div>
 
     </div>
 
@@ -132,6 +138,36 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Display user info
   displayUserInfo();
 });
+
+async function checkAdminAccess() {
+  const user = await getCurrentUser();
+  if (!user) return;
+
+  // Check user_profiles.is_system_admin
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .select('is_system_admin')
+    .eq('id', user.id)
+    .single();
+
+  if (error) {
+    console.error('Error checking admin access:', error);
+    return;
+  }
+
+  if (data && data.is_system_admin) {
+    const adminContainer = document.getElementById('admin-access');
+    const adminBtn = document.getElementById('admin-btn');
+    adminContainer.style.display = 'block';
+
+    // Open admin.html in a new tab
+    adminBtn.onclick = () => {
+      window.open('admin.html', '_blank');
+    };
+  }
+}
+
+document.addEventListener('DOMContentLoaded', checkAdminAccess);
 
 function displayUserInfo() {
   // Add user menu to page
@@ -268,14 +304,36 @@ async function checkProjectStatus() {
   }
 }
 
-function displayProjectInfo(data, isSuccess) {
+async function displayProjectInfo(data, isSuccess) {
   const projectInfo = document.getElementById('project-info');
   const projectInfoContent = document.getElementById('project-info-content');
+
+  // Calculate remaining credits
+  const remainingCredits = (data.credits || 0) - (data.used_credits || 0);
   
-  if (isSuccess) {
-    // Calculate remaining credits
-    const remainingCredits = (data.credits || 0) - (data.used_credits || 0);
+  if (isSuccess && remainingCredits > 0) {
+    // Store credit status
+    localStorage.setItem('hasCredits', 'true');
+
+    // Check if user is PI (owner) of this project
+    const { data: membership } = await supabaseClient
+      .from('project_members')
+      .select('role')
+      .eq('project_id', data.project_id)
+      .eq('user_id', currentUser.id)
+      .single();
     
+    const isOwner = membership?.role === 'owner';
+    
+    // Check if system admin
+    const { data: profile } = await supabaseClient
+      .from('user_profiles')
+      .select('is_system_admin')
+      .eq('id', currentUser.id)
+      .single();
+    
+    const isSystemAdmin = profile?.is_system_admin || false;
+
     projectInfo.className = 'project-info visible success';
     projectInfoContent.innerHTML = `
       <strong>✓ Project Validated</strong><br>
@@ -284,34 +342,37 @@ function displayProjectInfo(data, isSuccess) {
       <small>ID: ${escapeHtml(data.project_id)}</small><br>
       <small>Status: ${data.status || 'Active'}</small><br>
       <small>Remaining Credits: ${remainingCredits.toFixed(2)}</small>
+      <br>
+      ${(isOwner || isSystemAdmin) ? `
+        <button class="btn btn-sm btn-outline-primary mt-2" onclick="window.open('team_management.html', '_blank')">
+          👥 Manage Team
+        </button>
+      ` : ''}
+      ${isSystemAdmin ? `
+        <button class="btn btn-sm btn-outline-danger mt-2" onclick="window.open('admin.html', '_blank')">
+          🔐 System Admin
+        </button>
+      ` : ''}
+    `;
+  } else if (isSuccess && remainingCredits <= 0) {
+    projectInfo.className = 'project-info visible error';
+    projectInfoContent.innerHTML = `
+      <strong>💰❌ Project Out of Credits</strong><br>
+      <small>Project: ${escapeHtml(data.project_name || 'My Project')}</small><br>
+      <small>ID: ${escapeHtml(data.project_id)}</small><br>
+      <small style="color: #dc3545; font-weight: bold;">
+        Credits exhausted: ${data.used_credits.toFixed(2)} / ${data.credits.toFixed(2)}
+      </small><br>
+      <small>Please contact RCCG to add more credits.</small>
     `;
     
-    // Check if out of credits
-    if (remainingCredits <= 0) {
-      projectInfo.className = 'project-info visible error';
-      projectInfoContent.innerHTML = `
-        <strong>💰❌ Project Out of Credits</strong><br>
-        <small>Project: ${escapeHtml(data.project_name || 'My Project')}</small><br>
-        <small>ID: ${escapeHtml(data.project_id)}</small><br>
-        <small style="color: #dc3545; font-weight: bold;">
-          Credits exhausted: ${data.used_credits.toFixed(2)} / ${data.credits.toFixed(2)}
-        </small><br>
-        <small>Please contact RCCG to add more credits.</small>
-      `;
-      
-      // Store credit status
-      localStorage.setItem('hasCredits', 'false');
-      
-      // Keep buttons disabled
-      disableActionButtons();
-      document.getElementById('disabledInfo').innerHTML = 
-        '💰❌ Project is out of credits';
-      
-    } else {
-      // Store credit status
-      localStorage.setItem('hasCredits', 'true');
-    }
+    // Store credit status
+    localStorage.setItem('hasCredits', 'false');
     
+    // Keep buttons disabled
+    disableActionButtons();
+    document.getElementById('disabledInfo').innerHTML = 
+      '💰❌ Project is out of credits';
   } else {
     projectInfo.className = 'project-info visible error';
     projectInfoContent.innerHTML = `
