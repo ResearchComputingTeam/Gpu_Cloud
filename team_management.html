@@ -75,7 +75,7 @@
         <div class="mt-3">
           <small class="text-muted">
             <strong>Roles explained:</strong><br>
-            • <strong>Member:</strong> Can create/manage VMs, volumes, and access project resourcess<br>
+            • <strong>Member:</strong> Can create/manage VMs, volumes, and access project resources<br>
             • <strong>Owner:</strong> Same as member + can manage team members<br>
           </small>
         </div>
@@ -297,9 +297,8 @@ async function addMember() {
       return;
     }
 
-    statusDiv.textContent = '✅ Member added successfully!';
-    statusDiv.style.color = 'green';
-    statusDiv.style.display = 'block';
+    showMessage(`✅ Member added successfully!`, 'success');
+    
     // Load team members
     await loadTeamMembers();
   } catch (err) {

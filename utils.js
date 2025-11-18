@@ -1204,10 +1204,10 @@ async function detachVolume(vmId, volumeId, vmName) {
     // Refresh VM details to show new volume
     CheckVmStatus(data.vm_name);
   } catch (error) {
-    showMessage('✗ Failed to detach volume: ' + data.message, 'danger');
     console.error('Error detaching volume:', error);
     document.getElementById('detachBtn').disabled = false;
     document.getElementById('detachBtn').innerHTML = 'DETACH';
+    showError(error.message);
     throw error; // Re-throw so caller knows it failed
   }
 
