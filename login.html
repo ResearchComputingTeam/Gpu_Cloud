@@ -133,13 +133,7 @@ async function checkExistingSession() {
 checkExistingSession();
 
 // Handle invite links
-const urlParams = new URLSearchParams(window.location.search);
-// const inviteProjectId = urlParams.get('invite');
-// const inviteRole = urlParams.get('role');
-
-// if (inviteProjectId) {
-//   showMessage(`You've been invited to join a project! Please sign up or log in to continue.`, 'info');
-// }
+// const urlParams = new URLSearchParams(window.location.search);
 
 // Handle Login
 async function handleLogin(event) {
@@ -161,13 +155,6 @@ async function handleLogin(event) {
     if (error) throw error;
     
     showMessage('✓ Login successful! Redirecting...', 'success');
-    
-    // Check if there's a pending invite
-    // if (inviteProjectId && data.user) {
-    //   console.log('invite for:', data.user, inviteProjectId, inviteRole);
-    //   await acceptInvite(data.user, inviteProjectId, inviteRole);
-    // }
-    // window.location.href = 'project_panel.html';
     
     // Redirect to main app
     setTimeout(() => {
@@ -227,13 +214,6 @@ async function handleSignup(event) {
     
     showMessage('✓ Account created! Please check your email to verify your account.', 'success');
     
-    // If there's an invite, accept it immediately
-    // if (inviteProjectId && data.user) {
-    //   console.log('sign up invite for:', data.user, inviteProjectId, inviteRole);
-    //   await acceptInvite(data.user, inviteProjectId, inviteRole);
-    //   showMessage('✓ Account created and added to project! Please verify your email.', 'success');
-    // }
-    
     // Switch to login tab
     setTimeout(() => {
       document.getElementById('login-tab').click();
@@ -264,77 +244,6 @@ async function handleForgotPassword() {
     showMessage('✗ Error: ' + error.message, 'danger');
   }
 }
-
-// Accept invite when user signs up/logs in via invite link
-// async function acceptInvite(user, projectId, role) {
-//   console.log('acccept invite called with:', user, projectId, role);
-//   try {
-//     // Add user to project
-//     await supabaseClient
-//       .from('project_members')
-//       .insert({
-//         project_id: projectId,
-//         user_id: user.id,
-//         role: role || 'member'
-//       });
-
-//     // Mark invite as accepted
-//     await supabaseClient
-//       .from('pending_invites')
-//       .update({ accepted_at: new Date().toISOString() })
-//       .eq('project_id', projectId)
-//       .eq('email', user.email);
-
-//     console.log('Invite accepted successfully');
-//   } catch (error) {
-//     console.error('Error accepting invite:', error);
-//   }
-// }
-
-// async function acceptInvite(user, projectId, role) {
-//   console.log('acceptInvite called with:', user, projectId, role);
-
-//   try {
-//     // 1️⃣ Add user to project_members
-//     const { data, error } = await supabaseClient
-//       .from('project_members')
-//       .insert({
-//         project_id: projectId,
-//         user_id: user.id,
-//         role: role || 'member'
-//       });
-
-//     if (error) {
-//       // RLS / network / other errors are captured here
-//       console.error('Error inserting project_member:', error);
-//       return { success: false, error };
-//     }
-
-//     console.log('Project member inserted successfully:', data);
-
-//     // 2️⃣ Mark the invite as accepted
-//     const { data: inviteData, error: inviteError } = await supabaseClient
-//       .from('pending_invites')
-//       .update({ accepted_at: new Date().toISOString() })
-//       .eq('project_id', projectId)
-//       .eq('email', user.email);
-
-//     if (inviteError) {
-//       console.error('Error updating pending_invites:', inviteError);
-//       return { success: false, error: inviteError };
-//     }
-
-//     console.log('Invite marked as accepted:', inviteData);
-
-//     return { success: true, projectMember: data, invite: inviteData };
-
-//   } catch (err) {
-//     // Catch unexpected JS errors
-//     console.error('Unexpected error in acceptInvite:', err);
-//     return { success: false, error: err };
-//   }
-// }
-
 
 // UI Helpers
 function setLoading(type, isLoading) {

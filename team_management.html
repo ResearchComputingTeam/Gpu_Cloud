@@ -60,7 +60,7 @@
 
       <hr>
 
-      <!-- Invite New Member -->
+      <!-- Add New Member -->
         <div class="mb-3">
         <input type="email" id="memberEmail" class="form-control" placeholder="Enter teammate's email" required>
         </div>
@@ -79,13 +79,6 @@
             • <strong>Owner:</strong> Same as member + can manage team members<br>
           </small>
         </div>
-      </div>
-
-      <!-- Pending Invitations -->
-      <div id="pendingInvitesSection" style="display: none;">
-        <hr>
-        <h5>Pending Invitations</h5>
-        <div id="pendingInvitesList" class="mt-3"></div>
       </div>
 
     </div>
@@ -122,8 +115,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Load team members
   await loadTeamMembers();
   
-  // Load pending invites
-//   await loadPendingInvites();
 });
 
 async function checkPermissions() {
@@ -154,13 +145,6 @@ async function checkPermissions() {
 
   userRole = data?.role || (isSystemAdmin ? 'owner' : null);
 
-  // Only owners (PI) can invite
-  if (userRole !== 'owner') {
-    showMessage('Only project owners can manage team members', 'warning');
-    document.getElementById('inviteEmail').disabled = true;
-    document.getElementById('inviteRole').disabled = true;
-    document.querySelector('.btn-primary').disabled = true;
-  }
 }
 
 async function loadTeamMembers() {
@@ -298,7 +282,7 @@ async function addMember() {
     }
 
     showMessage(`✅ Member added successfully!`, 'success');
-    
+
     // Load team members
     await loadTeamMembers();
   } catch (err) {
@@ -307,133 +291,6 @@ async function addMember() {
     statusDiv.style.display = 'block';
   }
 }
-
-// async function sendInvitation() {
-//   const email = document.getElementById('inviteEmail').value.trim();
-//   const role = document.getElementById('inviteRole').value;
-
-//   if (!email) {
-//     showMessage('Please enter an email address', 'warning');
-//     return;
-//   }
-
-//   // Validate email format
-//   if (!email.includes('@')) {
-//     showMessage('Please enter a valid email address', 'warning');
-//     return;
-//   }
-
-//   try {
-//     // Check if user already exists in the system
-//     const { data: existingUser, error: userError } = await supabaseClient
-//       .from('user_profiles')
-//       .select('id, email')
-//       .eq('email', email)
-//       .single();
-
-//     if (existingUser) {
-//       // User exists, check if already a member
-//       const { data: existingMember } = await supabaseClient
-//         .from('project_members')
-//         .select('id')
-//         .eq('project_id', currentProjectId)
-//         .eq('user_id', existingUser.id)
-//         .single();
-
-//       if (existingMember) {
-//         showMessage('This user is already a member of the project', 'warning');
-//         return;
-//       }
-
-//       // Add user directly to project
-//       const { error: addError } = await supabaseClient
-//         .from('project_members')
-//         .insert({
-//           project_id: currentProjectId,
-//           user_id: existingUser.id,
-//           role: role,
-//           added_by: currentUser.id
-//         });
-
-//       if (addError) throw addError;
-
-//       showMessage(`✓ ${email} added to project successfully!`, 'success');
-//       document.getElementById('inviteEmail').value = '';
-//       await loadTeamMembers();
-
-//     } else {
-//       // User doesn't exist yet, send invitation
-//       const inviteLink = `${window.location.origin}/code/login.html?invite=${currentProjectId}&role=${role}`;
-      
-//       // TODO: Send actual email via your backend
-//       // For now, show the invite link
-//       showMessage(`
-//         <strong>✓ Invitation created!</strong><br>
-//         Send this link to ${email}:<br>
-//         <input type="text" class="form-control mt-2" value="${inviteLink}" readonly onclick="this.select()">
-//         <small class="text-muted">User needs to sign up first, then they'll be added to the project.</small>
-//       `, 'success', false);
-
-//       // Store pending invite
-//       await supabaseClient
-//         .from('pending_invites')
-//         .insert({
-//           project_id: currentProjectId,
-//           email: email,
-//           role: role,
-//           invited_by: currentUser.id,
-//           invite_token: currentProjectId + '_' + Date.now()
-//         });
-
-//       document.getElementById('inviteEmail').value = '';
-//       await loadPendingInvites();
-//     }
-
-//   } catch (error) {
-//     console.error('Error sending invitation:', error);
-//     showMessage('Error: ' + error.message, 'danger');
-//   }
-// }
-
-// async function loadPendingInvites() {
-//   try {
-//     const { data, error } = await supabaseClient
-//       .from('pending_invites')
-//       .select('*')
-//       .eq('project_id', currentProjectId)
-//       .is('accepted_at', null);
-
-//     if (error) throw error;
-
-//     if (data && data.length > 0) {
-//       document.getElementById('pendingInvitesSection').style.display = 'block';
-      
-//       let html = '<div class="list-group">';
-//       data.forEach(invite => {
-//         html += `
-//           <div class="list-group-item">
-//             <div class="d-flex justify-content-between align-items-center">
-//               <div>
-//                 <strong>${escapeHtml(invite.email)}</strong>
-//                 <span class="badge bg-warning text-dark ms-2">Pending</span>
-//                 <br>
-//                 <small class="text-muted">Role: ${invite.role} • Sent: ${new Date(invite.created_at).toLocaleDateString()}</small>
-//               </div>
-//               <button class="btn btn-sm btn-outline-danger" onclick="cancelInvite('${invite.id}')">
-//                 Cancel
-//               </button>
-//             </div>
-//           </div>
-//         `;
-//       });
-//       html += '</div>';
-      
-//       document.getElementById('pendingInvitesList').innerHTML = html;
-//     }
-//   } catch (error) {
-//     console.error('Error loading pending invites:', error);
-//   }
-// }
 
 async function removeMember(memberId, memberName) {
   if (!confirm(`Are you sure you want to remove ${memberName} from the project?`)) {
@@ -456,23 +313,6 @@ async function removeMember(memberId, memberName) {
     showMessage('Error removing member: ' + error.message, 'danger');
   }
 }
-
-// async function cancelInvite(inviteId) {
-//   try {
-//     const { error } = await supabaseClient
-//       .from('pending_invites')
-//       .delete()
-//       .eq('id', inviteId);
-
-//     if (error) throw error;
-
-//     showMessage('✓ Invitation cancelled', 'success');
-//     await loadPendingInvites();
-
-//   } catch (error) {
-//     showMessage('Error cancelling invite: ' + error.message, 'danger');
-//   }
-// }
 
 function getRoleBadgeColor(role) {
   const colors = {
