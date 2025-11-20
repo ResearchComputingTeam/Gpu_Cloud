@@ -15,9 +15,26 @@
 <div class="container">
   <div class="card mx-auto">
 
-    <div class="card-header">
-      <h2 class="mb-0">🚀 GPU Cloud Dashboard</h2>
-      <small>Project Management</small>
+  <div class="card-header">
+    <div class="d-flex flex-column">
+      <!-- Heading on top -->
+      <div class="mb-0 text-left">
+        <h2>🚀GPU Cloud Dashboard</h2>
+      </div>
+      <!-- Buttons below -->
+      <div class="d-flex justify-content-end gap-1">
+        <!-- Documentation Links -->
+        <div class="btn-group btn-group-sm" role="group">
+          <a href="documentation.html" class="btn btn-outline-light btn-sm" target="_blank" title="Complete User Guide">
+            📚 Docs
+          </a>
+          <a href="cheatsheet.html" class="btn btn-outline-light btn-sm" target="_blank" title="Quick Reference">
+            ⚡ Cheat Sheet
+          </a>
+        </div>
+          <button class="btn btn-light btn-sm" onclick="goBackToProjectPanel()">← Back</button>
+        </div>
+      </div>
     </div>
 
     <div class="card-body">

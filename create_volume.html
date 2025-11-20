@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Create a new VM</title>
+  <title>Create a new Volume</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="css/style.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -45,7 +45,7 @@
       <div class="card-header">
         <div class="d-flex justify-content-between align-items-center">
           <div>
-            <h2 class="mb-0">➕💾 Create New Volume</h2>
+            <h2 class="mb-0">💾Create Volume</h2>
             <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
               <span style="background: rgba(255,255,255,0.3); padding: 5px 15px; border-radius: 20px; font-weight: 600; font-size: 1rem; display: inline-flex; align-items: center; gap: 6px;">
                 <span style="font-size: 1.2rem;">📂</span>
@@ -56,7 +56,18 @@
               </small>
             </div>
           </div>
-          <button class="btn btn-light btn-sm" onclick="goBackToProjectPanel()">← Back</button>
+          <div class="d-flex gap-1">
+            <!-- Documentation Links -->
+            <div class="btn-group" role="group">
+              <a href="documentation.html" class="btn btn-outline-light btn-sm" target="_blank" title="Complete User Guide">
+                📚 Docs
+              </a>
+              <a href="cheatsheet.html" class="btn btn-outline-light btn-sm" target="_blank" title="Quick Reference">
+                ⚡ Cheat Sheet
+              </a>
+            </div>
+            <button class="btn btn-light btn-sm" onclick="goBackToProjectPanel()">← Back</button>
+          </div>
         </div>
       </div>
 
@@ -250,16 +261,6 @@ function showHelp(step) {
   event.currentTarget.classList.add('active');
 }
 
-function copyCommand(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    event.target.textContent = '✓ Copied!';
-    setTimeout(() => {
-      event.target.textContent = '📋 Copy';
-    }, 2000);
-  });
-}
-
-
 function goBackToProjectPanel() {
   window.location.href = `project_panel.html?project_id=${encodeURIComponent(projectId)}`;
 }
@@ -331,6 +332,7 @@ function resetErrorCard() {
 async function createVolume() {
   // 🧹 Reset any previous error display
   resetErrorCard();
+  clearProgressPanel();
 
   // Check credits
   const hasCredits = checkCredits(projectId);

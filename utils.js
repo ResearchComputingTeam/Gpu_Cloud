@@ -30,76 +30,11 @@ function copyToClipboard(text) {
   });
 }
 
+
 // Initialize Supabase client
 const supabaseUrl = 'https://dgttklfdlwaxvxjubcxx.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRndHRrbGZkbHdheHZ4anViY3h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3MTkzNTAsImV4cCI6MjA3NDI5NTM1MH0.ZggUBEE_GN0e_-b4TQL8yaXfe5ckoD6AglORC7NdYwQ';
 const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
-
-// HISTORY STUFFS
-let responseHistory = [];
-
-function addToHistory(action, message, type) {
-  const timestamp = new Date().toLocaleString();
-  
-  // Extract clean summary for history
-  let summary = 'Action completed';
-  try {
-    let data = typeof message === 'string' ? JSON.parse(message) : message;
-    if (data.message) {
-      summary = data.message;
-    } else if (data.status) {
-      summary = `Status: ${data.status}`;
-    }
-  } catch (e) {
-    summary = typeof message === 'string' ? message : 'Action completed';
-  }
-  
-  responseHistory.unshift({ 
-    action: getActionLabel(action), 
-    message: summary, 
-    fullData: message, // Store full data
-    type, 
-    timestamp 
-  });
-  
-  if (responseHistory.length > 20) {
-    responseHistory = responseHistory.slice(0, 20);
-  }
-  
-  renderHistory();
-}
-
-function renderHistory() {
-  const historyDiv = document.getElementById('responseHistoryList');
-  
-  if (responseHistory.length === 0) {
-    historyDiv.innerHTML = '<div class="text-muted p-3 text-center">No requests yet</div>';
-    return;
-  }
-  
-  historyDiv.innerHTML = responseHistory.map((item, idx) => {
-    // Get icon based on type
-    const icon = item.type === 'success' || item.type === 'primary' ? '✅' : 
-                 item.type === 'danger' ? '❌' : 
-                 item.type === 'warning' ? '⚠️' : 'ℹ️';
-    
-    // Truncate message if too long
-    let displayMsg = item.message;
-    if (displayMsg.length > 60) {
-      displayMsg = displayMsg.substring(0, 60) + '...';
-    }
-    
-    return `
-    <div class="list-group-item list-group-item-${item.type} d-flex justify-content-between align-items-center">
-      <div>
-        <div><strong>${icon} ${item.action}</strong></div>
-        <small class="text-muted">${displayMsg}</small>
-      </div>
-      <span class="badge bg-secondary">${item.timestamp}</span>
-    </div>
-  `;
-  }).join('');
-}
 
 // Show status message
 function showMessage(message, type = 'info') {
@@ -129,7 +64,7 @@ function showProgress(message, type = 'info', action = '') {
     if (progressDiv) {
       progressDiv.className = `alert alert-${type}`;
       progressDiv.innerHTML = message;
-      if (action) addToHistory(action, message, type);
+      // if (action) addToHistory(action, message, type);
     }
     progressUpdateTimeout = null;
   }, 100);
@@ -264,7 +199,7 @@ function handleRealtimeUpdate(data, action) {
   if (isComplete && resolver) {
     showMessage(`✅ ${action} completed successfully!`, 'success');
     displayVmDetails(data);
-    addToHistory(action, JSON.stringify(data), 'success');
+    // addToHistory(action, JSON.stringify(data), 'success');
     resolver.resolve(data); // Cleanup happens in resolve wrapper
   } 
   else if (isError && resolver) {
@@ -272,7 +207,7 @@ function handleRealtimeUpdate(data, action) {
     showMessage(`❌ ${action} failed: ${errorMsg}`, 'danger');
     showProgress(errorMsg, 'danger', action);
     showError(errorMsg);
-    addToHistory(action, JSON.stringify(data), 'danger');
+    // addToHistory(action, JSON.stringify(data), 'danger');
     resolver.reject(new Error(errorMsg)); // Cleanup happens in reject wrapper
   }
 }
@@ -302,6 +237,7 @@ async function pollCurrentStatus(requestId) {
 async function CheckVmStatus(vmName) {
   // 🧹 Reset / clear any previous error display
   resetErrorCard();
+  clearProgressPanel();
 
   console.log('Test', vmName);
   const payload = { vm_name: vmName };
@@ -325,7 +261,7 @@ async function CheckVmStatus(vmName) {
       //Display the VM details
       displayVmDetails(data);
     } else {
-      showProgress(`❌VM listing failed: ${data.message || 'Unknown error'}`, 'danger', 'list_vms');
+      showProgress(`❌VM details display failed: ${data.message || 'Unknown error'}`, 'danger', 'list_vms');
       document.getElementById('vmsList').innerHTML = '<div class="text-danger p-3">Failed to load VMs</div>';
     }
     
@@ -380,9 +316,6 @@ function displayVmDetails(data) {
     return;
   }
   
-  // Store IP for commands
-  currentVmIp = data.user_vm_ip;
-  
   // Map status to friendly display
   const statusMap = {
     'running': { label: 'Running', class: 'success', icon: '🟢' },
@@ -395,124 +328,191 @@ function displayVmDetails(data) {
   
   const statusColor = status.class === 'success' ? '#28a745' : status.class === 'warning' ? '#ffc107' : status.class === 'secondary' ? '#da1021ff' : '#6c757d';
   
-  targetEl.innerHTML = `
-    <div style="display: flex; font-size: 12px;">
-      <!-- Left Sidebar - Key Info -->
-      <div style="flex: 0 0 140px; padding: 12px; background: #f8f9fa; border-right: 1px solid #dee2e6;">
-        <div style="margin-bottom: 12px;">
-          <div style="font-size: 10px; color: #6c757d; margin-bottom: 4px;">STATUS</div>
-          <div style="font-size: 12px; font-weight: 600; color: ${statusColor};">
-            ${status.icon} ${status.label}
-          </div>
-        </div>
-        
-        <div style="margin-bottom: 8px;">
-          <div style="font-size: 10px; color: #6c757d; margin-bottom: 4px;">IP ADDRESS</div>
-          <code style="font-size: 16px; display: block; word-break: break-all;">
-            ${data.user_vm_ip}
-          </code>
-          <button class="btn btn-sm btn-outline-primary" 
-                  style="margin-top: 6px; font-size: 11px; width: 100%; padding: 4px 10px;"
-                  onclick="copyCommand('${data.user_vm_ip}')">
-            📋 Copy IP
-          </button>
-        </div>
-        
-        <div>
-          <div style="font-size: 10px; color: #6c757d; margin-bottom: 4px;">COST</div>
-          <div style="font-size: 20px; font-weight: bold; color: #28a745;">
-            $${(data.total_cost ?? 0).toFixed(2)}
-          </div>
-        </div>
-      </div>
-
-      <!-- Right Column - Details -->
-      <div style="flex: 1; padding: 12px;">
-        <table style="width: 100%; border-collapse: collapse;">
-          <tbody>
-            <tr style="border-bottom: 1px solid #e9ecef;">
-              <td style="padding: 5px 0; color: #6c757d; width: 30%; font-size: 11px;">Name</td>
-              <td style="padding: 5px 0; font-size: 11px;">${escapeHtml(data.user_vm_name.replace(/_[^_]*$/, ''))}</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #e9ecef;">
-              <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">Hardware</td>
-              <td style="padding: 5px 0; font-size: 11px;">${escapeHtml(data.hardware_flavor)}</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #e9ecef;">
-              <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">Image</td>
-              <td style="padding: 5px 0; font-size: 11px;">${escapeHtml(data.base_image)}</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #e9ecef;">
-              <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">Environment</td>
-              <td style="padding: 5px 0; font-size: 11px;"><code style="font-size: 11px;">${escapeHtml(data.environment_name)}</code></td>
-            </tr>
-            <tr style="border-bottom: 1px solid #e9ecef;">
-              <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">Created</td>
-              <td style="padding: 5px 0; font-size: 11px;">${new Date(data.created_at).toLocaleString('en-GB', { timeZone: 'Asia/Qatar', dateStyle: 'short', timeStyle: 'short', hour12: false })}</td>
-            </tr>
-            <tr${data.total_paused_time > 0 ? ' style="border-bottom: 1px solid #e9ecef;"' : ''}>
-              <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">User</td>
-              <td style="padding: 5px 0; font-size: 11px;">${escapeHtml(data.user_id)}</td>
-            </tr>
-            ${data.total_paused_time > 0 ? `
-            <tr>
-              <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">Paused Time</td>
-              <td style="padding: 5px 0; font-size: 11px;">${formatTime(data.total_paused_time)}</td>
-            </tr>
-            ` : ''}
-          </tbody>
-        </table>
-        <div class="col-12">
-          <button class="btn btn-primary w-100" onclick="connectToTerminal('${data.user_vm_ip}', '${escapeHtml(data.environment_name)}')" ${data.request_status !== 'running' || !data.user_vm_ip || data.user_vm_ip === 'N/A' ? 'disabled' : ''}>
-            🖥️ Open Web Terminal
-          </button>
-
-          <!-- Attached Volumes Section -->
-          <div class="col-12 mt-3">
-            <div class="card border-secondary">
-              <div class="card-header" style="background: #6c757d; color: white; padding: 8px 12px;">
-                <strong>💾 Attached Volumes</strong>
-              </div>
-              <div class="card-body p-2">
-                ${data.volume_attachments && data.volume_attachments.length > 0 ? `
-                <ul class="list-group list-group-flush">
-                  ${data.volume_attachments.map(vol => `
-                    <li class="list-group-item">
-                      <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                          <strong>${escapeHtml(vol.volume.name.replace(/_[^_]*$/, '') || 'Volume')}</strong><br>
-                          <small class="text-muted">${vol.volume.size || 'N/A'} GB • ${vol.status}</small>
-                        </div>
-                        <button class="btn btn-sm btn-outline-danger" id="detachBtn"
-                                onclick="detachVolume('${data.user_vm_id}', '${vol.volume.id}', '${data.user_vm_name}')"
-                                title="Detach volume">
-                          DETACH
-                        </button>
-                      </div>
-                      <div class="mt-1">
-                        <small class="text-muted">Device: ${escapeHtml(vol.device)}</small>
-                      </div>
-                    </li>
-                  `).join('')}
-                </ul>
-                ` : `
-                  <p class="text-muted mb-0 text-center">No volumes attached</p>
-                `}
-              </div>
+  if (targetEl.id == 'markdown-content-create' ) {
+    targetEl.innerHTML = `
+      <div style="display: flex; font-size: 12px;">
+        <!-- Left Sidebar - Key Info -->
+        <div style="flex: 0 0 140px; padding: 12px; background: #f8f9fa; border-right: 1px solid #dee2e6;">
+          <div style="margin-bottom: 12px;">
+            <div style="font-size: 10px; color: #6c757d; margin-bottom: 4px;">STATUS</div>
+            <div style="font-size: 12px; font-weight: 600; color: ${statusColor};">
+              ${status.icon} ${status.label}
             </div>
           </div>
-
-          <!-- Attach Volume Button -->
-          <div class="col-12 mt-2">
-            <button class="btn btn-warning w-100" onclick="openAttachVolumeModal('${data.user_vm_name}', '${data.user_vm_id}')" ${data.request_status !== 'running' ? 'disabled' : ''} title="${data.request_status !== 'running' ? 'VM must be running to attach volumes' : 'Attach a volume to this VM'}">
-              📎 Attach Volume
+          
+          <div style="margin-bottom: 8px;">
+            <div style="font-size: 10px; color: #6c757d; margin-bottom: 4px;">IP ADDRESS</div>
+            <code style="font-size: 16px; display: block; word-break: break-all;">
+              ${data.user_vm_ip}
+            </code>
+            <button class="btn btn-sm btn-outline-primary" 
+                    style="margin-top: 6px; font-size: 11px; width: 100%; padding: 4px 10px;"
+                    onclick="copyToClipboard('${data.user_vm_ip}')">
+              📋 Copy IP
             </button>
           </div>
+          
+          <div>
+            <div style="font-size: 10px; color: #6c757d; margin-bottom: 4px;">COST</div>
+            <div style="font-size: 20px; font-weight: bold; color: #28a745;">
+              $${(data.total_cost ?? 0).toFixed(2)}
+            </div>
+          </div>
+        </div>
 
+        <!-- Right Column - Details -->
+        <div style="flex: 1; padding: 12px;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tbody>
+              <tr style="border-bottom: 1px solid #e9ecef;">
+                <td style="padding: 5px 0; color: #6c757d; width: 30%; font-size: 11px;">Name</td>
+                <td style="padding: 5px 0; font-size: 11px;">${escapeHtml(data.user_vm_name.replace(/_[^_]*$/, ''))}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #e9ecef;">
+                <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">Hardware</td>
+                <td style="padding: 5px 0; font-size: 11px;">${escapeHtml(data.hardware_flavor)}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #e9ecef;">
+                <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">Image</td>
+                <td style="padding: 5px 0; font-size: 11px;">${escapeHtml(data.base_image)}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #e9ecef;">
+                <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">Environment</td>
+                <td style="padding: 5px 0; font-size: 11px;"><code style="font-size: 11px;">${escapeHtml(data.environment_name)}</code></td>
+              </tr>
+              <tr style="border-bottom: 1px solid #e9ecef;">
+                <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">Created</td>
+                <td style="padding: 5px 0; font-size: 11px;">${new Date(data.created_at).toLocaleString('en-GB', { timeZone: 'Asia/Qatar', dateStyle: 'short', timeStyle: 'short', hour12: false })}</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
         </div>
       </div>
-    </div>
-  `;
+    `;
+  } else { //handle vms page called the displayvm function
+    targetEl.innerHTML = `
+      <div style="display: flex; font-size: 12px;">
+        <!-- Left Sidebar - Key Info -->
+        <div style="flex: 0 0 140px; padding: 12px; background: #f8f9fa; border-right: 1px solid #dee2e6;">
+          <div style="margin-bottom: 12px;">
+            <div style="font-size: 10px; color: #6c757d; margin-bottom: 4px;">STATUS</div>
+            <div style="font-size: 12px; font-weight: 600; color: ${statusColor};">
+              ${status.icon} ${status.label}
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 8px;">
+            <div style="font-size: 10px; color: #6c757d; margin-bottom: 4px;">IP ADDRESS</div>
+            <code style="font-size: 16px; display: block; word-break: break-all;">
+              ${data.user_vm_ip}
+            </code>
+            <button class="btn btn-sm btn-outline-primary" 
+                    style="margin-top: 6px; font-size: 11px; width: 100%; padding: 4px 10px;"
+                    onclick="copyToClipboard('${data.user_vm_ip}')">
+              📋 Copy IP
+            </button>
+          </div>
+          
+          <div>
+            <div style="font-size: 10px; color: #6c757d; margin-bottom: 4px;">COST</div>
+            <div style="font-size: 20px; font-weight: bold; color: #28a745;">
+              $${(data.total_cost ?? 0).toFixed(2)}
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column - Details -->
+        <div style="flex: 1; padding: 12px;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tbody>
+              <tr style="border-bottom: 1px solid #e9ecef;">
+                <td style="padding: 5px 0; color: #6c757d; width: 30%; font-size: 11px;">Name</td>
+                <td style="padding: 5px 0; font-size: 11px;">${escapeHtml(data.user_vm_name.replace(/_[^_]*$/, ''))}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #e9ecef;">
+                <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">Hardware</td>
+                <td style="padding: 5px 0; font-size: 11px;">${escapeHtml(data.hardware_flavor)}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #e9ecef;">
+                <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">Image</td>
+                <td style="padding: 5px 0; font-size: 11px;">${escapeHtml(data.base_image)}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #e9ecef;">
+                <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">Environment</td>
+                <td style="padding: 5px 0; font-size: 11px;"><code style="font-size: 11px;">${escapeHtml(data.environment_name)}</code></td>
+              </tr>
+              <tr style="border-bottom: 1px solid #e9ecef;">
+                <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">Created</td>
+                <td style="padding: 5px 0; font-size: 11px;">${new Date(data.created_at).toLocaleString('en-GB', { timeZone: 'Asia/Qatar', dateStyle: 'short', timeStyle: 'short', hour12: false })}</td>
+              </tr>
+              <tr${data.total_paused_time > 0 ? ' style="border-bottom: 1px solid #e9ecef;"' : ''}>
+                <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">User</td>
+                <td style="padding: 5px 0; font-size: 11px;">${escapeHtml(data.user_id)}</td>
+              </tr>
+              ${data.total_paused_time > 0 ? `
+              <tr>
+                <td style="padding: 5px 0; color: #6c757d; font-size: 11px;">Paused Time</td>
+                <td style="padding: 5px 0; font-size: 11px;">${formatTime(data.total_paused_time)}</td>
+              </tr>
+              ` : ''}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col-12 mt-3">
+        <button class="btn btn-primary w-100" onclick="connectToTerminal('${data.user_vm_ip}', '${escapeHtml(data.environment_name)}')" ${data.request_status !== 'running' || !data.user_vm_ip || data.user_vm_ip === 'N/A' ? 'disabled' : ''}>
+          🖥️ Open Web Terminal
+        </button>
+
+        <!-- Attached Volumes Section -->
+        <div class="col-12 mt-3">
+          <div class="card border-secondary">
+            <div class="card-header" style="background: #6c757d; color: white; padding: 8px 12px;">
+              <strong>💾 Attached Volumes</strong>
+            </div>
+            <div class="card-body p-2">
+              ${data.volume_attachments && data.volume_attachments.length > 0 ? `
+              <ul class="list-group list-group-flush">
+                ${data.volume_attachments.map(vol => `
+                  <li class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <strong>${escapeHtml(vol.volume.name.replace(/_[^_]*$/, '') || 'Volume')}</strong><br>
+                        <small class="text-muted">${vol.volume.size || 'N/A'} GB • ${vol.status}</small>
+                      </div>
+                      <button class="btn btn-sm btn-outline-danger" id="detachBtn"
+                              onclick="detachVolume('${data.user_vm_id}', '${vol.volume.id}', '${data.user_vm_name}')"
+                              title="Detach volume">
+                        DETACH
+                      </button>
+                    </div>
+                    <div class="mt-1">
+                      <small class="text-muted">Device: ${escapeHtml(vol.device)}</small>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary" style="margin-top: 6px; font-size: 11px; width: 100%; padding: 4px 10px;"
+                      onclick="copyToClipboard('${escapeHtml(vol.device)}')">
+                      📋 Copy Device
+                    </button>
+                  </li>
+                `).join('')}
+              </ul>
+              ` : `
+                <p class="text-muted mb-0 text-center">No volumes attached</p>
+              `}
+            </div>
+          </div>
+        </div>
+
+        <!-- Attach Volume Button -->
+        <div class="col-12 mt-2">
+          <button class="btn btn-warning w-100" onclick="openAttachVolumeModal('${data.user_vm_name}', '${data.user_vm_id}')" ${data.request_status !== 'running' ? 'disabled' : ''} title="${data.request_status !== 'running' ? 'VM must be running to attach volumes' : 'Attach a volume to this VM'}">
+            📎 Attach Volume
+          </button>
+        </div>
+      </div>
+    `;
+  }
 }
 
 function displayVolumeDetails(data) {
@@ -939,8 +939,18 @@ async function connectToTerminal(vmIp, vmName) {
 
   // Add project_id to WebSocket URL
   const wsUrl = `wss://adolfo-unpersonalizing-unnarrowly.ngrok-free.dev?host=${vmIp}&port=22&project_id=${projectId}&project_name=${encodeURIComponent(projectName)}`;
- 
   console.log('WebSocket URL=', wsUrl);
+
+
+  // Add "Open in New Tab" button functionality
+  const newTabUrl = `terminal.html?host=${vmIp}&project_id=${projectId}&project_name=${encodeURIComponent(projectName)}`;
+  const openTabBtn = document.getElementById('open-terminal-tab');
+  if (openTabBtn) {
+      openTabBtn.style.display = 'inline-block';
+      openTabBtn.onclick = () => window.open(newTabUrl, '_blank');
+  }
+
+
   socket = new WebSocket(wsUrl);
 
   socket.onopen = () => {
@@ -1192,7 +1202,6 @@ async function detachVolume(vmId, volumeId, vmName) {
 
     if (!data.success) {
       showMessage('✗ Failed to detach volume: ' + data.message, 'danger');
-      console.error('Error detaching volume:', error);
       document.getElementById('detachBtn').disabled = false;
       document.getElementById('detachBtn').innerHTML = 'DETACH';
       return;

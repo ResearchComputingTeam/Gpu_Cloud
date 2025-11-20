@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GPU Cloud Platform - User Guide</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --accent-color: #667eea;
+      --code-bg: #2d2d2d;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.7;
+      color: #333;
+    }
+    
+    .hero {
+      background: var(--primary-gradient);
+      color: white;
+      padding: 4rem 0;
+      margin-bottom: 3rem;
+    }
+    
+    .hero h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    
+    .sidebar {
+      position: sticky;
+      top: 20px;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+      padding-right: 1rem;
+    }
+    
+    .sidebar .nav-link {
+      color: #666;
+      padding: 0.5rem 1rem;
+      border-left: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    
+    .sidebar .nav-link:hover {
+      color: var(--accent-color);
+      border-left-color: var(--accent-color);
+      background: #f8f9fa;
+    }
+    
+    .sidebar .nav-link.active {
+      color: var(--accent-color);
+      border-left-color: var(--accent-color);
+      font-weight: 600;
+    }
+    
+    .content-section {
+      scroll-margin-top: 20px;
+      margin-bottom: 3rem;
+    }
+    
+    .content-section h2 {
+      color: #2d3748;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 3px solid var(--accent-color);
+    }
+    
+    .content-section h3 {
+      color: #4a5568;
+      font-weight: 600;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+    }
+    
+    .tip-box, .warning-box, .example-box {
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      border-left: 4px solid;
+    }
+    
+    .tip-box {
+      background: #e6f7ff;
+      border-color: #1890ff;
+    }
+    
+    .warning-box {
+      background: #fff7e6;
+      border-color: #fa8c16;
+    }
+    
+    .example-box {
+      background: #f6ffed;
+      border-color: #52c41a;
+    }
+    
+    .tip-box h4, .warning-box h4, .example-box h4 {
+      margin-top: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+    
+    .command-block {
+      background: var(--code-bg);
+      color: #f8f8f2;
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 1rem 0;
+      position: relative;
+    }
+    
+    .command-block code {
+      color: inherit;
+      background: none;
+    }
+    
+    .copy-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    
+    .copy-btn:hover {
+      opacity: 1;
+    }
+    
+    .workflow-step {
+      display: flex;
+      align-items: start;
+      margin-bottom: 1.5rem;
+    }
+    
+    .workflow-number {
+      background: var(--primary-gradient);
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      flex-shrink: 0;
+      margin-right: 1rem;
+    }
+    
+    .checklist {
+      list-style: none;
+      padding-left: 0;
+    }
+    
+    .checklist li {
+      padding: 0.5rem 0;
+      padding-left: 2rem;
+      position: relative;
+    }
+    
+    .checklist li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #52c41a;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+    
+    .command-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    
+    .command-card {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 6px;
+      padding: 1rem;
+    }
+    
+    .command-card h5 {
+      font-size: 0.9rem;
+      color: var(--accent-color);
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+    
+    .badge-custom {
+      background: var(--primary-gradient);
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    
+    details summary {
+      cursor: pointer;
+      padding: 0.75rem;
+      background: #f8f9fa;
+      border-radius: 6px;
+      user-select: none;
+    }
+    
+    details summary:hover {
+      background: #e9ecef;
+    }
+    
+    @media (max-width: 992px) {
+      .sidebar {
+        position: static;
+        max-height: none;
+        margin-bottom: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Hero Section -->
+<div class="hero">
+  <div class="container">
+    <h1>🚀 GPU Cloud Platform - RCCG</h1>
+    <p class="lead mb-0">Complete user guide for research teams managing GPU VMs, volumes, and storage</p>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <!-- Sidebar Navigation -->
+    <div class="col-lg-3">
+      <nav class="sidebar">
+        <div class="nav flex-column">
+          <a class="nav-link active" href="#section-1">1. Project Setup & Teams</a>
+          <a class="nav-link" href="#section-2">2. Creating VMs</a>
+          <a class="nav-link" href="#section-3">3. Uploading Data</a>
+          <a class="nav-link" href="#section-4">4. Software Stack</a>
+          <a class="nav-link" href="#section-5">5. Running Simulations</a>
+          <a class="nav-link" href="#section-6">6. Downloading Results</a>
+          <a class="nav-link" href="#section-7">7. Storage Management</a>
+          <a class="nav-link" href="#section-8">8. VM Lifecycle</a>
+          <a class="nav-link" href="#section-9">9. Budget Tips</a>
+          <a class="nav-link" href="#section-10">10. Best Practices</a>
+          <a class="nav-link" href="#quick-ref">Quick Reference</a>
+        </div>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-lg-9">
+      
+      <!-- Section 1 -->
+      <section id="section-1" class="content-section">
+        <h2>1. Project Setup & Team Management</h2>
+        
+        <h3>Quick Workflow</h3>
+        <div class="workflow-step">
+          <div class="workflow-number">1</div>
+          <div>
+            <strong>Project Awarded</strong>
+            <p>Administrator marks your account as project owner in the application</p>
+          </div>
+        </div>
+        
+        <div class="workflow-step">
+          <div class="workflow-number">2</div>
+          <div>
+            <strong>Owner Setup</strong>
+            <p>Sign up (if needed), verify your profile, and configure project settings</p>
+          </div>
+        </div>
+        
+        <div class="workflow-step">
+          <div class="workflow-number">3</div>
+          <div>
+            <strong>Add Team Members</strong>
+            <p>Invite team members via email through Project → "Manage Team"</p>
+          </div>
+        </div>
+        
+        <div class="workflow-step">
+          <div class="workflow-number">4</div>
+          <div>
+            <strong>Team Access</strong>
+            <p>Members accept invitations, sign up, and gain access to project resources</p>
+          </div>
+        </div>
+
+        <div class="tip-box">
+          <h4>💡 Practical Tips</h4>
+          <ul>
+            <li>Use a stable team email (e.g., project mailbox) for easy re-invitations</li>
+            <li>Designate one member as billing/credit manager to monitor usage</li>
+            <li>Ensure all team members upload SSH public keys to their profiles for passwordless access</li>
+          </ul>
+        </div>
+
+        <div class="example-box">
+          <h4>📋 Example: Owner Adding Teammates</h4>
+          <ol>
+            <li>Navigate to <strong>Project → Manage Team</strong></li>
+            <li>Click "Add Member" and enter teammate's email</li>
+            <li>Assign role (Member / Manager)</li>
+            <li>Instruct teammates: "Sign up with the same email and add your SSH key to Profile → SSH Keys"</li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- Section 2 -->
+      <section id="section-2" class="content-section">
+        <h2>2. Creating a VM: Choosing Flavor & Base Image</h2>
+        
+        <h3>What to Consider</h3>
+        
+        <div class="row mb-3">
+          <div class="col-md-6 mb-3">
+            <div class="card h-100">
+              <div class="card-body">
+                <h5 class="card-title">🎮 GPU Model</h5>
+                <p class="card-text">Different GPUs have varying memory, compute power, and pricing. Match to your workload:</p>
+                <ul class="small">
+                  <li><strong>Large NLP models:</strong> High VRAM GPUs (A100, H100)</li>
+                  <li><strong>Small experiments:</strong> Cheaper GPUs (A100 PCIe)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-6 mb-3">
+            <div class="card h-100">
+              <div class="card-body">
+                <h5 class="card-title">💾 vCPU & RAM</h5>
+                <p class="card-text">CPU and memory matter for:</p>
+                <ul class="small">
+                  <li>Data preprocessing</li>
+                  <li>I/O operations</li>
+                  <li>Multi-process workflows</li>
+                </ul>
+                <p class="small mb-0"><strong>Tip:</strong> For data-heavy pipelines, prefer more RAM even if GPU stays the same</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3>Disk Types Explained</h3>
+        <div class="command-grid">
+          <div class="command-card">
+            <h5>📁 Root Disk (OS)</h5>
+            <p class="small mb-0">Persistent while instance exists. Small by default. Use for OS and configurations.</p>
+          </div>
+          <div class="command-card">
+            <h5>⚡ Ephemeral Disk</h5>
+            <p class="small mb-0">Fast local disk, deleted on termination. Perfect for temporary scratch files and fast I/O.</p>
+          </div>
+          <div class="command-card">
+            <h5>💽 Persistent Volume</h5>
+            <p class="small mb-0">Attach/detach across VMs. Survives VM deletion. Best for datasets and outputs.</p>
+          </div>
+        </div>
+
+        <div class="tip-box">
+          <h4>🎯 Rule of Thumb</h4>
+          <ul class="mb-0">
+            <li><strong>Rapid prototyping/debugging:</strong> Small GPU or CPU, 1-2 vCPU, smaller RAM</li>
+            <li><strong>Real training runs:</strong> Match GPU memory to model size; add enough CPU/RAM for data staging</li>
+            <li><strong>Data transfer:</strong> Use staging VM (cheap CPU VM) + volume to avoid wasting expensive GPU hours</li>
+          </ul>
+        </div>
+
+        <h3>Creating from the UI</h3>
+        <ol>
+          <li>Navigate to <strong>Project → Create VM</strong></li>
+          <li>Enter VM name</li>
+          <li>Select <strong>Hardware Flavor</strong> (choose GPU type)</li>
+          <li>Select <strong>Base Image</strong> (see golden images below)</li>
+          <li>Optionally attach a volume</li>
+          <li>Ensure your SSH key is selected</li>
+          <li>Click <strong>Create GPU VM</strong></li>
+        </ol>
+      </section>
+
+      <!-- Section 3 -->
+      <section id="section-3" class="content-section">
+        <h2>3. Uploading Input Data (Use Volumes + Staging VM)</h2>
+        
+        <h3>Why Use a Staging VM?</h3>
+        <p>GPU VMs are expensive per hour. Uploading large datasets directly wastes money. Instead:</p>
+        <ol>
+          <li>Attach a persistent volume to a <strong>cheap CPU VM</strong></li>
+          <li>Upload data there</li>
+          <li>Detach and attach volume to GPU VM</li>
+        </ol>
+
+        <h3>Step-by-Step Scenario</h3>
+        <div class="workflow-step">
+          <div class="workflow-number">1</div>
+          <div>Create a persistent volume (size = dataset + margin)</div>
+        </div>
+        <div class="workflow-step">
+          <div class="workflow-number">2</div>
+          <div>Create a staging VM (cheap flavor, e.g., 2 vCPU, 4-8 GB RAM)</div>
+        </div>
+        <div class="workflow-step">
+          <div class="workflow-number">3</div>
+          <div>Attach volume to staging VM via UI</div>
+        </div>
+        <div class="workflow-step">
+          <div class="workflow-number">4</div>
+          <div>SSH to staging VM and mount the volume</div>
+        </div>
+        <div class="workflow-step">
+          <div class="workflow-number">5</div>
+          <div>Upload data from laptop using rsync or scp</div>
+        </div>
+        <div class="workflow-step">
+          <div class="workflow-number">6</div>
+          <div>Safely unmount, detach, then attach to GPU VM</div>
+        </div>
+
+        <h3>Upload Commands (from your laptop)</h3>
+        
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># Using rsync (recommended - can resume, shows progress)
+rsync -avP ./local_dataset/ user@staging-vm-ip:/mnt/volume/datasets/myproj/</code>
+        </div>
+
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># Using scp (simpler, but less resume-friendly)
+scp -r ./local_dataset user@staging-vm-ip:/mnt/volume/datasets/myproj/</code>
+        </div>
+
+        <h3>Safe Detach Procedure</h3>
+        <p>On the staging VM, before detaching in UI:</p>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># Flush writes and unmount
+sync
+sudo umount /mnt/volume
+
+# Verify unmounted
+lsblk
+findmnt</code>
+        </div>
+        <p>Then use UI to <strong>detach volume</strong> and <strong>attach to GPU VM</strong></p>
+      </section>
+
+      <!-- Section 4 - UPDATED WITH RCCG INFO -->
+      <section id="section-4" class="content-section">
+        <h2>4. Preparing the Software Stack</h2>
+        
+        <h3>Choosing Your Base Image</h3>
+        <p>RCCG provides four pre-configured golden images to quickly start work:</p>
+        
+        <table class="table table-bordered table-striped">
+          <thead class="table-light">
+            <tr>
+              <th>Image Name</th>
+              <th>Description</th>
+              <th>Best For</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Ubuntu 22.04 LTS</strong></td>
+              <td>Clean system with no extra libraries</td>
+              <td>Custom setups, full control</td>
+            </tr>
+            <tr>
+              <td><strong>Ubuntu 22.04 + CUDA 12.2</strong></td>
+              <td>CUDA toolkit pre-installed</td>
+              <td>GPU compute, custom ML environments</td>
+            </tr>
+            <tr>
+              <td><strong>minimal-research-base-image</strong></td>
+              <td>Lightweight research environment with scientific Python packages, HDF5, NetCDF, JupyterLab</td>
+              <td>Scientific computing, data analysis</td>
+            </tr>
+            <tr>
+              <td><strong>ml-dl-gpu-base-image</strong></td>
+              <td>Full ML/DL environment with PyTorch 2.5.1, TensorFlow 2.14, cuDNN, NCCL</td>
+              <td>Deep learning, neural networks</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="tip-box">
+          <h4>💡 Quick Selection Guide</h4>
+          <ul class="mb-0">
+            <li><strong>Deep Learning:</strong> Use <code>ml-dl-gpu-base-image</code> - comes with PyTorch, TensorFlow, and all ML libraries</li>
+            <li><strong>Scientific Computing:</strong> Use <code>minimal-research-base-image</code> - includes HDF5, NetCDF, JupyterLab</li>
+            <li><strong>Custom Setup:</strong> Start with <code>Ubuntu 22.04 + CUDA 12.2</code></li>
+          </ul>
+        </div>
+
+        <details class="mt-3 mb-3">
+          <summary class="btn btn-outline-primary btn-sm">📋 View Complete Software Comparison Table</summary>
+          <div class="mt-3">
+            <table class="table table-sm table-bordered">
+              <thead class="table-light">
+                <tr>
+                  <th>Software Package</th>
+                  <th>Ubuntu 22.04</th>
+                  <th>Ubuntu + CUDA</th>
+                  <th>Minimal Research</th>
+                  <th>ML-DL GPU</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Python 3.11</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                <tr><td>CUDA 12.2</td><td>❌</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                <tr><td>Anaconda 2024.11</td><td>❌</td><td>❌</td><td>✅</td><td>✅</td></tr>
+                <tr><td>Environment Modules 4.8.2</td><td>❌</td><td>❌</td><td>✅</td><td>✅</td></tr>
+                <tr><td>GDB 13.2</td><td>❌</td><td>❌</td><td>✅</td><td>✅</td></tr>
+                <tr><td>CMake 3.27.7</td><td>❌</td><td>❌</td><td>✅</td><td>✅</td></tr>
+                <tr><td>HDF5 1.14.2</td><td>❌</td><td>❌</td><td>✅</td><td>✅</td></tr>
+                <tr><td>NetCDF 4.9.3</td><td>❌</td><td>❌</td><td>✅</td><td>✅</td></tr>
+                <tr><td>SingularityCE 1.3.0</td><td>❌</td><td>❌</td><td>✅</td><td>✅</td></tr>
+                <tr><td>OpenMPI 5.1.0</td><td>❌</td><td>❌</td><td>✅</td><td>✅</td></tr>
+                <tr><td>JupyterLab 4.2.3</td><td>❌</td><td>❌</td><td>✅</td><td>✅</td></tr>
+                <tr><td>Git 2.34.1</td><td>❌</td><td>❌</td><td>✅</td><td>✅</td></tr>
+                <tr><td><strong>PyTorch 2.5.1</strong></td><td>❌</td><td>❌</td><td>❌</td><td>✅</td></tr>
+                <tr><td><strong>TensorFlow 2.14</strong></td><td>❌</td><td>❌</td><td>❌</td><td>✅</td></tr>
+                <tr><td><strong>cuDNN 8.9</strong></td><td>❌</td><td>❌</td><td>❌</td><td>✅</td></tr>
+                <tr><td><strong>NCCL 2.27</strong></td><td>❌</td><td>❌</td><td>❌</td><td>✅</td></tr>
+                <tr><td><strong>scikit-learn 1.5.2</strong></td><td>❌</td><td>❌</td><td>❌</td><td>✅</td></tr>
+                <tr><td><strong>NumPy 1.25</strong></td><td>❌</td><td>❌</td><td>❌</td><td>✅</td></tr>
+                <tr><td><strong>SciPy 1.14</strong></td><td>❌</td><td>❌</td><td>❌</td><td>✅</td></tr>
+                <tr><td><strong>Pandas 2.2</strong></td><td>❌</td><td>❌</td><td>❌</td><td>✅</td></tr>
+                <tr><td><strong>Matplotlib 3.10</strong></td><td>❌</td><td>❌</td><td>❌</td><td>✅</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <h3>SSH Access to Your VM</h3>
+        
+        <h4>Option 1: Command Line SSH</h4>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># SSH with private key
+ssh -i /path/to/ssh_private_key user@&lt;User_VM_IP&gt;
+
+# Example
+ssh -i ~/.ssh/id_rsa ubuntu@192.168.1.100</code>
+        </div>
+
+        <h4>Option 2: MobaXterm (Windows Users)</h4>
+        <p>Setup a persistent SSH session in MobaXterm for easier access. This allows you to save your connection settings and access your VM with one click.</p>
+
+        <h3>A. Using Pre-installed Software (Environment Modules)</h3>
+        <p>All research base images come with Environment Modules for easy package management:</p>
+        
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># List available software packages
+module avail
+
+# Output shows:
+# -------------------------------------------------------- /opt/modulefiles --------------------------------------------
+# anaconda3/2024.02-1  cmake/3.27.7  conda_hdf5  conda_netcdf4  conda_python  
+# gdb/13.2  go/1.25  ml_dl_gpu_base_all  openmpi/4.1.6  python/3.11  singularityce/4.3.3</code>
+        </div>
+
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># Load required modules (always start with anaconda3)
+module load anaconda3/2024.02-1
+module load openmpi/4.1.6
+
+# For ML/DL work, load the complete ML stack
+module load ml_dl_gpu_base_all
+
+# This single module loads ALL of:
+# - PyTorch 2.5.1
+# - TensorFlow 2.14
+# - cuDNN 8.9
+# - scikit-learn 1.5.2
+# - NCCL 2.27
+# - NumPy 1.25
+# - SciPy 1.14
+# - Pandas 2.2
+# - Matplotlib 3.10
+
+# Verify loaded modules
+module list</code>
+        </div>
+
+        <div class="warning-box">
+          <h4>⚠️ Important</h4>
+          <p class="mb-0">Always load <code>anaconda3/2024.02-1</code> first before loading other modules. This ensures proper Python environment initialization.</p>
+        </div>
+
+        <h3>B. Installing Additional Packages</h3>
+        <p>You have root privileges on your VM and can install additional software via apt, conda, pip, or source compilation:</p>
+
+        <h4>Via Conda (Recommended)</h4>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># Create a new Conda environment
+conda create -n my_conda_env python=3.11 -y
+
+# Activate the environment
+conda activate my_conda_env
+
+# Install packages via conda
+conda install -c conda-forge scikit-image -y
+
+# Or via pip
+pip install transformers datasets
+
+# Example: Install RAPIDS for GPU-accelerated data science
+conda install -c rapidsai -c nvidia -c conda-forge \
+    rapids=24.06 \
+    cudatoolkit=12.2 \
+    -y</code>
+        </div>
+
+        <h4>Via APT (System Packages)</h4>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># Update package list
+sudo apt update
+
+# Install system packages
+sudo apt install htop vim tmux -y</code>
+        </div>
+
+        <h3>C. Using Containers with SingularityCE</h3>
+        <p>SingularityCE 1.3.0 is pre-installed on research base images for running containerized applications:</p>
+        
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># Pull a Docker container as Singularity image
+singularity pull docker://pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
+
+# Run with GPU support
+singularity exec --nv pytorch_2.5.1-cuda12.4-cudnn9-runtime.sif python train.py
+
+# Interactive shell in container
+singularity shell --nv pytorch_2.5.1-cuda12.4-cudnn9-runtime.sif</code>
+        </div>
+
+        <div class="tip-box">
+          <h4>💡 Best Practices</h4>
+          <ul class="mb-0">
+            <li><strong>Start with modules:</strong> Use pre-installed modules via <code>module load</code> to save time</li>
+            <li><strong>Use conda environments:</strong> Create isolated environments for different projects</li>
+            <li><strong>Containers for reproducibility:</strong> Use SingularityCE for complex dependencies or reproducible experiments</li>
+            <li><strong>Save environment specs:</strong> Export with <code>conda env export > environment.yml</code></li>
+            <li><strong>Verify GPU access:</strong> Always check <code>nvidia-smi</code> after setup</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Section 5 - UPDATED WITH RCCG INFO -->
+      <section id="section-5" class="content-section">
+        <h2>5. Running Your Simulation / Training</h2>
+        
+        <h3>Storage Best Practices</h3>
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <div class="card border-success h-100">
+              <div class="card-body">
+                <h5 class="card-title text-success">✅ Persistent Volume</h5>
+                <p class="card-text"><strong>Use for:</strong></p>
+                <ul class="small mb-0">
+                  <li>Input datasets</li>
+                  <li><strong>Final simulation outputs</strong></li>
+                  <li>Checkpoints</li>
+                  <li>Any data you want to keep</li>
+                  <li>Path: <code>/mnt/user_volume/</code></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card border-warning h-100">
+              <div class="card-body">
+                <h5 class="card-title text-warning">⚡ Ephemeral Storage</h5>
+                <p class="card-text"><strong>Use for:</strong></p>
+                <ul class="small mb-0">
+                  <li>Temporary files</li>
+                  <li>Intermediate results</li>
+                  <li>Scratch data</li>
+                  <li>Cache files</li>
+                  <li><strong>⚠️ Deleted on VM termination!</strong></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="warning-box">
+          <h4>⚠️ Critical: Data Persistence</h4>
+          <ul class="mb-0">
+            <li><strong>Always save final outputs to the mounted volume</strong> (e.g., <code>/mnt/user_volume/</code>)</li>
+            <li>Ephemeral storage is <strong>deleted when VM is terminated</strong></li>
+            <li>Copy important results from ephemeral to volume before stopping/deleting VM</li>
+          </ul>
+        </div>
+
+        <h3>Session Management (Critical!)</h3>
+        <p>Use <code>tmux</code> or <code>screen</code> to keep jobs running after disconnection:</p>
+        
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># Start new tmux session
+tmux new -s simulation
+
+# Inside tmux, load modules and run simulation
+module load anaconda3/2024.02-1
+module load ml_dl_gpu_base_all
+
+# Run simulation with output to volume
+python3 my_simulation_script.py > /mnt/user_volume/output.log 2>&1
+
+# Or save results directly to volume
+python3 train.py \
+  --data /mnt/user_volume/datasets/ \
+  --output /mnt/user_volume/results/ \
+  --checkpoint-dir /mnt/user_volume/checkpoints/
+
+# Detach from session (keeps running)
+# Press: Ctrl-B, then D
+
+# Re-attach later
+tmux attach -t simulation</code>
+        </div>
+
+        <div class="example-box">
+          <h4>📋 Complete Simulation Example</h4>
+          <div class="command-block">
+            <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+            <code class="language-bash"># 1. SSH to VM
+ssh -i ~/.ssh/id_rsa user@192.168.1.100
+
+# 2. Verify volume is mounted
+df -h | grep volume
+# Should show: /dev/sdb1  1.0T  100G  900G  10% /mnt/user_volume
+
+# 3. Start tmux session
+tmux new -s training
+
+# 4. Load required modules
+module load anaconda3/2024.02-1
+module load ml_dl_gpu_base_all
+
+# 5. Verify GPU is available
+nvidia-smi
+
+# 6. Run simulation (output to HDF5 on volume)
+python3 my_simulation.py \
+  --input /mnt/user_volume/datasets/input.nc \
+  --output /mnt/user_volume/results/output.hdf5 \
+  --epochs 100 \
+  --batch-size 64 \
+  2>&1 | tee /mnt/user_volume/logs/training.log
+
+# 7. Detach: Ctrl-B, then D</code>
+          </div>
+        </div>
+
+        <h3>Optimal Performance Tips</h3>
+        <ul class="checklist">
+          <li><strong>Store persistent data on mounted volume</strong> (<code>/mnt/user_volume/</code>)</li>
+          <li><strong>Use ephemeral storage for temporary files</strong> to reduce volume I/O</li>
+          <li><strong>Copy final results to volume</strong> before VM deletion</li>
+          <li><strong>Enable checkpointing</strong> in your code for long runs</li>
+          <li><strong>Monitor GPU usage</strong> with <code>watch -n 2 nvidia-smi</code></li>
+          <li><strong>Log outputs to volume</strong> so you can review them later</li>
+        </ul>
+
+        <h3>Monitoring Commands</h3>
+        
+        <div class="command-grid">
+          <div class="command-card">
+            <h5>🎮 GPU Usage</h5>
+            <div class="command-block mb-0" style="padding: 0.5rem;">
+              <code class="language-bash">watch -n 2 nvidia-smi</code>
+            </div>
+          </div>
+          <div class="command-card">
+            <h5>💻 CPU/Memory</h5>
+            <div class="command-block mb-0" style="padding: 0.5rem;">
+              <code class="language-bash">htop
+free -h</code>
+            </div>
+          </div>
+          <div class="command-card">
+            <h5>💾 Disk I/O</h5>
+            <div class="command-block mb-0" style="padding: 0.5rem;">
+              <code class="language-bash">iostat -x 2
+sudo iotop</code>
+            </div>
+          </div>
+          <div class="command-card">
+            <h5>📊 Volume Space</h5>
+            <div class="command-block mb-0" style="padding: 0.5rem;">
+              <code class="language-bash">df -h /mnt/user_volume
+du -sh /mnt/user_volume/*</code>
+            </div>
+          </div>
+        </div>
+
+        <h3>Using JupyterLab (Research Base Images)</h3>
+        <p>JupyterLab 4.2.3 is pre-installed on research base images:</p>
+        
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># Load anaconda module
+module load anaconda3/2024.02-1
+
+# Start JupyterLab (in tmux recommended)
+jupyter lab --ip=0.0.0.0 --port=8888 --no-browser \
+  --NotebookApp.token='your-secure-token'
+
+# Access from your laptop via SSH tunnel:
+# ssh -L 8888:localhost:8888 user@vm-ip
+# Then open: http://localhost:8888</code>
+        </div>
+
+        <div class="tip-box">
+          <h4>💡 Pro Tips</h4>
+          <ul class="mb-0">
+            <li>Always run simulations inside <code>tmux</code> or <code>screen</code></li>
+            <li>Save intermediate checkpoints to volume every few epochs</li>
+            <li>Monitor disk space on volume with <code>df -h</code></li>
+            <li>Use <code>tee</code> to save logs while viewing them: <code>python train.py | tee log.txt</code></li>
+            <li>Test with small batch first to verify setup before full run</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Section 6 -->
+      <section id="section-6" class="content-section">
+        <h2>6. Downloading Results</h2>
+        
+        <h3>Preferred Method: Use the Volume</h3>
+        <ol>
+          <li>Save outputs to attached volume</li>
+          <li>Detach volume from GPU VM</li>
+          <li>Attach to low-cost download VM or staging VM</li>
+          <li>Download via rsync to your laptop</li>
+        </ol>
+
+        <div class="tip-box">
+          <h4>💡 Why This Method?</h4>
+          <p class="mb-0">Avoids keeping expensive GPU VM running just for downloads. A cheap CPU VM costs much less per hour.</p>
+        </div>
+
+        <h3>Direct Download (for small files)</h3>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># From your laptop - using rsync
+rsync -avP user@gpu-vm-ip:/mnt/user_volume/results/ ./results/
+
+# Using scp
+scp -r user@gpu-vm-ip:/mnt/user_volume/results ./results</code>
+        </div>
+
+        <h3>For Large Datasets: Compress First</h3>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># On the VM - compress with progress indicator
+tar -cvf - /mnt/user_volume/results/ | pv | pigz -c > results.tar.gz
+
+# Then download the compressed archive
+rsync -avP user@vm-ip:/home/user/results.tar.gz ./</code>
+        </div>
+      </section>
+
+      <!-- Section 7 -->
+      <section id="section-7" class="content-section">
+        <h2>7. Storage Management: Root, Ephemeral & Persistent Volumes</h2>
+        
+        <h3>Storage Types & Best Use Cases</h3>
+        <table class="table table-bordered">
+          <thead class="table-light">
+            <tr>
+              <th>Type</th>
+              <th>Persistence</th>
+              <th>Best Use</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Root Disk (OS)</strong></td>
+              <td>While instance exists</td>
+              <td>OS + small configs</td>
+            </tr>
+            <tr>
+              <td><strong>Ephemeral Disk</strong></td>
+              <td>Deleted on termination</td>
+              <td>Temporary scratch, fast I/O</td>
+            </tr>
+            <tr>
+              <td><strong>Persistent Volume</strong></td>
+              <td>Survives VM deletion</td>
+              <td>Datasets, outputs, sharing</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>UI Operations</h3>
+        <ol>
+          <li><strong>Volumes → Create Volume</strong> (specify size/IOPS)</li>
+          <li><strong>Attach to VM</strong></li>
+          <li>Mount in VM (see commands below)</li>
+          <li>When done: <strong>Detach → Snapshot → Delete</strong></li>
+        </ol>
+
+        <h3>Linux Commands for Volume Management</h3>
+        
+        <h4>List Disks</h4>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash">lsblk
+sudo fdisk -l
+blkid</code>
+        </div>
+
+        <h4>Partition & Format (example: /dev/sdb)</h4>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># Create GPT partition table and single partition
+sudo parted /dev/sdb --script mklabel gpt mkpart primary ext4 0% 100%
+
+# Format to ext4
+sudo mkfs.ext4 -F /dev/sdb1
+
+# Create mountpoint and mount
+sudo mkdir -p /mnt/user_volume
+sudo mount /dev/sdb1 /mnt/user_volume
+
+# Verify
+df -h /mnt/user_volume
+ls -la /mnt/user_volume</code>
+        </div>
+
+        <h4>Auto-mount on Boot (Optional)</h4>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># Get UUID
+sudo blkid /dev/sdb1
+
+# Add to /etc/fstab
+UUID=xxxx-xxxx /mnt/user_volume ext4 defaults,nofail 0 2</code>
+        </div>
+
+        <h4>Safe Unmount</h4>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># Check what's using the mount
+lsof /mnt/user_volume
+
+# Sync and unmount
+sync
+sudo umount /mnt/user_volume</code>
+        </div>
+
+        <div class="warning-box">
+          <h4>⚠️ Critical: Safe Detach Practice</h4>
+          <ol class="mb-0">
+            <li>Run <code>sync</code> to flush writes</li>
+            <li>Stop processes using mountpoint</li>
+            <li>Run <code>sudo umount /mnt/user_volume</code></li>
+            <li><strong>Only then</strong> detach in UI</li>
+          </ol>
+        </div>
+
+        <h4>Resize Volume</h4>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># After increasing size in UI, on the VM:
+sudo growpart /dev/sdb 1
+sudo resize2fs /dev/sdb1</code>
+        </div>
+      </section>
+
+      <!-- Section 8 -->
+      <section id="section-8" class="content-section">
+        <h2>8. VM Lifecycle: Delete, Hibernate, Restore</h2>
+        
+        <h3>Understanding VM States</h3>
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <div class="card border-warning">
+              <div class="card-body">
+                <h5 class="card-title">⏸️ Stop/Shutdown</h5>
+                <p class="card-text small">VM powered off. Persistent volumes remain. Not billed for compute, but may be billed for reserved resources.</p>
+                <p class="mb-0"><span class="badge bg-warning">Use for: Short breaks</span></p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4 mb-3">
+            <div class="card border-info">
+              <div class="card-body">
+                <h5 class="card-title">💤 Hibernate</h5>
+                <p class="card-text small">Memory image saved. Resume to same state. Faster restore but may incur storage cost for RAM snapshot.</p>
+                <p class="mb-0"><span class="badge bg-info">Use for: Quick resume</span></p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4 mb-3">
+            <div class="card border-danger">
+              <div class="card-body">
+                <h5 class="card-title">🗑️ Terminate</h5>
+                <p class="card-text small">VM and ephemeral disks destroyed. Persistent volumes may be deleted depending on settings.</p>
+                <p class="mb-0"><span class="badge bg-danger">Use for: Finished work</span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3>When to Use Each</h3>
+        <ul>
+          <li><strong>Stop:</strong> Short break, save cost but don't need immediate resume</li>
+          <li><strong>Hibernate:</strong> Preserve running state (rarely used for long ML runs)</li>
+          <li><strong>Delete:</strong> Project finished and you have snapshot/backups of important volumes</li>
+        </ul>
+
+        <div class="warning-box">
+          <h4>⚠️ Before Deleting a VM</h4>
+          <ul class="mb-0">
+            <li>Copy all important data from ephemeral storage to volume</li>
+            <li>Verify results are saved to <code>/mnt/user_volume/</code></li>
+            <li>Snapshot volumes if needed</li>
+            <li>Detach volumes you want to keep</li>
+          </ul>
+        </div>
+
+        <h3>Practical Steps (UI)</h3>
+        <ul>
+          <li><strong>To save money:</strong> Stop the GPU VM between runs</li>
+          <li><strong>To restore:</strong> Start VM from UI or attach persistent volume to new VM</li>
+          <li><strong>To cleanup:</strong> Delete VM when experiment is over (after backing up volumes)</li>
+        </ul>
+      </section>
+
+      <!-- Section 9 -->
+      <section id="section-9" class="content-section">
+        <h2>9. Budget Management & Efficiency Tips</h2>
+        
+        <h3>High-Impact Cost Savers</h3>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <div class="card h-100">
+              <div class="card-body">
+                <h5 class="card-title">💰 Before Running</h5>
+                <ul class="small mb-0">
+                  <li>Use staging VM for uploads</li>
+                  <li>Choose right-sized GPU flavor</li>
+                  <li>Consider spot instances for non-critical work</li>
+                  <li>Share volumes across team</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <div class="card h-100">
+              <div class="card-body">
+                <h5 class="card-title">💰 During & After</h5>
+                <ul class="small mb-0">
+                  <li>Stop idle VMs immediately</li>
+                  <li>Delete VMs when done</li>
+                  <li>Compress data before transfer</li>
+                  <li>Monitor credit usage weekly</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3>Practical Automation Examples</h3>
+        <p>Auto-stop script (runs on VM with cron to stop if idle):</p>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># Simple check: stop if no processes using GPU and no SSH sessions
+if ! nvidia-smi | grep -q python && [ "$(who | wc -l)" -eq 0 ]; then
+  # Call cloud API/CLI to stop instance
+  echo "VM idle, stopping..."
+  # Replace with your provider's CLI command
+fi</code>
+        </div>
+
+        <div class="tip-box">
+          <h4>💡 Best Practices</h4>
+          <ul class="mb-0">
+            <li>Set up credit usage alerts in the UI</li>
+            <li>Review team spending weekly</li>
+            <li>Archive old datasets to cheaper storage</li>
+            <li>Use containers to reduce setup time</li>
+            <li>Test with small batches before full runs</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Section 10 -->
+      <section id="section-10" class="content-section">
+        <h2>10. Best Practices & Troubleshooting</h2>
+        
+        <h3>Reproducibility</h3>
+        <ul>
+          <li>Save environment specs: <code>conda env export > environment.yml</code></li>
+          <li>Use container images for experiments</li>
+          <li>Version control your code with Git</li>
+          <li>Document module loading sequence</li>
+        </ul>
+
+        <h3>Security</h3>
+        <ul>
+          <li>Use SSH keys, avoid passwords</li>
+          <li>Don't store secrets in images</li>
+          <li>Use secure tokens for JupyterLab</li>
+          <li>Restrict public IPs when possible</li>
+        </ul>
+
+        <h3>Troubleshooting Commands</h3>
+        
+        <h4>GPU Driver Issues</h4>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># Check kernel modules and driver
+lsmod | grep -i nvidia
+nvidia-smi -q | less
+
+# Check CUDA version
+nvcc --version</code>
+        </div>
+
+        <h4>Disk Problems</h4>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># Check disk health
+sudo smartctl -a /dev/sda
+
+# Check filesystem
+sudo fsck -n /dev/sdb1</code>
+        </div>
+
+        <h4>System Logs</h4>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># Check recent logs
+dmesg | tail -n 50
+journalctl -xe
+journalctl -u docker.service --since "1 hour ago"</code>
+        </div>
+
+        <h3>Multi-GPU Control</h3>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># Use specific GPUs
+export CUDA_VISIBLE_DEVICES=0,1
+python train.py  # uses GPU 0 and 1 only
+
+# For NCCL (multi-node training)
+export NCCL_SOCKET_IFNAME=eth0</code>
+        </div>
+      </section>
+
+      <!-- Quick Reference -->
+      <section id="quick-ref" class="content-section">
+        <h2>Quick Reference</h2>
+        
+        <h3>Essential Commands Cheat Sheet</h3>
+        
+        <div class="row">
+          <div class="col-md-6">
+            <h4>Module Management</h4>
+            <div class="command-block">
+              <code class="language-bash">module avail
+module load anaconda3/2024.02-1
+module load ml_dl_gpu_base_all
+module list</code>
+            </div>
+
+            <h4>Volume Management</h4>
+            <div class="command-block">
+              <code class="language-bash">lsblk
+sudo mount /dev/sdb1 /mnt/user_volume
+sync
+sudo umount /mnt/user_volume</code>
+            </div>
+
+            <h4>Data Transfer</h4>
+            <div class="command-block">
+              <code class="language-bash">rsync -avP ./data/ user@vm:/mnt/user_volume/
+scp -r results user@vm:/mnt/user_volume/</code>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <h4>Monitoring</h4>
+            <div class="command-block">
+              <code class="language-bash">nvidia-smi
+watch -n 2 nvidia-smi
+htop
+df -h /mnt/user_volume</code>
+            </div>
+
+            <h4>Session Management</h4>
+            <div class="command-block">
+              <code class="language-bash">tmux new -s training
+# Ctrl-B then D to detach
+tmux attach -t training
+tmux ls</code>
+            </div>
+
+            <h4>GPU Verification</h4>
+            <div class="command-block">
+              <code class="language-bash">nvidia-smi
+python -c "import torch; print(torch.cuda.is_available())"</code>
+            </div>
+          </div>
+        </div>
+
+        <h3>Pre-Run Checklist</h3>
+        <ul class="checklist">
+          <li>Snapshot dataset + code</li>
+          <li>Verify <code>nvidia-smi</code> works</li>
+          <li>Data stored on volume (not ephemeral)</li>
+          <li>Job running in <code>tmux</code></li>
+          <li>Checkpoints enabled in code</li>
+          <li>Credit alerts configured</li>
+          <li>Tested with small batch first</li>
+        </ul>
+
+        <h3>Example: Complete Workflow</h3>
+        <div class="example-box">
+          <h4>Alice's Deep Learning Project</h4>
+          <ol>
+            <li>Alice creates 1TB persistent volume</li>
+            <li>Creates cheap staging VM, attaches volume</li>
+            <li>Uploads dataset via <code>rsync</code> to staging VM</li>
+            <li>Detaches volume, attaches to GPU VM (H100)</li>
+            <li>SSH to GPU VM: <code>ssh -i key.pem user@gpu-ip</code></li>
+            <li>Mounts volume: <code>sudo mount /dev/sdb1 /mnt/user_volume</code></li>
+            <li>Loads modules: <code>module load anaconda3 ml_dl_gpu_base_all</code></li>
+            <li>Starts training in tmux: <code>python train.py --data /mnt/user_volume</code></li>
+            <li>Monitors with: <code>watch -n 2 nvidia-smi</code></li>
+            <li>Results saved to <code>/mnt/user_volume/results/</code></li>
+            <li>Detaches volume, attaches to staging VM</li>
+            <li>Downloads: <code>rsync -avP user@staging:/mnt/user_volume/results/ ./</code></li>
+            <li>Stops GPU VM to save credits</li>
+          </ol>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function copyCode(button) {
+  const codeBlock = button.nextElementSibling;
+  const text = codeBlock.textContent;
+  
+  navigator.clipboard.writeText(text).then(() => {
+    const originalText = button.textContent;
+    button.textContent = '✓ Copied!';
+    button.classList.add('btn-success');
+    button.classList.remove('btn-light');
+    
+    setTimeout(() => {
+      button.textContent = 'Copy';
+      button.classList.remove('btn-success');
+      button.classList.add('btn-light');
+    }, 2000);
+  }).catch(err => {
+    console.error('Failed to copy:', err);
+    button.textContent = '✗ Failed';
+  });
+}
+
+// Smooth scroll for navigation
+document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+  link.addEventListener('click', function(e) {
+    e.preventDefault();
+    const targetId = this.getAttribute('href');
+    const targetSection = document.querySelector(targetId);
+    
+    // Update active state
+    document.querySelectorAll('.sidebar .nav-link').forEach(l => l.classList.remove('active'));
+    this.classList.add('active');
+    
+    // Smooth scroll
+    targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+// Update active nav on scroll
+window.addEventListener('scroll', () => {
+  let current = '';
+  document.querySelectorAll('.content-section').forEach(section => {
+    const sectionTop = section.offsetTop;
+    const sectionHeight = section.clientHeight;
+    if (pageYOffset >= sectionTop - 100) {
+      current = section.getAttribute('id');
+    }
+  });
+  
+  document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('href') === `#${current}`) {
+      link.classList.add('active');
+    }
+  });
+});
+</script>
+
+</body>
+</html>

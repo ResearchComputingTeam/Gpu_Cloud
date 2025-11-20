@@ -50,7 +50,7 @@
     <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
       <div class="d-flex justify-content-between align-items-center">
         <div>
-          <h2 class="mb-0">⚙️💾 Manage Volumes</h2>
+          <h2 class="mb-0">💾Manage Volumes</h2>
           <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
             <span style="background: rgba(255,255,255,0.3); padding: 5px 15px; border-radius: 20px; font-weight: 600; font-size: 1rem; display: inline-flex; align-items: center; gap: 6px;">
               <span style="font-size: 1.2rem;">📂</span>
@@ -61,7 +61,18 @@
             </small>
           </div>
         </div>
-        <button class="btn btn-light btn-sm" onclick="goBackToProjectPanel()">← Back</button>
+        <div class="d-flex gap-1">
+          <!-- Documentation Links -->
+          <div class="btn-group" role="group">
+            <a href="documentation.html" class="btn btn-outline-light btn-sm" target="_blank" title="Complete User Guide">
+              📚 Docs
+            </a>
+            <a href="cheatsheet.html" class="btn btn-outline-light btn-sm" target="_blank" title="Quick Reference">
+              ⚡ Cheat Sheet
+            </a>
+          </div>
+          <button class="btn btn-light btn-sm" onclick="goBackToProjectPanel()">← Back</button>
+        </div>
       </div>
     </div>
     <div class="card-body" style="background:white; padding: 5px;">
@@ -97,8 +108,6 @@
       <div class="d-grid gap-2" id="volumeActionButtons">
           <div class="btn-group d-flex gap-2">
               <button class="btn btn-primary" onclick="goToCreateVolumePage()">▶️ Create Volume</button>
-              <button class="btn btn-success" onclick="attachVolume()">📌 Attach Volume</button>
-              <button class="btn btn-warning" onclick="detachVolume()">💤 Detach Volume</button>
           </div>
           <button id="deleteVolumeButton" class="btn btn-danger">🛑 Delete Volume</button>
       </div>
@@ -279,16 +288,6 @@ function updateSidebarActive(action) {
     steps[index].classList.add('active');
   }
 }
-
-function copyCommand(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    event.target.textContent = '✓ Copied!';
-    setTimeout(() => {
-      event.target.textContent = '📋 Copy';
-    }, 2000);
-  });
-}
-
 
 function goBackToProjectPanel() {
   window.location.href = `project_panel.html?project_id=${encodeURIComponent(projectId)}`;
