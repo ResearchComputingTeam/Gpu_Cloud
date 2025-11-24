@@ -20,36 +20,46 @@
   <!-- Workflow Sidebar -->
   <leftside>
     <div class="workflow-sidebar mb-3">
-      <h6 class="mb-3"><strong>Workflow Guide</strong></h6>
+      <h6 class="mb-3"><strong>VM Creation Workflow</strong></h6>
       
       <div class="workflow-step active" onclick="showHelp('create')">
         <div class="icon">1</div>
         <div>Create VM</div>
       </div>
-      
-      <div class="workflow-step" onclick="showHelp('upload')">
+
+      <div class="workflow-step" onclick="showHelp('choose')">
         <div class="icon">2</div>
-        <div>Upload Code</div>
+        <div>HW Flavor & Image</div>
+      </div>
+
+      <div class="workflow-step" onclick="showHelp('ssh')">
+        <div class="icon">3</div>
+        <div>SSH Access</div>
+      </div>
+
+      <div class="workflow-step" onclick="showHelp('software')">
+        <div class="icon">4</div>
+        <div>Setup Software</div>
+      </div>
+        
+      <div class="workflow-step" onclick="showHelp('upload')">
+        <div class="icon">5</div>
+        <div>Upload Data</div>
       </div>
       
       <div class="workflow-step" onclick="showHelp('run')">
-        <div class="icon">3</div>
+        <div class="icon">6</div>
         <div>Run Tasks</div>
       </div>
       
       <div class="workflow-step" onclick="showHelp('download')">
-        <div class="icon">4</div>
+        <div class="icon">7</div>
         <div>Download Results</div>
       </div>
-      
-      <div class="workflow-step" onclick="showHelp('cleanup')">
-        <div class="icon">5</div>
-        <div>Cleanup</div>
-      </div>
 
-      <div class="workflow-step" onclick="showHelp('volume')">
+      <div class="workflow-step" onclick="showHelp('storage')">
         <div class="icon">A</div>
-        <div>Volume Handling</div>
+        <div>Storage Types</div>
       </div>
 <!-- 
       <div class="mt-3 p-2" style="background: #e8f4f8; border-radius: 6px; font-size: 0.8rem; border-left: 3px solid #667eea;">
@@ -265,71 +275,142 @@ document.addEventListener('DOMContentLoaded', async function() {
 const helpContent = {
   create: {
     title: '📋 Step 1: Create Your VM',
-    content: 'Select your GPU flavor and base image, then create your VM. This typically takes 2 to 5 minutes.'
+    content: `<p>Select your GPU flavor and base image, then create your VM. This typically takes 2 to 5 minutes.'
+        <p><strong>Quick Tips:</strong></p>
+    <ul class="mb-0">
+      <li>Use <strong>CPU-only VM</strong> ($0.35/hr) as staging for data uploads</li>
+      <li>Choose GPU based on your model size (A100 for large models, H100 for fastest training)</li>
+      <li>Select base image: <code>ml-dl-gpu-base-image</code> for ML/DL work</li>
+    </ul>`
+  },
+  choose: {
+    title: '🎮 Step 2: Choose Flavor & Image',
+    content: `<p><strong>Hardware Flavors:</strong></p>
+    <ul>
+      <li><strong>n1-cpu-small</strong>: $0.35/hr - Perfect for staging and data uploads</li>
+      <li><strong>n3-A100x1</strong>: $1.35/hr - Single A100 GPU for most ML tasks</li>
+      <li><strong>n3-H100x1</strong>: $1.90/hr - High-performance for large models</li>
+      <li><strong>n3-H100x4/x8</strong>: Multi-GPU for distributed training</li>
+    </ul>
+    <p><strong>Base Images:</strong></p>
+    <ul class="mb-0">
+      <li><strong>Ubuntu 22.04</strong>: Clean system for custom setups</li>
+      <li><strong>Ubuntu + CUDA 12.2</strong>: GPU-ready with CUDA toolkit</li>
+      <li><strong>minimal-research-base-image</strong>: Scientific Python, HDF5, NetCDF, JupyterLab...</li>
+      <li><strong>ml-dl-gpu-base-image</strong>: PyTorch 2.5.1, TensorFlow 2.14, full ML stack...</li>
+    </ul>`
+  },
+  ssh: {
+    title: '🔑 Step 3: SSH Access',
+    content: `<p>Once your VM is ready, connect via SSH:</p>
+    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0;">
+      <code>ssh -i ~/.ssh/my_ssh_private_key ubuntu@VM_IP</code>
+    </div>
+    <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('ssh -i ~/.ssh/my_ssh_private_key ubuntu@VM_IP')">Copy</button>`
+  },
+  software: {
+    title: '⚙️ Step 4: Setup Software Stack',
+    content: `<p><strong>Using Environment Modules (Pre-installed):</strong></p>
+    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0;">
+      <code># List available modules<br>
+      module avail<br><br>
+      # Load Anaconda<br>
+      module load anaconda3/2024.02-1<br><br>
+      # Load complete ML/DL stack<br>
+      module load ml_dl_gpu_base_all</code>
+    </div>
+    <p><strong>Installing Additional Packages:</strong></p>
+    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0;">
+      <code># Create conda environment<br>
+      conda create -n myenv python=3.11 -y<br>
+      conda activate myenv<br>
+      pip install transformers datasets</code>
+    </div>
+    <p class="mb-0"><strong>✅ Verify GPU:</strong> <code>nvidia-smi</code></p>`
   },
   upload: {
-    title: '📤 Step 2: Upload Your Code',
-    content: `<p>Once your VM is running, you can upload your code, data, and dependencies. Hyperstack VMs offer <strong>3 types of storage</strong>:</p>
-<ul>
-  <li><strong>Root Disk</strong>: Automatically mounted at boot and preserved at hibernation. This 100GB NVMe drive is ideal for OS, essential system files and software packages. It's fast but limited in size.</li>
-  <li><strong>Ephemeral Storage</strong>: Used for active workloads during runtime. It's fast, local, free and huge (750GB per GPU), but <em>not persistent</em>. Data is lost when the VM is stopped or deleted. Always back up important data before hibernation or deletion.</li>
+    title: '📤 Step 5: Upload Your Code & Data',
+    content: `<p>Once your VM is running, you can upload your code, data, and dependencies. 
+    <p><strong>⚠️Important:</strong> Use a <strong>staging VM</strong> (cheap CPU) + volume for data uploads to save money!</p>
+        <p><strong>Upload Strategy:</strong></p>
+        <ol>
+          <li>Create a volume (Project → Create Volume)</li>
+          <li>Create staging VM (CPU-only flavor)</li>
+          <li>Attach volume to staging VM</li>
+          <li>Mount volume and upload data</li>
+          <li>Unmount, detach, attach to GPU VM</li>
+        </ol>
+    <p>Use <code>rsync</code> to transfer files securely:</p>
+    <p><strong>Upload Command (from laptop):</strong></p>
+    <code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
+      rsync -avz --progress ./dataset/ ubuntu@staging-vm-ip:/mnt/user_volume
+    </code>
+    <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('rsync -avz --progress ./dataset/ ubuntu@staging-vm-ip:/mnt/user_volume')">📋 Copy</button> <br>
+    <p><strong>📌 Tip:</strong></p>
     <ul>
-      <li> It's fast, local and free. </li>
-      <li> It's huge: 750GB per GPU (i.e. if you have a 4*A100 GPU VM, you will obtain 3200GB of ephemeural storage). </li>
-      <li> But it's <em>not persistent</em>. Data is lost when the VM is hibernated or deleted. </li>
+      <li>Place your <em>scripts and input data</em> on <strong>Volumes</strong> if you want them to persist after VM hibernation/deletion.</li>
+      <li>Use <strong>ephemeral storage</strong> for temporary computations and intermediate results.</li>
+      <li>Use <strong>root disk</strong> for data smaller than 50GB, it's free, and auto preserved as long as your VM is not deleted.</li>
     </ul>
-  <li><strong>Shared Storage Volumes (SSVs)</strong>: 
-    <ul>
-      <li> Persistent, network-based SSDs that retain data across VM lifecycles. Each VM can attach up to 10 volumes.</li>
-      <li> Ideal for storing input datasets, scripts, and output results.</li>
-      <li> But, they are not free: Volume Cost = $0.097 /TB/hour (i.e. ~$36 for 1TB Volume for 2 weeks) </li>
-      <li> Also, the management is not automatic. You need to mount them at VM startup/restore and unmont them <strong>before</strong> VM hibernate/delete ⇨ More details in <strong> Volume Handling </strong> section </li>
-    </ul>
-</ul>
-<h5>Recommended Upload Strategy</h5>
-<p>Use <code>rsync</code> to transfer files securely:</p>
-<code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
-  rsync -avz --progress ./local-folder/ ubuntu@VM_IP:/remote/path/
-</code>
-<button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('rsync -avz --progress ./local-folder/ ubuntu@VM_IP:/remote/path/')">📋 Copy</button> <br>
-<p><strong>📌 Tip:</strong></p>
-<ul>
-  <li>Place your <em>scripts and input data</em> on <strong>Volumes</strong> if you want them to persist after VM hibernation/deletion.</li>
-  <li>Use <strong>ephemeral storage</strong> for temporary computations and intermediate results.</li>
-  <li>Use <strong>root disk</strong> for data smaller than 50GB, it's free, and auto preserved as long as your VM is not deleted.</li>
-</ul>
-<br><br><small class="text-muted">Replace VM_IP with your actual VM IP address</small>`
+    <br><br><small class="text-muted">Replace VM_IP with your actual VM IP address</small>`
   },
   run: {
-    title: '🚀 Step 3: Run Your Tasks',
-    content: `SSH into your VM and run your workload:<br><br>
+    title: '🚀 Step 6: Run Your Tasks',
+    content: `<p>SSH into your VM and run your workload:<br> <strong>⚠️Critical:</strong> Always use <code>tmux</code> to keep jobs running after disconnect!</p>
       <code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
-        ssh user@VM_IP<br>
+        ssh ubuntu@VM_IP<br>
+        # Start tmux session<br>
+        tmux new -s training<br><br>
+        # Load modules<br>
+        module load anaconda3/2024.02-1<br>
+        module load ml_dl_gpu_base_all<br><br>
+        # Run with output to volume<br>
         cd /your/project/path<br>
-        python your_script.py
+        python train.py \\<br>
+        &nbsp;&nbsp;--data /mnt/user_volume/datasets/ \\<br>
+        &nbsp;&nbsp;--output /mnt/user_volume/results/ \\<br>
+        &nbsp;&nbsp;| tee /mnt/user_volume/logs/train.log<br><br>
+        # Detach: Ctrl-B, then D<br>
+        # Reattach: tmux attach -t training <br>
       </code>
-      <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('ssh user@VM_IP')">📋 Copy SSH</button>`
+          <p><strong>Monitoring:</strong></p>
+      <ul class="mb-0">
+        <li><code>watch -n 2 nvidia-smi</code> - GPU usage</li>
+        <li><code>htop</code> - CPU/RAM usage</li>
+        <li><code>df -h /mnt/user_volume</code> - Disk space</li>
+      </ul>`
   },
   download: {
-    title: '📥 Step 4: Download Results',
-    content: `Download your results back to your local machine:<br><br>
+    title: '📥 Step 7: Download Results',
+    content: `<p><strong>From your laptop, run:</strong></p>
       <code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
-        rsync -avz --progress user@VM_IP:/remote/results/ ./local-results/
+        rsync -avz --progress ubuntu@VM_IP:/mnt/user_volume/results/ ./local_results/
       </code>
-      <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('rsync -avz --progress user@VM_IP:/remote/results/ ./local-results/')">📋 Copy</button>`
+      <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('rsync -avz --progress ubuntu@VM_IP:/mnt/user_volume/results/ ./local_results/')">📋 Copy</button>`
   },
-  cleanup: {
-    title: '🧹 Step 5: Cleanup',
-    content: `When done, hibernate or delete your VM to stop charges:<br><br>
-      • <strong>Hibernate:</strong> Pause VM, resume later (storage fees apply)<br>
-      • <strong>Delete:</strong> Permanently remove VM and data<br><br>
-      <small class="text-muted">Go to "Manage VMs" to perform these actions</small>`
-  },
-  volume: {
-    title: 'Appendix A: Volume Handling',
-    content: `This is how you can create and manage your volumes:<br><br>
-      • <strong>Create Volume:</strong> TEXT <br>
-      • <strong>Delete Volume:</strong> TEXT <br><br>`
+  storage: {
+    title: '💾Storage Types',
+    content: `<table class="table table-sm table-bordered">
+      <tr>
+        <td><strong>Root Disk</strong></td>
+        <td>OS + configs (persistent while VM exists)</td>
+      </tr>
+      <tr>
+        <td><strong>Ephemeral</strong></td>
+        <td>Fast scratch (750GB/GPU, <span style="color:red;">deleted on stop!</span>)</td>
+      </tr>
+      <tr>
+        <td><strong>Volume</strong></td>
+        <td>Datasets/outputs (attach/detach, survives VM deletion)</td>
+      </tr>
+    </table>
+    <p><strong>💡Best Practices:</strong></p>
+    <ul class="mb-0">
+      <li><strong>Root disk:</strong> System packages, small configs</li>
+      <li><strong>Ephemeral:</strong> Temporary files, intermediate results</li>
+      <li><strong>Volume:</strong> Important data, datasets, final results</li>
+      <li><strong>Always save final outputs to volume!</strong></li>
+    </ul>`
   }
 };
 

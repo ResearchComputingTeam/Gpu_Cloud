@@ -122,7 +122,7 @@
       color: inherit;
       background: none;
     }
-    
+
     .copy-btn {
       position: absolute;
       top: 0.5rem;
@@ -924,53 +924,192 @@ rsync -avP user@vm-ip:/home/user/results.tar.gz ./</code>
           <li>When done: <strong>Detach → Snapshot → Delete</strong></li>
         </ol>
 
+        <h3>Getting Your Volume Device Path from Hyperstack</h3>
+        <p>When you attach a volume to your VM via the UI, Hyperstack provides a device path that you'll need for mounting:</p>
+
+        <div class="example-box">
+          <h4>📋 Example Device Path from Hyperstack</h4>
+          <code style="background: #f8f9fa; padding: 0.5rem; display: block; border-radius: 4px;">/dev/disk/by-id/virtio-c72d3b45-dc19-48ec-9</code>
+          <p class="mt-2 mb-0"><strong>Important:</strong> This path is displayed in the VM details panel after attaching a volume. Look for the <strong>📋 Copy Device</strong> button to easily copy it.</p>
+        </div>
+
+        <div class="tip-box">
+          <h4>💡 How to Find Your Device Path</h4>
+          <ol class="mb-0">
+            <li>In the UI, navigate to your VM details after attaching a volume</li>
+            <li>Find the "Attached Volumes" section</li>
+            <li>Click the <strong>📋 Copy Device</strong> button to copy the device path</li>
+            <li>Use this exact path in the mount commands below</li>
+          </ol>
+        </div>
+  
         <h3>Linux Commands for Volume Management</h3>
         
         <h4>List Disks</h4>
         <div class="command-block">
           <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
-          <code class="language-bash">lsblk
-sudo fdisk -l
-blkid</code>
+          <code class="language-bash">
+              # Displays block devices, including volumes, in a hierarchical format <br>
+              lsblk <br>
+              # Filesystem metadata details <br>
+              blkid <br>
+              # List disk IDs (find your volume here) <br>
+              ls -l /dev/disk/by-id/ <br>
+              # Look for virtio devices <br>
+              ls -l /dev/disk/by-id/virtio-*
+          </code>
         </div>
 
-        <h4>Partition & Format (example: /dev/sdb)</h4>
+        <div class="tip-box">
+          <h4>💡 Verifying Your Volume</h4>
+          <p class="mb-0">If you copied the device path from the UI (e.g., <code>/dev/disk/by-id/virtio-c72d3b45...</code>), verify it exists with:<br>
+          <code>ls -l /dev/disk/by-id/virtio-*</code></p>
+        </div>
+
+        <h4>Format (example: /dev/sdb)</h4>
+
+        <div class="warning-box">
+          <h4>⚠️ Critical: Use Your Actual Device Path</h4>
+          <p class="mb-0">Replace <code>/dev/disk/by-id/virtio-xxxxx</code> below with the actual device path you copied from the UI. Using the wrong device could destroy data!</p>
+        </div>
+
+        <p><strong>Method 1: Using the device path from UI (Recommended)</strong></p>
         <div class="command-block">
           <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
-          <code class="language-bash"># Create GPT partition table and single partition
-sudo parted /dev/sdb --script mklabel gpt mkpart primary ext4 0% 100%
+          <code class="language-bash"># Replace this with YOUR actual device path from the UI <br>
+              DEVICE="/dev/disk/by-id/virtio-c72d3b45-dc19-48ec-9" <br>
 
-# Format to ext4
-sudo mkfs.ext4 -F /dev/sdb1
+              # Verify the device exists <br>
+              ls -l $DEVICE <br>
 
-# Create mountpoint and mount
-sudo mkdir -p /mnt/user_volume
-sudo mount /dev/sdb1 /mnt/user_volume
+              # Format to ext4 <br>
+              sudo mkfs.ext4 -F ${DEVICE} <br>
 
-# Verify
-df -h /mnt/user_volume
-ls -la /mnt/user_volume</code>
+              # Create mountpoint and mount <br>
+              sudo mkdir -p /mnt/user_volume <br>
+              sudo mount ${DEVICE} /mnt/user_volume <br>
+
+              # Verify
+              df -h /mnt/user_volume <br>
+              ls -la /mnt/user_volume <br>
+        </code>
+        </div>
+
+        <p class="mt-3"><strong>Method 2: Using traditional device names</strong> (only if you're certain that your volume is mounted to /dev/sdb1)</p>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <code class="language-bash"># Only use this if you're certain about the device name <br>
+            sudo mkfs.ext4 -F /dev/sdb1 <br>
+            sudo mkdir -p /mnt/user_volume <br>
+            sudo mount /dev/sdb1 /mnt/user_volume <br>
+          </code>
+        </div>
+
+        <div class="example-box">
+          <h4>📋 Complete Example with Real Device Path</h4>
+          <div class="command-block">
+            <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+            <code class="language-bash"># Step 1: Copy device path from UI, e.g.: <br>
+                # /dev/disk/by-id/virtio-c72d3b45-dc19-48ec-9 <br>
+
+                # Step 2: Store it in a variable for easy use <br>
+                DEVICE="/dev/disk/by-id/virtio-c72d3b45-dc19-48ec-9" <br>
+
+                # Step 3: Format and mount <br>
+                sudo mkfs.ext4 -F ${DEVICE} <br>
+                sudo mkdir -p /mnt/user_volume <br>
+                sudo mount ${DEVICE} /mnt/user_volume <br>
+
+                # Step 4: Verify it worked <br>
+                df -h | grep user_volume <br>
+                # Output should show: /dev/sdb1  1.0T  100M  900G  1% /mnt/user_volume
+            </code>
+          </div>
         </div>
 
         <h4>Auto-mount on Boot (Optional)</h4>
+        <p>By default, volumes mounted using the <code>mount</code> command are not automatically reattached after a reboot or VM restore. To ensure the volume is mounted automatically at boot, add an entry to your <code>/etc/fstab</code> file.</p>
+       <div class="workflow-step">
+          <div class="workflow-number">1</div>
+          <div>
+            <strong>Identify the UUID of the volume</strong>
+            <div class="command-block mt-2">
+              <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+              <code class="language-bash"># Get UUID of your volume partition <br>
+                # Replace with your device path <br>
+                sudo blkid /dev/disk/by-id/virtio-c72d3b45-dc19-48ec-9
+
+                # Or if using traditional naming <br>
+                sudo blkid /dev/sdb1
+
+                # Output example:<br>
+                # /dev/sdb1: UUID="a1b2c3d4-e5f6-7890-abcd-ef1234567890" TYPE="ext4"
+            </code>
+            </div>
+          </div>
+        </div>
+
+        <div class="workflow-step">
+          <div class="workflow-number">2</div>
+          <div>
+            <strong>Open the /etc/fstab file</strong>
+            <div class="command-block mt-2">
+              <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+              <code class="language-bash">sudo nano /etc/fstab</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="workflow-step">
+          <div class="workflow-number">3</div>
+          <div>
+            <strong>Add a line to auto-mount the volume</strong>
+            <div class="command-block mt-2">
+              <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+              <code class="language-bash"># Add this line, replacing UUID with your actual UUID <br>
+UUID=a1b2c3d4-e5f6-7890-abcd-ef1234567890 /mnt/user_volume ext4 defaults,nofail 0 2</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="warning-box">
+          <h4>⚠️ Important: Use the "nofail" Option</h4>
+          <p class="mb-2">If the volume isn't always attached to your VM, you <strong>must</strong> add the <code>nofail</code> option to your <code>/etc/fstab</code> entry.</p>
+          <p class="mb-0"><strong>Without <code>nofail</code>:</strong> Your VM may fail to boot if the volume is not attached.<br>
+          <strong>With <code>nofail</code>:</strong> The system will boot normally even if the volume is missing.</p>
+        </div>
+
+        <div class="tip-box">
+          <h4>💡 Why Use UUID Instead of Device Paths?</h4>
+          <p class="mb-0">Device paths like <code>/dev/sdb1</code> can change between reboots. Using UUID in <code>/etc/fstab</code> ensures your volume always mounts correctly, even if device names change.</p>
+        </div>
+
+        <h4>Test Your fstab Entry</h4>
         <div class="command-block">
           <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
-          <code class="language-bash"># Get UUID
-sudo blkid /dev/sdb1
+          <code class="language-bash"># Unmount the volume first <br>
+              sudo umount /mnt/user_volume <br>
 
-# Add to /etc/fstab
-UUID=xxxx-xxxx /mnt/user_volume ext4 defaults,nofail 0 2</code>
+              # Test mounting all entries in fstab <br>
+              sudo mount -a <br>
+
+              # Verify it mounted correctly <br>
+              df -h | grep user_volume <br>
+
+              # If successful, the volume will now mount automatically on boot!
+          </code>
         </div>
 
         <h4>Safe Unmount</h4>
         <div class="command-block">
           <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
-          <code class="language-bash"># Check what's using the mount
-lsof /mnt/user_volume
+          <code class="language-bash"># Check what's using the mount <br>
+              lsof /mnt/user_volume <br>
 
-# Sync and unmount
-sync
-sudo umount /mnt/user_volume</code>
+              # Sync and unmount <br>
+              sync <br>
+              sudo umount /mnt/user_volume
+          </code>
         </div>
 
         <div class="warning-box">
@@ -980,16 +1119,10 @@ sudo umount /mnt/user_volume</code>
             <li>Stop processes using mountpoint</li>
             <li>Run <code>sudo umount /mnt/user_volume</code></li>
             <li><strong>Only then</strong> detach in UI</li>
+            <li>Never detach a mounted volume - it can cause data loss!</li>
           </ol>
         </div>
 
-        <h4>Resize Volume</h4>
-        <div class="command-block">
-          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
-          <code class="language-bash"># After increasing size in UI, on the VM:
-sudo growpart /dev/sdb 1
-sudo resize2fs /dev/sdb1</code>
-        </div>
       </section>
 
       <!-- Section 8 -->
@@ -1245,17 +1378,20 @@ python -c "import torch; print(torch.cuda.is_available())"</code>
         <div class="example-box">
           <h4>Alice's Deep Learning Project</h4>
           <ol>
-            <li>Alice creates 1TB persistent volume</li>
+            <li>Alice creates 1TB persistent volume in UI</li>
             <li>Creates cheap staging VM, attaches volume</li>
+            <li>In UI, copies device path: <code>/dev/disk/by-id/virtio-abc123...</code></li>
+            <li>SSH to staging VM, formats and mounts volume using device path</li>
             <li>Uploads dataset via <code>rsync</code> to staging VM</li>
-            <li>Detaches volume, attaches to GPU VM (H100)</li>
+            <li>Safely unmounts: <code>sync && sudo umount /mnt/user_volume</code></li>
+            <li>Detaches volume in UI, attaches to GPU VM (H100)</li>
             <li>SSH to GPU VM: <code>ssh -i key.pem user@gpu-ip</code></li>
-            <li>Mounts volume: <code>sudo mount /dev/sdb1 /mnt/user_volume</code></li>
+            <li>Gets device path from UI and mounts: <code>sudo mount ${DEVICE} /mnt/user_volume</code></li>
             <li>Loads modules: <code>module load anaconda3 ml_dl_gpu_base_all</code></li>
             <li>Starts training in tmux: <code>python train.py --data /mnt/user_volume</code></li>
             <li>Monitors with: <code>watch -n 2 nvidia-smi</code></li>
             <li>Results saved to <code>/mnt/user_volume/results/</code></li>
-            <li>Detaches volume, attaches to staging VM</li>
+            <li>Safely unmounts, detaches volume, attaches to staging VM</li>
             <li>Downloads: <code>rsync -avP user@staging:/mnt/user_volume/results/ ./</code></li>
             <li>Stops GPU VM to save credits</li>
           </ol>

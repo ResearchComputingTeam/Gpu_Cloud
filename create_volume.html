@@ -17,18 +17,37 @@
   <!-- Workflow Sidebar -->
   <leftside>
     <div class="workflow-sidebar mb-3">
-      <h6 class="mb-3"><strong>Workflow Guide</strong></h6>
+      <h6 class="mb-3"><strong>Volume Creation Guide</strong></h6>
       
       <div class="workflow-step active" onclick="showHelp('create')">
         <div class="icon">1</div>
         <div>Create Volume</div>
       </div>
 
-      <div class="workflow-step" onclick="showHelp('volume')">
-        <div class="icon">A</div>
-        <div>Volume Handling</div>
+      <div class="workflow-step" onclick="showHelp('size')">
+        <div class="icon">2</div>
+        <div>Choose Size</div>
       </div>
 
+      <div class="workflow-step" onclick="showHelp('attach')">
+        <div class="icon">3</div>
+        <div>Attach to VM</div>
+      </div>
+
+      <div class="workflow-step" onclick="showHelp('mount')">
+        <div class="icon">4</div>
+        <div>Mount & Format</div>
+      </div>
+
+      <div class="workflow-step" onclick="showHelp('usage')">
+        <div class="icon">💡</div>
+        <div>Usage Tips</div>
+      </div>
+
+      <div class="workflow-step" onclick="showHelp('cost')">
+        <div class="icon">💰</div>
+        <div>Cost Info</div>
+      </div>
     </div>
   </leftside>
 
@@ -230,22 +249,119 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 // Help content for each workflow step
-const helpContent = {
-  create: {
-    title: '📋 Step 1: Create Your Volume',
-    content: 'Select your size, and give it a name, then click on "Create Volume". This typically takes 2 to 5 minutes.'
-  },
-  volume: {
-    title: 'Appendix A: Volume Handling',
-    content: `<strong>Shared Storage Volumes (SSVs)</strong>:<br>
-    <ul>
-      <li> Persistent, network-based SSDs that retain data across VM lifecycles. Each VM can attach up to 10 volumes.</li>
-      <li> Ideal for storing input datasets, scripts, and output results.</li>
-      <li> But, they are not free: Volume Cost = $0.097 /TB/hour (i.e. ~$36 for 1TB Volume for 2 weeks) </li>
-      <li> Also, the management is not automatic. You need to mount them at VM startup/restore and unmont them <strong>before</strong> VM hibernate/delete ⇨ More details in <strong> Volume Handling </strong> section </li>
-    </ul>`
-  }
-};
+  const helpContent = {
+    create: {
+      title: '📋Step 1: Create Your Volume',
+      content: `<p>Select size and give it a name. Volume creation takes 2-5 minutes.</p>
+      <p><strong>What are Volumes?</strong></p>
+      <ul class="mb-0">
+        <li>Persistent network-based SSDs</li>
+        <li>Retain data across VM lifecycles</li>
+        <li>Can be attached/detached from VMs</li>
+        <li>Up to 10 volumes per VM</li>
+        <li>Ideal for datasets, scripts, and outputs</li>
+      </ul>`
+    },
+    size: {
+      title: '💾Step 2: Choose Volume Size',
+      content: `<p><strong>Available Sizes:</strong></p>
+      <table class="table table-sm table-bordered">
+        <tr><td><strong>50GB - 500GB</strong></td><td>Small to medium datasets</td></tr>
+        <tr><td><strong>1TB - 10TB</strong></td><td>Large datasets, multiple projects</td></tr>
+      </table>
+      <p><strong>💡Sizing Tips:</strong></p>
+      <ul class="mb-0">
+        <li>Estimate: Dataset + Output + 20% margin</li>
+        <li>Start smaller, create additional volumes if needed (number of volumes does not influence the per GB cost)</li>
+        <li>Consider compression for large datasets</li>
+        <li>Account for checkpoints (can be large!)</li>
+      </ul>`
+    },
+    attach: {
+      title: '🔗Step 3: Attach to VM',
+      content: `<p><strong>After volume is created:</strong></p>
+      <ol>
+        <li>Go to <strong>Manage VMs</strong></li>
+        <li>Select the VM you want to attach the volume to</li>
+        <li>In the <strong>Details</strong> section, click <strong>Attach Volume</strong></li>
+        <li>Choose the target Volume from list</li>
+        <li>Click on <strong>Attach Volume</strong></li>
+        <li>Note the device path shown in UI</li>
+      </ol>
+      <p><strong>⚠️Important:</strong></p>
+      <ul class="mb-0">
+        <li>Volumes can only be attached to <strong>one VM at a time</strong></li>
+        <li>Copy the device path for mounting</li>
+      </ul>`
+    },
+    mount: {
+      title: '💿Step 4: Mount & Format',
+      content: `<p><strong>After attaching in UI:</strong></p>
+      <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
+        <code># 1. Copy device path from UI<br>
+        DEVICE="/dev/disk/by-id/virtio-xxxxx"<br><br>
+        # 2. Format (FIRST TIME ONLY!)<br>
+        sudo mkfs.ext4 -F \${DEVICE}<br><br>
+        # 3. Create mount point<br>
+        sudo mkdir -p /mnt/user_volume<br><br>
+        # 4. Mount<br>
+        sudo mount \${DEVICE} /mnt/user_volume<br><br>
+        # 5. Verify<br>
+        df -h | grep user_volume</code>
+      </div>
+      <p><strong>⚠️Warning:</strong> Only format on <strong>first use</strong>! Formatting erases all data.</p>
+      <p><strong>Before Detaching:</strong></p>
+      <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
+        <code>sync<br>
+        sudo umount /mnt/user_volume</code>
+      </div>`
+    },
+    usage: {
+      title: '💡Volume Usage Tips',
+      content: `<p><strong>Best Practices:</strong></p>
+      <ul>
+        <li><strong>Use staging VM</strong> for data uploads (cheap CPU VM)</li>
+        <li><strong>Auto-mount</strong> via /etc/fstab for convenience</li>
+        <li><strong>Always unmount</strong> before detaching in UI</li>
+        <li><strong>Share volumes</strong> across team (attach/detach as needed)</li>
+        <li><strong>Regular snapshots</strong> for important data</li>
+      </ul>
+      <p><strong>Auto-mount on Boot:</strong></p>
+      <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
+        <code># Get UUID<br>
+        sudo blkid \${DEVICE}<br><br>
+        # Add to /etc/fstab<br>
+        sudo vm /etc/fstab<br>
+        # Add line:<br>
+        UUID=your-uuid /mnt/user_volume ext4 defaults,nofail 0 2<br><br>
+        # Test<br>
+        sudo mount -a</code>
+      </div>
+      <p class="mb-0"><strong>💡Tip:</strong> Use <code>nofail</code> option if volume isn't always attached!</p>`
+    },
+    cost: {
+      title: '💰Cost Information',
+      content: `<p><strong>Volume Pricing:</strong></p>
+      <ul>
+        <li>$0.097 per TB per hour</li>
+      </ul>
+      <p><strong>Example Costs:</strong></p>
+      <table class="table table-sm table-bordered">
+        <tr><td>100GB for 1 week</td><td>~$1.63</td></tr>
+        <tr><td>500GB for 1 month</td><td>~$7</td></tr>
+        <tr><td>1TB for 1 week</td><td>~$16.3</td></tr>
+        <tr><td>1TB for 1 month</td><td>~$70</td></tr>
+      </table>
+      <p><strong>💡Save Money:</strong></p>
+      <ul class="mb-0">
+        <li>Delete volumes when done with project</li>
+        <li>Compress data before storing</li>
+        <li>Share volumes across team members</li>
+        <li>Right-size - don't over-provision</li>
+        <li>Download results then delete volume</li>
+      </ul>`
+    }
+  };
 
 function showHelp(step) {
   const help = helpContent[step];

@@ -89,6 +89,12 @@
       color: inherit;
       background: none;
     }
+
+    .cmd-block .comment {
+      color: #6a9955;  /* Green color for comments */
+      font-style: italic;
+    }
+    
     
     .cmd-label {
       font-size: 0.75rem;
@@ -251,7 +257,7 @@
   <!-- Header -->
   <div class="header">
     <h1>🚀 GPU Cloud Cheat Sheet</h1>
-    <p>Quick reference for VMs, volumes, commands & workflows</p>
+    <p>Quick reference for VMs, Volumes, Commands & Workflows</p>
   </div>
 
   <div class="columns-2">
@@ -277,19 +283,23 @@
       </div>
       <div class="workflow-mini">
         <div class="workflow-num">4</div>
-        <div><strong>Upload data</strong> to staging VM via <code>rsync</code></div>
+        <div><strong>Copy device path</strong> from UI (📋 Copy Device button)</div>
       </div>
       <div class="workflow-mini">
         <div class="workflow-num">5</div>
-        <div><strong>Detach volume</strong> → attach to GPU VM</div>
+        <div><strong>Mount & upload data</strong> to staging VM via <code>rsync</code></div>
       </div>
       <div class="workflow-mini">
         <div class="workflow-num">6</div>
-        <div><strong>SSH to GPU VM</strong> → mount volume → run training</div>
+        <div><strong>Unmount, detach</strong> → attach to GPU VM</div>
       </div>
       <div class="workflow-mini">
         <div class="workflow-num">7</div>
-        <div><strong>Download results</strong> → stop/delete VM</div>
+        <div><strong>SSH to GPU VM</strong> → mount volume → run training</div>
+      </div>
+      <div class="workflow-mini">
+        <div class="workflow-num">8</div>
+        <div><strong>Download results</strong> → unmount → stop/delete VM</div>
       </div>
     </div>
 
@@ -320,6 +330,26 @@
       </div>
     </div>
 
+    <!-- Getting Device Path - NEW -->
+    <div class="section-card">
+      <div class="section-title">
+        <span class="section-icon">📋</span>
+        Getting Device Path from UI
+      </div>
+      
+      <div class="tip">
+        <strong>After attaching volume:</strong>
+        <ol class="mb-2 mt-2" style="padding-left: 1.2rem;">
+          <li>Go to VM details in UI</li>
+          <li>Find "Attached Volumes" section</li>
+          <li>Click <strong>📋 Copy Device</strong> button</li>
+          <li>Use in mount commands below</li>
+        </ol>
+        <strong>Example device path:</strong><br>
+        <code style="background: #2d2d2d; color: #f8f8f2; padding: 0.25rem 0.5rem; border-radius: 3px; display: inline-block; margin-top: 0.5rem;">/dev/disk/by-id/virtio-c72d3b45-dc19-48ec-9</code>
+      </div>
+    </div>
+
     <!-- Data Transfer -->
     <div class="section-card">
       <div class="section-title">
@@ -346,51 +376,37 @@
       </div>
     </div>
 
-    <!-- Volume Management - UPDATED -->
+    <!-- Volume Management - UPDATED WITH HYPERSTACK -->
     <div class="section-card">
       <div class="section-title">
         <span class="section-icon">🔧</span>
         Volume Management
       </div>
       
-      <div class="tip">
-        <strong>📋 Device Path:</strong> Copy device path from UI after attaching volume (e.g., <code>/dev/disk/by-id/virtio-xxxxx</code>)
-      </div>
-
       <div class="cmd-label">List disks & find your volume</div>
       <div class="cmd-block">
         <button class="copy-icon" onclick="copyCode(this)">📋</button>
-        <code>lsblk
+        <code>lsblk <br>
 ls -l /dev/disk/by-id/virtio-*</code>
       </div>
 
       <div class="cmd-label">Format new volume (use device path from UI)</div>
       <div class="cmd-block">
         <button class="copy-icon" onclick="copyCode(this)">📋</button>
-        <code># Replace with YOUR device path <br>
-DEVICE="/dev/disk/by-id/virtio-xxxxx"
-sudo parted $DEVICE --script mklabel gpt mkpart primary ext4 0% 100%
-sudo mkfs.ext4 -F ${DEVICE}-part1</code>
+        <code># Paste YOUR device path here <br>
+DEVICE="/dev/disk/by-id/virtio-xxxxx" <br>
+sudo mkfs.ext4 -F ${DEVICE}</code>
       </div>
 
       <div class="cmd-label">Mount volume</div>
       <div class="cmd-block">
         <button class="copy-icon" onclick="copyCode(this)">📋</button>
-        <code>sudo mkdir -p /mnt/user_volume
-sudo mount ${DEVICE}-part1 /mnt/user_volume</code>
+        <code>sudo mkdir -p /mnt/user_volume <br>
+sudo mount ${DEVICE} /mnt/user_volume <br>
+df -h | grep user_volume</code>
       </div>
 
-      <div class="cmd-label">Auto-mount on boot (optional)</div>
-      <div class="cmd-block">
-        <button class="copy-icon" onclick="copyCode(this)">📋</button>
-        <code># Get UUID
-sudo blkid ${DEVICE}-part1
-
-# Add to /etc/fstab
-UUID=xxxx /mnt/user_volume ext4 defaults,nofail 0 2</code>
-      </div>
-
-      <div class="cmd-label">Unmount safely (before detach)</div>
+      <div class="cmd-label">Unmount safely (before detach in UI)</div>
       <div class="cmd-block">
         <button class="copy-icon" onclick="copyCode(this)">📋</button>
         <code>sync
@@ -398,7 +414,42 @@ sudo umount /mnt/user_volume</code>
       </div>
 
       <div class="warning">
-        <strong>⚠️ Critical:</strong> Always <code>sync</code> and <code>umount</code> before detaching in UI! Use <code>nofail</code> in fstab if volume isn't always attached.
+        <strong>⚠️ Critical:</strong> Always <code>sync</code> and <code>umount</code> before detaching in UI!
+      </div>
+    </div>
+
+    <!-- Auto-Mount on Boot - NEW -->
+    <div class="section-card">
+      <div class="section-title">
+        <span class="section-icon">🔄</span>
+        Auto-Mount on Boot
+      </div>
+      
+      <div class="cmd-label">Step 1: Get UUID</div>
+      <div class="cmd-block">
+        <button class="copy-icon" onclick="copyCode(this)">📋</button>
+        <code>sudo blkid ${DEVICE} <br>
+# Copy the UUID value</code>
+      </div>
+
+      <div class="cmd-label">Step 2: Edit /etc/fstab</div>
+      <div class="cmd-block">
+        <button class="copy-icon" onclick="copyCode(this)">📋</button>
+        <code>sudo nano /etc/fstab <br>
+# Add this line (replace UUID): <br>
+UUID=your-uuid /mnt/user_volume ext4 defaults,nofail 0 2</code>
+      </div>
+
+      <div class="cmd-label">Step 3: Test it</div>
+      <div class="cmd-block">
+        <button class="copy-icon" onclick="copyCode(this)">📋</button>
+        <code>sudo umount /mnt/user_volume <br>
+sudo mount -a <br>
+df -h | grep user_volume</code>
+      </div>
+
+      <div class="warning">
+        <strong>⚠️ Important:</strong> Use <code>nofail</code> option if volume isn't always attached, or VM won't boot!
       </div>
     </div>
 
@@ -412,16 +463,16 @@ sudo umount /mnt/user_volume</code>
       <div class="cmd-label">Load RCCG modules</div>
       <div class="cmd-block">
         <button class="copy-icon" onclick="copyCode(this)">📋</button>
-        <code>module avail
-module load anaconda3/2024.02-1
+        <code>module avail <br>
+module load anaconda3/2024.02-1 <br>
 module load ml_dl_gpu_base_all</code>
       </div>
 
       <div class="cmd-label">Conda environment</div>
       <div class="cmd-block">
         <button class="copy-icon" onclick="copyCode(this)">📋</button>
-        <code>conda create -n myenv python=3.11 -y
-conda activate myenv
+        <code>conda create -n myenv python=3.11 -y <br>
+conda activate myenv <br>
 pip install -r requirements.txt</code>
       </div>
 
@@ -442,15 +493,16 @@ pip install -r requirements.txt</code>
       <div class="cmd-label">Start tmux session (keeps running after disconnect)</div>
       <div class="cmd-block">
         <button class="copy-icon" onclick="copyCode(this)">📋</button>
-        <code>tmux new -s training
-python train.py | tee train.log
+        <code>tmux new -s training <br>
+python train.py | tee train.log <br>
 # Detach: Ctrl-B then D</code>
       </div>
 
       <div class="cmd-label">Reattach to session</div>
       <div class="cmd-block">
         <button class="copy-icon" onclick="copyCode(this)">📋</button>
-        <code>tmux attach -t training</code>
+        <code>tmux attach -t training
+tmux ls</code>
       </div>
 
       <div class="tip">
@@ -485,7 +537,7 @@ free -h</code>
         <div class="mini-card">
           <div class="mini-card-title">💽 Disk Space</div>
           <div class="cmd-block">
-            <code>df -h
+            <code>df -h /mnt/user_volume
 du -sh *</code>
           </div>
         </div>
@@ -563,7 +615,7 @@ nvcc --version</code>
       </table>
 
       <div class="warning">
-        <strong>⚠️ Before delete:</strong> Snapshot or backup important volumes!
+        <strong>⚠️ Before delete:</strong> Copy data to volume, snapshot, then detach!
       </div>
     </div>
 
@@ -574,10 +626,11 @@ nvcc --version</code>
         Troubleshooting
       </div>
       
-      <div class="cmd-label">Check what's using a mount</div>
+      <div class="cmd-label">Can't unmount? Find what's using it</div>
       <div class="cmd-block">
         <button class="copy-icon" onclick="copyCode(this)">📋</button>
-        <code>lsof /mnt/user_volume</code>
+        <code>lsof /mnt/user_volume
+fuser -m /mnt/user_volume</code>
       </div>
 
       <div class="cmd-label">GPU driver issues</div>
@@ -616,22 +669,15 @@ python train.py  # uses GPU 0 and 1 only</code>
         <span class="section-icon">🔐</span>
         SSH Best Practices
       </div>
-
-      <div class="cmd-label">Set permission to SSH key (Always do this on a Linux machine) </div>
-      <div class="cmd-block">
-        <button class="copy-icon" onclick="copyCode(this)">📋</button>
-        <code>chmod 600 my_ssh_private_key.key</code>
-      </div>
       
       <div class="cmd-label">SSH with key</div>
       <div class="cmd-block">
         <button class="copy-icon" onclick="copyCode(this)">📋</button>
-        <code>ssh -i ~/.ssh/id_rsa ubuntu@vm-ip</code>
+        <code>ssh -i ~/.ssh/id_rsa user@vm-ip</code>
       </div>
 
       <div class="tip">
-        <strong>💡:</strong> You will receive your ssh private key either via email, or via a link to a secured folder. 
-        In either case, download it on your local Linux machine, and set the permission from this location.
+        <strong>💡 Security:</strong> Always use SSH keys, never passwords. Upload your public key to Profile → SSH Keys.
       </div>
     </div>
 
@@ -643,12 +689,13 @@ python train.py  # uses GPU 0 and 1 only</code>
       </div>
       
       <ul class="quick-list mb-0">
-        <li>✅ Snapshot dataset + code</li>
+        <li>✅ Copy device path from UI</li>
+        <li>✅ Mount volume correctly</li>
+        <li>✅ Setup auto-mount if needed</li>
         <li>✅ Verify <code>nvidia-smi</code> works</li>
         <li>✅ Data on volume (not root disk)</li>
-        <li>✅ Start job in <code>tmux</code> session</li>
+        <li>✅ Start job in <code>tmux</code></li>
         <li>✅ Enable checkpoints in code</li>
-        <li>✅ Set credit usage alerts</li>
         <li>✅ Test with small batch first</li>
       </ul>
     </div>
@@ -664,13 +711,14 @@ python train.py  # uses GPU 0 and 1 only</code>
         <strong>❌ Don't:</strong>
         <ul class="mb-0 mt-2">
           <li>Upload data directly to GPU VM</li>
-          <li>Store important data on root/ephemeral disk</li>
+          <li>Store important data on ephemeral disk</li>
           <li>Detach volume while mounted</li>
           <li>Leave GPU VMs running idle</li>
           <li>Run without tmux/screen</li>
           <li>Skip checkpointing in code</li>
           <li>Delete VMs without backing up</li>
           <li>Forget <code>nofail</code> in fstab</li>
+          <li>Use wrong device path</li>
         </ul>
       </div>
     </div>
@@ -688,7 +736,7 @@ python train.py  # uses GPU 0 and 1 only</code>
         <code>nvidia-smi --query-gpu=memory.used,memory.total --format=csv</code>
       </div>
 
-      <div class="cmd-label">Find large files</div>
+      <div class="cmd-label">Find large files on volume</div>
       <div class="cmd-block">
         <button class="copy-icon" onclick="copyCode(this)">📋</button>
         <code>du -ah /mnt/user_volume | sort -rh | head -20</code>
@@ -699,42 +747,66 @@ python train.py  # uses GPU 0 and 1 only</code>
         <button class="copy-icon" onclick="copyCode(this)">📋</button>
         <code>tail -f train.log</code>
       </div>
+
+      <div class="cmd-label">Verify device path exists</div>
+      <div class="cmd-block">
+        <button class="copy-icon" onclick="copyCode(this)">📋</button>
+        <code>ls -l /dev/disk/by-id/virtio-*</code>
+      </div>
     </div>
 
     <!-- Example Workflow - UPDATED -->
     <div class="section-card">
       <div class="section-title">
         <span class="section-icon">🎯</span>
-        Example: Complete Workflow
+        Complete Workflow Example
       </div>
       
       <div class="cmd-block">
         <button class="copy-icon" onclick="copyCode(this)">📋</button>
-        <code># 1. Upload data to staging VM
-rsync -avP ./dataset/ user@staging:/mnt/user_volume/
+        <code># 1. Create & attach volume to staging VM <br>
+        # 2. Copy device path from UI (📋 button) <br>
 
-# 2. SSH to GPU VM
-ssh -i ~/.ssh/id_rsa user@gpu-vm
+        # 3. SSH to staging VM <br>
+        ssh -i ~/.ssh/id_rsa user@staging-vm <br>
 
-# 3. Get device path from UI and mount
-DEVICE="/dev/disk/by-id/virtio-xxxxx"
-sudo mount ${DEVICE}-part1 /mnt/user_volume
+        # 4. Mount volume with device path <br>
+        DEVICE="/dev/disk/by-id/virtio-c72d3b45-dc19-48ec-9" <br>
+        sudo mkfs.ext4 -F ${DEVICE} <br>
+        sudo mkdir -p /mnt/user_volume <br>
+        sudo mount ${DEVICE} /mnt/user_volume <br>
 
-# 4. Start training in tmux
-tmux new -s train
-module load anaconda3/2024.02-1 ml_dl_gpu_base_all
-python train.py --data /mnt/user_volume | tee train.log
-# Detach: Ctrl-B, D
+        # 5. Upload data <br>
+        # (From laptop in another terminal) <br>
+        rsync -avP ./dataset/ user@staging-vm:/mnt/user_volume/ <br>
 
-# 5. Monitor (from another terminal)
-watch -n 2 nvidia-smi
+        # 6. Unmount & detach (on staging VM) <br>
+        sync <br>
+        sudo umount /mnt/user_volume <br>
+        # Detach in UI, attach to GPU VM <br>
 
-# 6. After training, download results
-rsync -avP user@gpu-vm:/mnt/user_volume/results/ ./
+        # 7. SSH to GPU VM & mount <br>
+        ssh -i ~/.ssh/id_rsa user@gpu-vm <br>
+        # Copy NEW device path from UI for GPU VM <br>
+        DEVICE="/dev/disk/by-id/virtio-new-path" <br>
+        sudo mount ${DEVICE} /mnt/user_volume <br>
 
-# 7. Clean up
-sync && sudo umount /mnt/user_volume
-# Stop VM in UI, snapshot volume, delete VM</code>
+        # 8. Start training in tmux <br>
+        tmux new -s train <br>
+        module load anaconda3/2024.02-1 ml_dl_gpu_base_all <br>
+        python train.py --data /mnt/user_volume | tee train.log <br>
+        # Detach: Ctrl-B, D <br>
+
+        # 9. Monitor <br>
+        watch -n 2 nvidia-smi <br>
+
+        # 10. After training, unmount & download <br>
+        sync <br>
+        sudo umount /mnt/user_volume <br>
+        # Detach, attach to staging, download results <br>
+        rsync -avP user@staging:/mnt/user_volume/results/ ./ <br>
+
+        # 11. Clean up: Stop/delete VMs, snapshot volume</code>
       </div>
     </div>
 
@@ -759,7 +831,7 @@ sync && sudo umount /mnt/user_volume
   <!-- Footer -->
   <div class="section-card" style="text-align: center; margin-top: 2rem;">
     <p class="mb-0" style="color: #666;">
-      <strong>💡 Pro Tip:</strong> Print this page (Ctrl+P) for quick offline reference! 
+      <strong>💡 Pro Tip:</strong> Print this page (Ctrl+P) for quick offline reference! <br>
       • Last updated: November 2025
     </p>
   </div>
@@ -780,6 +852,22 @@ function copyCode(button) {
     console.error('Failed to copy:', err);
   });
 }
+
+// Highlight comments in code blocks
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.cmd-block code').forEach(block => {
+    // Split by lines, process each line, then rejoin
+    const lines = block.innerHTML.split('\n');
+    const highlighted = lines.map(line => {
+      // If line starts with # (after trimming leading spaces), highlight it
+      if (line.trim().startsWith('#')) {
+        return `<span style="color: #52c41a; font-style: italic;">${line}</span>`;
+      }
+      return line;
+    }).join('\n');
+    block.innerHTML = highlighted;
+  });
+});
 </script>
 
 </body>

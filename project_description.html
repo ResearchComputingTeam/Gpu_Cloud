@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RCCG GPU Cloud Project — Detailed Summary (Enhanced)</title>
+
+  <style>
+    body {
+      font-family: Inter, Arial, sans-serif;
+      background: #f8fafc;
+      margin: 0;
+      padding: 0;
+      color: #1e293b;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 1050px;
+      margin: auto;
+      padding: 40px 24px;
+      background: #ffffff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      border-radius: 12px;
+      margin-top: 30px;
+      margin-bottom: 40px;
+    }
+    h1 {
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+    h1 span.icon {
+      margin-right: 12px;
+      font-size: 2.2rem;
+    }
+    h2 {
+      margin-top: 36px;
+      color: #1e3a8a;
+      display: flex;
+      align-items: center;
+      font-size: 1.6rem;
+    }
+    h2 span.icon {
+      font-size: 1.7rem;
+      margin-right: 10px;
+    }
+    h3 {
+      color: #334155;
+      margin-top: 24px;
+    }
+    .callout {
+      padding: 18px 22px;
+      border-radius: 10px;
+      margin: 20px 0;
+      border-left: 6px solid;
+    }
+    .highlight {
+      background: #eff6ff;
+      border-color: #3b82f6;
+    }
+    .note {
+      background: #ecfdf5;
+      border-color: #10b981;
+    }
+    .warning {
+      background: #fff7ed;
+      border-color: #f97316;
+    }
+    .benefits {
+      background: #f0f9ff;
+      border-color: #0ea5e9;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 0.95rem;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #e2e8f0;
+    }
+    th {
+      background: #f1f5f9;
+      font-weight: 600;
+    }
+    pre {
+      background: #0f172a;
+      padding: 16px;
+      color: #fff;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+
+<h1><span class="icon">⚡</span>RCCG GPU Cloud Project — Detailed Summary</h1>
+<p><strong>Managed by the Research Computing Core Group (RCCG)</strong>, supported by the <strong>Office of the Vice President of Research (OVPR)</strong>, and developed exclusively for <strong>HBKU researchers</strong>.</p>
+
+<div class="callout highlight">
+  <strong>💡 What is this document?</strong><br>
+  A comprehensive overview of the RCCG GPU Cloud Project: purpose, architecture, workflow, benefits, and future plans.
+</div>
+
+<hr>
+
+<h2><span class="icon">📘</span>1. Background & Strategic Motivation</h2>
+<p>
+HBKU research increasingly relies on GPU-intensive workloads (AI/ML, image processing, scientific simulations).  
+However, the new GPU-enabled HPC system (Raad3) is still under preparation.  
+To ensure continuity and prevent delays in research output, RCCG launched the <strong>GPU Cloud Pilot Project</strong>.
+</p>
+
+<div class="callout note">
+  <strong>🌱 Strategic Goal:</strong> Provide temporary GPU capacity while building experience and understanding user needs for Raad3.
+</div>
+
+<p>The project supports a 4-month allocation (Nov 2025 – Feb 2026) of cloud-based GPU compute resources for selected HBKU research proposals.</p>
+
+<hr>
+
+<h2><span class="icon">🛠️</span>2. RCCG’s Fully In-House GPU Cloud Platform</h2>
+<p>
+A major accomplishment of this initiative is that <strong>RCCG engineered the entire cloud platform from scratch</strong>—architecture, automation, UI, backend, workflows, security, and integration.
+</p>
+
+<h3>2.1 Platform Components</h3>
+<ul>
+  <li>🖥 <strong>Custom Frontend Dashboard</strong> — deploy VMs, view status, track credits, access browser-based SSH.</li>
+  <li>📡 <strong>Supabase</strong> — real-time data layer, authentication, and live state broadcasting.</li>
+  <li>🔄 <strong>n8n Automation</strong> — orchestrates VM creation, stop/start, volume handling, credit consumption, and error recovery.</li>
+  <li>🎛 <strong>Hyperstack API</strong> — underlying GPU infrastructure (A100/H100 GPU nodes).</li>
+  <li>🔐 <strong>ngrok</strong> — secure tunneled access for web SSH.</li>
+</ul>
+
+<div class="callout benefits">
+  <strong>✨ Result:</strong> A unified HBKU-branded control panel that hides complex cloud mechanics and ensures RCCG-managed governance.
+</div>
+
+<h3>2.2 Architecture Flow</h3>
+<pre>
+User action in UI
+    ↓
+Supabase trigger or HTTP call
+    ↓
+n8n workflow
+    ↓
+Hyperstack API performs VM action (create/start/stop/delete)
+    ↓
+n8n writes results to Supabase
+    ↓
+UI refreshes instantly via real-time channels
+</pre>
+
+<hr>
+
+<h2><span class="icon">📑</span>3. Purpose of the Call for Proposals</h2>
+
+<p>The call (file: <code>/mnt/data/RCCG-call.docx</code>) invites HBKU researchers to apply for GPU credits.  
+This program aims to:</p>
+
+<ul>
+  <li>🔧 Provide <strong>interim GPU power</strong> during the HPC upgrade period.</li>
+  <li>📈 Support promising research aligned with HBKU priorities.</li>
+  <li>🔍 Gather insight into <strong>user needs and computational workflows</strong>.</li>
+  <li>🧪 Test RCCG’s newly built platform with real workloads and real users.</li>
+</ul>
+
+<div class="callout highlight">
+  <strong>💰 Allocation:</strong> Up to <strong>7,500 QAR</strong> per project (or less if requested).
+</div>
+
+<hr>
+
+<h2><span class="icon">🧮</span>4. GPU Hardware Resources</h2>
+
+<table>
+  <thead>
+    <tr><th>Tier</th><th>GPU(s)</th><th>CPU / RAM</th><th>Storage</th><th>Cost (USD/h)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>MA1</td><td>1×A100 (80GB)</td><td>28 vCPU / 120GB</td><td>100GB NVMe + 750GB ephemeral</td><td>1.35</td></tr>
+    <tr><td>MH1</td><td>1×H100 (80GB)</td><td>28 vCPU / 180GB</td><td>100GB NVMe + 750GB ephemeral</td><td>1.9</td></tr>
+    <tr><td>MH4</td><td>4×H100</td><td>124 vCPU / 720GB</td><td>3.2TB ephemeral</td><td>7.6</td></tr>
+    <tr><td>MH8</td><td>8×H100</td><td>252 vCPU / 1440GB</td><td>6.5TB ephemeral</td><td>15.2</td></tr>
+  </tbody>
+</table>
+
+<h3>Storage</h3>
+<ul>
+  <li>💾 <strong>Root Disk</strong> — 100GB included.</li>
+  <li>🗄 <strong>Network SSD Volumes</strong> — 1GB–2TB at $0.097/hr.</li>
+</ul>
+
+<h3>Data Transfer</h3>
+<p>RCCG recommends using <code>rsync</code> for all data movement due to its integrity checks and resumability.</p>
+
+<hr>
+
+<h2><span class="icon">🎓</span>5. Award Workflow</h2>
+
+<h3>Application Requirements</h3>
+<ul>
+  <li>HBKU LPI (research-active faculty or senior scientist)</li>
+  <li>One proposal per LPI</li>
+  <li>Justification of GPU hours</li>
+  <li>Alignment with HBKU themes</li>
+  <li>Demonstration of efficient resource usage</li>
+</ul>
+
+<h3>Selection Criteria</h3>
+<ul>
+  <li>📌 Strategic alignment</li>
+  <li>📌 Potential scientific impact</li>
+  <li>📌 Efficient use of GPU time</li>
+</ul>
+
+<div class="callout note">
+  <strong>📬 Awardees:</strong> RCCG handles all onboarding, access creation, and platform support.
+</div>
+
+<hr>
+
+<h2><span class="icon">🎁</span>6. Benefits to HBKU Researchers</h2>
+
+<div class="callout benefits">
+  <strong>Key Advantages:</strong><br>
+  • Instant access to powerful GPUs (A100/H100)<br>
+  • HBKU-branded platform — no external portals<br>
+  • Browser-based SSH (zero setup)<br>
+  • Fair-credit usage model<br>
+  • RCCG-managed security, governance & tracking<br>
+  • Smooth transition toward Raad3<br>
+</div>
+
+<hr>
+
+<h2><span class="icon">🚀</span>7. Future Directions</h2>
+
+<h3>7.1 Hybrid “GPU Burst-Out” with On-Prem Raad3</h3>
+<ul>
+  <li>Use on-prem GPUs by default</li>
+  <li>Automatically burst to cloud during heavy load</li>
+  <li>Unified experience across environments</li>
+</ul>
+
+<h3>7.2 Multi-Cloud Abstraction (Azure, AWS, Google, Hyperstack)</h3>
+
+<ul>
+  <li>Prevent cloud vendor lock-in</li>
+  <li>Enable switching to cheaper or faster providers</li>
+  <li>Abstract VM provisioning across providers</li>
+</ul>
+
+<div class="callout warning">
+  <strong>🌐 Long-Term Vision:</strong> A flexible, vendor-agnostic GPU orchestration framework for HBKU.
+</div>
+
+<hr>
+
+<h2><span class="icon">🏁</span>8. Conclusion</h2>
+<p>
+The RCCG GPU Cloud Project delivers immediate GPU power for HBKU researchers, while simultaneously laying the foundation for future hybrid computing across cloud and on-prem systems.  
+Through an entirely RCCG-built platform—UI, automation, database, integration, SSH access, and workflows—HBKU now has a scalable and extensible model for GPU computing support.
+</p>
+
+</div>
+</body>
+</html>

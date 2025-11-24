@@ -18,21 +18,41 @@
   <!-- Workflow Sidebar -->
   <leftside>
     <div class="workflow-sidebar mb-3">
-      <h6 class="mb-3"><strong>Volume Actions</strong></h6>
+      <h6 class="mb-3"><strong>Volume Management</strong></h6>
 
       <div class="workflow-step active" onclick="showHelp('check')">
         <div class="icon">🔍</div>
         <div>Check Status</div>
       </div>
-      
-      <div class="workflow-step active" onclick="showHelp('create')">
-        <div class="icon">1</div>
-        <div>Create Volume</div>
+    
+      <div class="workflow-step" onclick="showHelp('attach')">
+        <div class="icon">🔗</div>
+        <div>Attach to VM</div>
       </div>
 
-      <div class="workflow-step" onclick="showHelp('volume')">
-        <div class="icon">A</div>
-        <div>Volume Handling</div>
+      <div class="workflow-step" onclick="showHelp('mount')">
+        <div class="icon">💿</div>
+        <div>Mount Volume</div>
+      </div>
+
+      <div class="workflow-step" onclick="showHelp('unmount')">
+        <div class="icon">⏏️</div>
+        <div>Unmount Safely</div>
+      </div>
+
+      <div class="workflow-step" onclick="showHelp('detach')">
+        <div class="icon">🔌</div>
+        <div>Detach From VM</div>
+      </div>
+
+      <div class="workflow-step" onclick="showHelp('transfer')">
+        <div class="icon">🔄</div>
+        <div>Transfer Between VMs</div>
+      </div>
+
+      <div class="workflow-step" onclick="showHelp('delete')">
+        <div class="icon">🗑️</div>
+        <div>Delete Volume</div>
       </div>
 
     </div>
@@ -90,7 +110,7 @@
             </button>
           </div>
         </div>
-        <div id="volumesList" style="max-height: 200px; overflow-y: auto; padding: 0;">
+        <div id="volumesList" style="max-height: 220px; min-height: 220px; overflow-y: auto; padding: 0;">
           <div class="text-center text-muted p-3">
             <p class="text-center mt-0 mb-0 fs-5">Loading Volumes...</p>
             <div class="empty-state-icon" style="font-size: 2.5rem;">⏳</div>
@@ -109,7 +129,7 @@
           <div class="btn-group d-flex gap-2">
               <button class="btn btn-primary" onclick="goToCreateVolumePage()">▶️ Create Volume</button>
           </div>
-          <button id="deleteVolumeButton" class="btn btn-danger">🛑 Delete Volume</button>
+          <button id="deleteVolumeButton" class="btn btn-danger">🗑️ Delete Volume</button>
       </div>
     </div>
 
@@ -190,13 +210,13 @@
 </div>
 
 <!-- Footer -->
-<div class="footer">
+<!-- <div class="footer">
   <small class="text-muted">
     Powered by <a href="https://rccg.hbku.edu.qa/wiki/Main_Page" target="_blank">RCCG</a> | 
     Hamad Bin Khalifa University | 
     <a href="mailto:rccg@hbku.edu.qa">Support</a>
   </small>
-</div>
+</div> -->
 
 <script>
 
@@ -240,19 +260,206 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 // Help content for each action
 const helpContent = {
-  create: {
-    title: '📋 Step 1: Create Your Volume',
-    content: 'Select your size, and give it a name, then click on "Create Volume". This typically takes 2 to 5 minutes.'
-  },
-  volume: {
-    title: 'Appendix A: Volume Handling',
-    content: `<strong>Shared Storage Volumes (SSVs)</strong>:<br>
-    <ul>
+  check: {
+    title: '🔍Check Volume Status',
+    content: `<p>View volume details, attachment status, and usage information.</p>
+    <p><strong>Volume States:</strong></p>
+    <table class="table table-sm table-bordered">
+      <tr><td><span class="badge bg-success">AVAILABLE</span></td><td>Ready to attach</td></tr>
+      <tr><td><span class="badge bg-info">IN-USE</span></td><td>Attached to a VM</td></tr>
+      <tr><td><span class="badge bg-danger">DELETED</span></td><td>Has been removed</td></tr>
+    </table>
+    <p><strong>⚠️Important Info:</strong></p>
+    <ul class="mb-0">
       <li> Persistent, network-based SSDs that retain data across VM lifecycles. Each VM can attach up to 10 volumes.</li>
-      <li> Ideal for storing input datasets, scripts, and output results.</li>
-      <li> But, they are not free: Volume Cost = $0.097 /TB/hour (i.e. ~$36 for 1TB Volume for 2 weeks) </li>
-      <li> Also, the management is not automatic. You need to mount them at VM startup/restore and unmont them <strong>before</strong> VM hibernate/delete ⇨ More details in <strong> Volume Handling </strong> section </li>
+      <li><strong>Size:</strong> Cannot be rezised after creation</li>
+      <li><strong>Cost:</strong> $0.097/TB/hour (~$70/TB/month)</li>
+      <li>Management is not automatic. You need to mount them at VM startup/restore and unmont them <strong>before</strong> VM hibernate/delete ⇨ More details in <strong> Volume Handling </strong> section </li>
+      <li><strong>Device path:</strong> Shown in "Manage VMs" page UI after attachment</li>
     </ul>`
+  },
+  attach: {
+    title: '🔗Attach Volume to VM',
+    content: `<p><strong>Steps to attach:</strong></p>
+    <ol>
+      <li>Select volume from list above</li>
+      <li>Ensure volume is <strong>AVAILABLE</strong> (not attached elsewhere)</li>
+      <li>Go to <strong>Manage VMs</strong></li>
+      <li>Select the VM you want to attach the volume to</li>
+      <li>In the <strong>Details</strong> section, click <strong>Attach Volume</strong></li>
+      <li>Choose the target Volume from list</li>
+      <li>Click on <strong>Attach Volume</strong></li>
+      <li>Note the device path shown in UI</li>
+    </ol>
+    <p><strong>Important Notes:</strong></p>
+    <ul>
+      <li>Volume can only be attached to <strong>ONE VM at a time</strong></li>
+      <li>VM must be in <strong>ACTIVE (running)</strong> state</li>
+      <li>Each VM supports up to <strong>10 volumes</strong></li>
+      <li>Copy the <strong>device path</strong> from UI for mounting</li>
+    </ul>
+    <p><strong>Device Path Example:</strong></p>
+    <div class="cmd-block" style="background:#f8f9fa; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
+      <code>/dev/disk/by-id/virtio-c72d3b45-dc19-48ec-9</code>
+    </div>
+    <p class="mb-0"><strong>💡Tip:</strong> Use the <strong>Copy Device</strong> button in UI!</p>`
+  },
+  mount: {
+    title:'💿Mount Volume on VM',
+    content: `<p><strong>After attaching in UI, SSH to VM and mount:</strong></p>
+    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
+      <code># 1. Copy device path from UI<br>
+      DEVICE="/dev/disk/by-id/virtio-c72d3b45-dc19-48ec-9"<br><br>
+      # 2. Verify device exists<br>
+      ls -l \${DEVICE}<br>
+      lsblk<br><br>
+      # 3. Format (FIRST TIME ONLY! Erases data!)<br>
+      sudo mkfs.ext4 -F \${DEVICE}<br><br>
+      # 4. Create mount point<br>
+      sudo mkdir -p /mnt/user_volume<br><br>
+      # 5. Mount the volume<br>
+      sudo mount \${DEVICE} /mnt/user_volume<br><br>
+      # 6. Verify mounted<br>
+      df -h | grep user_volume<br>
+      ls -la /mnt/user_volume</code>
+    </div>
+    <p><strong>⚠️Warning:</strong> Only run <code>mkfs.ext4</code> on brand new volumes! It erases all data.</p>
+    <p><strong>Auto-mount on boot (optional):</strong></p>
+    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
+      <code># Get UUID<br>
+      sudo blkid \${DEVICE}<br><br>
+      # Edit fstab<br>
+      sudo nano /etc/fstab<br>
+      # Add line (replace UUID):<br>
+      UUID=your-uuid /mnt/user_volume ext4 defaults,nofail 0 2<br><br>
+      # Test<br>
+      sudo mount -a</code>
+    </div>
+    <p class="mb-0"><strong>💡Tip:</strong> Use <code>nofail</code> option if volume isn't always attached!</p>`
+  },
+  unmount: {
+    title: '⏏️Unmount Volume Safely',
+    content: `<p><strong>⚠️CRITICAL: Always unmount before detaching in UI!</strong></p>
+    <p><strong>Safe unmount procedure:</strong></p>
+    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
+      <code># 1. Check what's using the volume<br>
+      lsof /mnt/user_volume<br>
+      fuser -m /mnt/user_volume<br><br>
+      # 2. Stop processes if needed<br>
+      # (Exit programs, kill processes)<br><br>
+      # 3. Flush all pending writes<br>
+      sync<br><br>
+      # 4. Unmount<br>
+      sudo umount /mnt/user_volume<br><br>
+      # 5. Verify unmounted<br>
+      df -h | grep user_volume  # Should show nothing<br>
+      mount | grep user_volume   # Should show nothing</code>
+    </div>
+    <p><strong>If unmount fails:</strong></p>
+    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
+      <code># Force unmount (use with caution!)<br>
+      sudo umount -f /mnt/user_volume<br><br>
+      # Or lazy unmount<br>
+      sudo umount -l /mnt/user_volume</code>
+    </div>
+    <p class="mb-0"><strong>⚠️Never detach without unmounting - can cause data corruption!</strong></p>`
+  },
+  detach: {
+    title: '🔌Detach Volume from VM',
+    content: `<p><strong>Complete detach procedure:</strong></p>
+    <ol>
+      <li><strong>On VM:</strong> Unmount volume safely (see Unmount section)</li>
+      <li><strong>Verify:</strong> <code>df -h | grep user_volume</code> shows nothing</li>
+      <li>In "Manage VMs" page, go to VM details</li>
+      <li>Find attached volumes section</li>
+      <li>Click <strong>Detach</strong></li>
+      <li><strong>Wait:</strong> Volume status changes to AVAILABLE</li>
+    </ol>
+    <p><strong>After detaching:</strong></p>
+    <ul>
+      <li>Volume can be attached to another VM</li>
+      <li>All data is preserved</li>
+      <li>No need to format again</li>
+      <li>Storage charges continue</li>
+    </ul>
+    <p><strong>Quick verification:</strong></p>
+    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
+      <code># On VM (after detach)<br>
+      lsblk  # Should not show the volume<br>
+      ls -l /dev/disk/by-id/virtio-*  # Device gone</code>
+    </div>
+    <p class="mb-0"><strong>💡Use Case:</strong> Moving data between VMs without re-uploading!</p>`
+  },
+  transfer: {
+    title: '🔄Transfer Volume Between VMs',
+    content: `<p><strong>Moving a volume from VM-A to VM-B:</strong></p>
+    <div class="workflow-step" style="display:flex; align-items:start; margin:8px 0;">
+      <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:600; flex-shrink:0; margin-right:10px; font-size:0.85rem;">1</div>
+      <div><strong>On VM-A:</strong> Unmount the volume
+        <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:6px; border-radius:4px; margin:6px 0; font-size:0.8rem;">
+          <code>sync<br>sudo umount /mnt/user_volume</code>
+        </div>
+      </div>
+    </div>
+    <div class="workflow-step" style="display:flex; align-items:start; margin:8px 0;">
+      <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:600; flex-shrink:0; margin-right:10px; font-size:0.85rem;">2</div>
+      <div><strong>In UI:</strong> Detach from VM-A</div>
+    </div>
+    <div class="workflow-step" style="display:flex; align-items:start; margin:8px 0;">
+      <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:600; flex-shrink:0; margin-right:10px; font-size:0.85rem;">3</div>
+      <div><strong>In UI:</strong> Wait for status = AVAILABLE</div>
+    </div>
+    <div class="workflow-step" style="display:flex; align-items:start; margin:8px 0;">
+      <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:600; flex-shrink:0; margin-right:10px; font-size:0.85rem;">4</div>
+      <div><strong>In UI:</strong> Attach to VM-B</div>
+    </div>
+    <div class="workflow-step" style="display:flex; align-items:start; margin:8px 0;">
+      <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:600; flex-shrink:0; margin-right:10px; font-size:0.85rem;">5</div>
+      <div><strong>In UI:</strong> Copy new device path for VM-B</div>
+    </div>
+    <div class="workflow-step" style="display:flex; align-items:start; margin:8px 0;">
+      <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:600; flex-shrink:0; margin-right:10px; font-size:0.85rem;">6</div>
+      <div><strong>On VM-B:</strong> Mount with new device path
+        <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:6px; border-radius:4px; margin:6px 0; font-size:0.8rem;">
+          <code>DEVICE="/dev/disk/by-id/virtio-new-path"<br>sudo mount \${DEVICE} /mnt/user_volume</code>
+        </div>
+      </div>
+    </div>
+    <p class="mt-2"><strong>💡Common Use Cases:</strong></p>
+    <ul class="mb-0">
+      <li>Moving from staging VM to GPU VM</li>
+      <li>Sharing datasets across team VMs</li>
+      <li>Moving to cheaper/more powerful VM</li>
+      <li>No need to re-upload data!</li>
+    </ul>`
+  },
+  delete: {
+    title:'🗑️Delete Volume',
+    content: `<p><span style="color: #dc3545;"><strong>⚠️PERMANENT ACTION - ALL DATA WILL BE LOST!</strong></span></p>
+    <p><strong>⚠️BEFORE DELETING:</strong></p>
+    <ol>
+      <li><strong>Download important data</strong> to your laptop</li>
+      <li><strong>Verify backups</strong> are complete</li>
+      <li><strong>Unmount from VM:</strong>
+        <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:6px; border-radius:4px; margin:6px 0; font-size:0.8rem;">
+          <code>sync<br>sudo umount /mnt/user_volume</code>
+        </div>
+      </li>
+      <li><strong>Detach in UI</strong></li>
+    </ol>
+    <p><strong>What gets deleted:</strong></p>
+    <ul>
+      <li>All data on the volume</li>
+      <li>Volume configuration</li>
+      <li>Cannot be recovered</li>
+    </ul>
+    <p><strong>After deletion:</strong></p>
+    <ul>
+      <li>All charges stop immediately</li>
+      <li>Data is permanently lost</li>
+    </ul>
+    <p><strong>To delete:</strong> Select volume and click <strong>🗑️Delete Volume</strong> button.</p>
+    <p class="mb-0"><strong>💰Cost Savings:</strong> Delete unused volumes to reduce storage costs!</p>`
   }
 };
 
@@ -268,8 +475,9 @@ function showHelp(action, vmIp = null) {
   document.querySelectorAll('.workflow-step').forEach(el => {
     el.classList.remove('active');
   });
+  event.currentTarget.classList.add('active');
   // ✅ Call separate function that doesn't need event
-  updateSidebarActive(action);
+  // updateSidebarActive(action);
 }
 
 // New helper function

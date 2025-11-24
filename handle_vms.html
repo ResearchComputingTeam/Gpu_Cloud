@@ -21,23 +21,48 @@
   <!-- Workflow Sidebar -->
   <leftside>
     <div class="workflow-sidebar mb-3">
-      <h6 class="mb-3"><strong>VM Actions</strong></h6>
+      <!-- <h6 class="mb-3"><strong>VM Actions</strong></h6> -->
       
       <div class="workflow-step active" onclick="showHelp('check')">
         <div class="icon">🔍</div>
         <div>Check Status</div>
       </div>
-      
+
+      <div class="workflow-step" onclick="showHelp('ssh')">
+        <div class="icon">🔑</div>
+        <div>SSH Access</div>
+      </div>
+  
+      <div class="workflow-step" onclick="showHelp('monitor')">
+        <div class="icon">👀</div>
+        <div>Monitor Resources</div>
+      </div>
+
       <div class="workflow-step" onclick="showHelp('upload')">
         <div class="icon">📤</div>
         <div>Upload Data</div>
+      </div>
+
+      <div class="workflow-step" onclick="showHelp('run')">
+        <div class="icon">🚀</div>
+        <div>Run Tasks</div>
       </div>
       
       <div class="workflow-step" onclick="showHelp('download')">
         <div class="icon">📥</div>
         <div>Download Data</div>
       </div>
-      
+
+      <div class="workflow-step" onclick="showHelp('attach')">
+        <div class="icon">🔗</div>
+        <div>Attach Volume</div>
+      </div>
+
+      <div class="workflow-step" onclick="showHelp('detach')">
+        <div class="icon">🔌</div>
+        <div>Detach Volume</div>
+      </div>
+
       <div class="workflow-step" onclick="showHelp('hibernate')">
         <div class="icon">⏸️</div>
         <div>Hibernate VM</div>
@@ -110,7 +135,7 @@
             </button>
           </div>
         </div>
-        <div id="vmsList" style="max-height: 200px; overflow-y: auto; padding: 0;">
+        <div id="vmsList" style="max-height: 220px; min-height: 220px; overflow-y: auto; padding: 0;">
           <div class="text-center text-muted p-3">
             <p class="text-center mt-0 mb-0 fs-5">Loading VMs...</p>
             <div class="empty-state-icon" style="font-size: 2.5rem;">⏳</div>
@@ -282,52 +307,224 @@ document.addEventListener('DOMContentLoaded', async function() {
 const helpContent = {
   check: {
     title: '🔍 Check VM Status',
-    content: 'View current status, IP address, and resource usage of your VM.'
+    content: `View current status, IP address, and resource usage of your VM.
+    <p><strong>VM States:</strong></p>
+    <table class="table table-sm table-bordered">
+      <tr><td><span class="badge bg-secondary">PROVISIONING</span></td><td>Under creation...</td></tr>
+      <tr><td><span class="badge bg-success">RUNNING</span></td><td>Running, billable</td></tr>
+      <tr><td><span class="badge bg-warning">HIBERNATED</span></td><td>Stopped, storage only is billed, can be restored</td></tr>
+      <tr><td><span class="badge bg-error">DELETED</span></td><td>Removed, can't be restored</td></tr>
+    </table>
+    <p class="mb-0">💡<strong>Tip:</strong> Refresh status regularly to avoid idle GPU charges!</p>`
+  },
+  ssh: {
+    title: '🔑SSH Access to VM',
+    content: `<p><strong>Command line SSH:</strong></p>
+    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0;">
+      <code>ssh -i ~/.ssh/my_ssh_private_key ubuntu@&lt;VM_IP&gt;</code>
+    </div>
+    <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('ssh -i ~/.ssh/my_ssh_private_key ubuntu@&lt;VM_IP&gt;')">Copy</button>
+    <p class="mt-2"><strong>Using MobaXterm (Windows):</strong></p>
+    <ol class="mb-0">
+      <li>Create new SSH session</li>
+      <li>Enter VM IP address</li>
+      <li>Specify username</li>
+      <li>Use private key authentication</li>
+      <li>Save session for future use</li>
+    </ol>`
+  },
+  monitor: {
+    title: '👀Monitor VM Resources',
+    content: `<p><strong>Essential Monitoring Commands:</strong></p>
+    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
+      <code># GPU usage (live updates)<br>
+      watch -n 2 nvidia-smi<br><br>
+      # CPU and memory<br>
+      htop<br><br>
+      # Disk space<br>
+      df -h<br>
+      df -h /mnt/user_volume<br><br>
+      # Disk I/O<br>
+      iostat -x 2<br><br>
+      # Find large files<br>
+      du -ah /mnt/user_volume | sort -rh | head -20<br><br>
+      # Check running processes<br>
+      ps aux | grep python</code>
+    </div>
+    <p><strong>💡Pro Tip:</strong> Use <code>tmux</code> to keep monitoring running in background!</p>`
   },
   upload: {
     title: '📤 Upload Data to VM',
-    content: `Upload your code and data to the running VM:<br><br>
+    content: `Upload your code and data to the running VM:
+      <p><strong>⚠️Important:</strong> Use a <strong>staging VM</strong> (cheap CPU) + volume for data uploads to save money!</p>
       <code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
-        rsync -avz --progress ./local-folder/ user@VM_IP:/remote/path/
+        rsync -avz --progress ./dataset/ ubuntu@staging-vm-ip:/mnt/user_volume
       </code>
-      <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('rsync -avz --progress ./local-folder/ user@VM_IP:/remote/path/')">📋 Copy</button>
-      <br><br><small class="text-muted">Replace VM_IP with your actual VM IP address from the status check</small>`
+      <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('rsync -avz --progress ./dataset/ ubuntu@staging-vm-ip:/mnt/user_volume')">📋 Copy</button>
+      <p class="mt-2"><strong>Cost-Saving Strategy:</strong></p>
+      <ol class="mb-0">
+        <li>Create volume</li>
+        <li>Attach to cheap CPU staging VM</li>
+        <li>Upload data to volume on staging VM</li>
+        <li>Detach and attach to GPU VM</li>
+        <li>Saves GPU hours during uploads!</li>
+      </ol>`
+  },
+  run: {
+    title: '🚀Run Your Tasks',
+    content: `<p>SSH into your VM and run your workload:<br> <strong>⚠️Critical:</strong> Always use <code>tmux</code> to keep jobs running after disconnect!</p>
+      <code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
+        ssh ubuntu@VM_IP<br>
+        # Start tmux session<br>
+        tmux new -s training<br><br>
+        # Load modules<br>
+        module load anaconda3/2024.02-1<br>
+        module load ml_dl_gpu_base_all<br><br>
+        # Run with output to volume<br>
+        cd /your/project/path<br>
+        python train.py \\<br>
+        &nbsp;&nbsp;--data /mnt/user_volume/datasets/ \\<br>
+        &nbsp;&nbsp;--output /mnt/user_volume/results/ \\<br>
+        &nbsp;&nbsp;| tee /mnt/user_volume/logs/train.log<br><br>
+        # Detach: Ctrl-B, then D<br>
+        # Reattach: tmux attach -t training <br>
+      </code>
+          <p><strong>Monitoring:</strong></p>
+      <ul class="mb-0">
+        <li><code>watch -n 2 nvidia-smi</code> - GPU usage</li>
+        <li><code>htop</code> - CPU/RAM usage</li>
+        <li><code>df -h /mnt/user_volume</code> - Disk space</li>
+      </ul>`
   },
   download: {
-    title: '📥 Download Data from VM',
-    content: `Download results from your VM:<br><br>
+    title: '📥 Step 7: Download Results',
+    content: `<p><strong>From your laptop, run:</strong></p>
       <code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
-        rsync -avz --progress user@VM_IP:/remote/results/ ./local-results/
+        rsync -avz --progress ubuntu@VM_IP:/mnt/user_volume/results/ ./local_results/
       </code>
-      <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('rsync -avz --progress user@VM_IP:/remote/results/ ./local-results/')">📋 Copy</button>
-      <br><br><small class="text-muted">Download your results before hibernating or deleting the VM</small>`
+      <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('rsync -avz --progress ubuntu@VM_IP:/mnt/user_volume/results/ ./local_results/')">📋 Copy</button>`
+  },
+  attach: {
+    title: '🔗Attach Volume to VM',
+    content: `<p><strong>Steps to attach a volume:</strong></p>
+    <ol>
+      <li>Select VM from list above</li>
+      <li>In the <strong>Details</strong> section, click <strong>Attach Volume</strong></li>
+      <li>Choose the target Volume from the displayed list</li>
+      <li>Click on <strong>Attach Volume</strong></li>
+      <li>Note the device path shown in UI</li>
+    </ol>
+    <p><strong>Mount the attached volume:</strong></p>
+    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
+      <code>
+      # SSH into your VM
+      ssh -i ~/.ssh/my_ssh_private_key ubuntu@&lt;VM_IP&gt;
+      # Get device path from UI<br>
+      DEVICE="/dev/disk/by-id/virtio-xxxxx"<br><br>
+      # Mount volume<br>
+      sudo mkdir -p /mnt/user_volume<br>
+      sudo mount \${DEVICE} /mnt/user_volume<br><br>
+      # Verify<br>
+      df -h | grep user_volume</code>
+    </div>
+    <p class="mb-0"><strong📒Note:</strong> Volume can only be attached to one VM at a time.</p>`
+  },
+  detach: {
+    title: '🔌Detach Volume from VM',
+    content: `<p><strong>⚠️CRITICAL: Always unmount before detaching!</strong></p>
+    <p><strong>Safe detach procedure:</strong></p>
+    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
+      <code>
+      # 0. SSH into your VM
+      ssh -i ~/.ssh/my_ssh_private_key ubuntu@&lt;VM_IP&gt;
+      # 1. Check what's using the mount<br>
+      lsof /mnt/user_volume<br><br>
+      # 2. Stop any processes using it<br>
+      # (kill processes if needed)<br><br>
+      # 3. Flush all writes<br>
+      sync<br>
+      # 4. Unmount safely<br>
+      sudo umount /mnt/user_volume<br>
+      # 5. Verify unmounted<br>
+      df -h | grep user_volume  # Should show nothing</code>
+    </div>
+    <p><strong>Then in UI:</strong></p>
+    <ol class="mb-0">
+      <li>Go to VM details</li>
+      <li>Find attached volumes section</li>
+      <li>Click <strong>Detach</strong></li>
+    </ol>
+    <p class="mt-2 mb-0"><strong>⚠️Never detach a mounted volume - data loss may occur!</strong></p>`
   },
   hibernate: {
     title: '⏸️ Hibernate VM',
-    content: `Pause your VM to stop compute charges while preserving data:<br><br>
+    content: `Pause your VM to stop compute charges while preserving data:
       <strong>What happens:</strong><br>
-      • VM stops running (compute charges stop)<br>
-      • Data is preserved (storage charges continue)<br>
-      • Can be restored later<br><br>
-      Enter the VM name and click "Hibernate VM" button.`
-  },
+      <ul>
+        <li>VM stops running (compute charges stop)<li>
+        <li>Data (in root disk) is preserved (storage charges continue)<li>
+        <li>⚠️CRITICAL: Data in Ephemeural memory won't be saved<li>
+        <li>Can be restored later to same state</li>
+        <li>Storage charges continue<li>
+      </ul>
+      <p><strong>Before hibernating:</strong></p>
+      <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
+        <code># Save any work in progress<br>
+        # Stop running processes<br>
+        # Unmount volumes<br>
+        sync<br>
+        sudo umount /mnt/user_volume</code>
+      </div>
+      <p><strong>To hibernate:</strong> Select VM and click <strong>⏸️Hibernate VM</strong> button.</p>
+      <p class="mb-0"><strong>💡Use Case:</strong> Taking a break for hours/days but will resume work later.</p>
+      <p class="mb-0"><strong>💡Tip:</strong>Going from Running to Hibernate typically takes 10-20 minutes.</p>`
+    },
   restore: {
     title: '♻️ Restore VM',
-    content: `Resume a hibernated VM:<br><br>
-      <strong>What happens:</strong><br>
-      • VM starts running again<br>
-      • All data is preserved<br>
-      • Compute charges resume<br><br>
-      Enter the VM name and click "Restore VM" button.`
+    content: `Resume a hibernated VM to continue your work.<br><br>
+      <p><strong>What happens:</strong></p>
+      <ul>
+        <li>VM starts running again</li>
+        <li>All data (from root disk) and state preserved</li>
+        <li>Compute charges resume</li>
+      </ul>
+      <p><strong>After restoring:</strong></p>
+      <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
+        <code># SSH back into VM<br>
+        ssh -i ~/.ssh/my_ssh_private_key ubuntu@&lt;VM_IP&gt;
+        # Remount volumes if needed<br>
+        DEVICE="/dev/disk/by-id/virtio-xxxxx"<br>
+        sudo mount \${DEVICE} /mnt/user_volume<br>
+        # Verify GPU is available<br>
+        nvidia-smi<br>
+        # Resume tmux sessions<br>
+        tmux ls<br>
+        tmux attach -t training</code>
+      </div>
+      <p><strong>To restore:</strong> Select VM and click <strong>♻️Restore VM</strong> button.</p>
+      <p class="mb-0"><strong>💡Tip:</strong> Restoration typically takes 10-20 minutes.</p>`
   },
   delete: {
     title: '🛑 Delete VM',
-    content: `<span style="color: #dc3545;"><strong>⚠️ Permanent Action</strong></span><br><br>
-      Deleting a VM will:<br>
-      • Permanently remove all data<br>
-      • Stop all charges<br>
-      • Cannot be undone<br><br>
-      <small class="text-muted">Make sure to download any important data before deleting!</small>`
+    content: `<span style="color: #dc3545;"><strong>⚠️PERMANENT ACTION - CANNOT BE UNDONE!</strong></span><br><br>
+      <p><strong>What will happen:</strong></p>
+      <ul>
+        <li>VM instance will be permanently deleted</li>
+        <li>Root disk (OS and system files) will be deleted</li>
+        <li>Ephemeral storage (all data!) will be deleted</li>
+        <li>Attached volumes will NOT be deleted (but must be unmounted properly to avoid data loss)</li>
+        <li>Volumes can then be attached to other VMs</li>
+        <li>All charges related to this VM will stop immediately</li>
+      <ul>
+      <p><strong>⚠️BEFORE DELETING:</strong></p>
+      <ol>
+        <li><strong>Download all important data!</strong></li>
+        <li>Copy results from ephemeral storage to Volume (or Root Disk if it has enough space)</li>
+        <li>Verify backups are complete</li>
+        <li>Unmount volumes: <code>sync && sudo umount /mnt/user_volume</code></li>
+      </ol>
+      <small class="text-muted">Make sure to download any important data before deleting!</small>
+      <p class="mt-2 mb-0"><strong>To delete:</strong> Select VM and click <strong>🛑Delete GPU VM</strong> button.</p>`
   }
 };
 
@@ -344,8 +541,9 @@ function showHelp(action, vmIp = null) {
   document.querySelectorAll('.workflow-step').forEach(el => {
     el.classList.remove('active');
   });
+  event.currentTarget.classList.add('active');
   // ✅ Call separate function that doesn't need event
-  updateSidebarActive(action);
+  // updateSidebarActive(action);
 }
 
 // New helper function

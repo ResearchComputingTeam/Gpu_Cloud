@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Optimal Workflow: Raad2-GFX to RCCG GPU Cloud</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --accent-color: #667eea;
+      --code-bg: #2d2d2d;
+      --success: #52c41a;
+      --warning: #fa8c16;
+      --danger: #f5222d;
+      --info: #1890ff;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.7;
+      color: #333;
+    }
+    
+    .hero {
+      background: var(--primary-gradient);
+      color: white;
+      padding: 4rem 0;
+      margin-bottom: 3rem;
+    }
+    
+    .hero h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .hero .lead {
+      font-size: 1.2rem;
+      opacity: 0.95;
+    }
+    
+    .sidebar {
+      position: sticky;
+      top: 20px;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+      padding-right: 1rem;
+    }
+    
+    .sidebar .nav-link {
+      color: #666;
+      padding: 0.5rem 1rem;
+      border-left: 3px solid transparent;
+      transition: all 0.2s;
+      font-size: 0.95rem;
+    }
+    
+    .sidebar .nav-link:hover {
+      color: var(--accent-color);
+      border-left-color: var(--accent-color);
+      background: #f8f9fa;
+    }
+    
+    .sidebar .nav-link.active {
+      color: var(--accent-color);
+      border-left-color: var(--accent-color);
+      font-weight: 600;
+    }
+    
+    .content-section {
+      scroll-margin-top: 20px;
+      margin-bottom: 3rem;
+    }
+    
+    .content-section h2 {
+      color: #2d3748;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 3px solid var(--accent-color);
+    }
+    
+    .content-section h3 {
+      color: #4a5568;
+      font-weight: 600;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .content-section h4 {
+      color: #4a5568;
+      font-weight: 600;
+      margin-top: 1.5rem;
+      margin-bottom: 0.75rem;
+      font-size: 1.1rem;
+    }
+    
+    .tip-box, .warning-box, .example-box, .success-box {
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      border-left: 4px solid;
+    }
+    
+    .tip-box {
+      background: #e6f7ff;
+      border-color: var(--info);
+    }
+
+    .success-box {
+      background: #f6ffed;
+      border-color: var(--success);
+    }
+    
+    .warning-box {
+      background: #fff7e6;
+      border-color: var(--warning);
+    }
+    
+    .example-box {
+      background: #f0f5ff;
+      border-color: var(--accent-color);
+    }
+    
+    .tip-box h4, .warning-box h4, .example-box h4, .success-box h4 {
+      margin-top: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+    
+    .command-block {
+      background: var(--code-bg);
+      color: #f8f8f2;
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 1rem 0;
+      position: relative;
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+      font-size: 0.9rem;
+    }
+    
+    .command-block code {
+      color: inherit;
+      background: none;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    
+    .copy-btn:hover {
+      opacity: 1;
+    }
+
+    .workflow-diagram {
+      background: #f8f9fa;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      padding: 2rem;
+      margin: 2rem 0;
+      font-family: monospace;
+      white-space: pre;
+      overflow-x: auto;
+      line-height: 1.6;
+    }
+
+    .comparison-table {
+      margin: 2rem 0;
+    }
+
+    .comparison-table td, .comparison-table th {
+      padding: 0.75rem;
+    }
+
+    .comparison-table .feature-col {
+      font-weight: 600;
+      width: 25%;
+    }
+
+    .badge-custom {
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .phase-card {
+      background: white;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .phase-card h3 {
+      margin-top: 0;
+      color: var(--accent-color);
+    }
+
+    .checklist {
+      list-style: none;
+      padding-left: 0;
+    }
+    
+    .checklist li {
+      padding: 0.5rem 0;
+      padding-left: 2rem;
+      position: relative;
+    }
+    
+    .checklist li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--success);
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+
+    .checklist-empty li:before {
+      content: "☐";
+      color: #999;
+    }
+
+    .cost-table {
+      background: #fff;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 1.5rem 0;
+    }
+
+    .cost-table thead {
+      background: var(--primary-gradient);
+      color: white;
+    }
+
+    .cost-total {
+      background: #f8f9fa;
+      font-weight: 700;
+    }
+    
+    @media (max-width: 992px) {
+      .sidebar {
+        position: static;
+        max-height: none;
+        margin-bottom: 2rem;
+      }
+
+      .workflow-diagram {
+        font-size: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Hero Section -->
+<div class="hero">
+  <div class="container">
+    <h1>🚀 Optimal Workflow: Raad2-GFX to RCCG GPU Cloud</h1>
+    <p class="lead mb-3">Maximize efficiency and minimize costs by developing on free Raad2-GFX GPUs, then scaling to powerful cloud infrastructure</p>
+    <div class="d-flex gap-2 flex-wrap">
+      <span class="badge bg-light text-dark">✅ Free Development</span>
+      <span class="badge bg-light text-dark">📦 Portable Environments</span>
+      <span class="badge bg-light text-dark">💰 Cost Optimized</span>
+      <span class="badge bg-light text-dark">⚡ Production Ready</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <!-- Sidebar Navigation -->
+    <div class="col-lg-3">
+      <nav class="sidebar">
+        <div class="nav flex-column">
+          <a class="nav-link active" href="#section-summary">Executive Summary</a>
+          <a class="nav-link" href="#section-systems">Understanding Both Systems</a>
+          <a class="nav-link" href="#section-workflow">The Recommended Workflow</a>
+          <a class="nav-link" href="#section-phase1">Phase 1: Development (Raad2-GFX)</a>
+          <a class="nav-link" href="#section-phase2">Phase 2: Portability</a>
+          <a class="nav-link" href="#section-phase3">Phase 3: Production (Cloud)</a>
+          <a class="nav-link" href="#section-example">Complete Example</a>
+          <a class="nav-link" href="#section-practices">Best Practices</a>
+          <a class="nav-link" href="#section-troubleshooting">Troubleshooting</a>
+          <a class="nav-link" href="#section-advanced">Advanced Topics</a>
+          <a class="nav-link" href="#section-faq">FAQ</a>
+          <a class="nav-link" href="#section-checklist">Summary Checklist</a>
+        </div>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-lg-9">
+      
+      <!-- Executive Summary -->
+      <section id="section-summary" class="content-section">
+        <h2>Executive Summary</h2>
+        
+        <p>This guide outlines the recommended workflow for HBKU researchers requiring GPU resources. By starting development on the <strong>free, unlimited Raad2-GFX on-premise cluster</strong> and then scaling to the <strong>powerful RCCG GPU Cloud</strong> for production runs, you can optimize both cost and performance.</p>
+
+        <div class="success-box">
+          <h4>✅ Key Benefits of This Workflow</h4>
+          <ul class="mb-0">
+            <li><strong>Free development and testing</strong> on Raad2-GFX (unlimited access)</li>
+            <li><strong>Reproducible environments</strong> using Conda and Singularity</li>
+            <li><strong>Portable code</strong> that works seamlessly across both systems</li>
+            <li><strong>Cost-efficient</strong> - only pay for cloud GPUs when ready for production</li>
+            <li><strong>Performance scaling</strong> - move from V100s to A100/H100 GPUs for final runs</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Understanding Both Systems -->
+      <section id="section-systems" class="content-section">
+        <h2>1. Understanding Both Systems</h2>
+
+        <div class="row">
+          <div class="col-md-6 mb-4">
+            <div class="phase-card">
+              <h3>🏢 Raad2-GFX (On-Premise)</h3>
+              <table class="table table-sm">
+                <tr>
+                  <td class="feature-col"><strong>Cost</strong></td>
+                  <td><span class="badge bg-success">FREE & Unlimited</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Hardware</strong></td>
+                  <td>8x NVIDIA V100 GPUs</td>
+                </tr>
+                <tr>
+                  <td><strong>Memory</strong></td>
+                  <td>192 GB RAM per node</td>
+                </tr>
+                <tr>
+                  <td><strong>Storage</strong></td>
+                  <td>800GB local SSD</td>
+                </tr>
+                <tr>
+                  <td><strong>OS</strong></td>
+                  <td>Rocky Linux 8.10</td>
+                </tr>
+                <tr>
+                  <td><strong>Scheduler</strong></td>
+                  <td>PBS Pro</td>
+                </tr>
+                <tr>
+                  <td><strong>Software</strong></td>
+                  <td>CUDA, cuDNN, PyTorch, TensorFlow, Conda, Singularity</td>
+                </tr>
+                <tr>
+                  <td><strong>Best For</strong></td>
+                  <td>Development, testing, debugging</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-4">
+            <div class="phase-card">
+              <h3>☁️ RCCG GPU Cloud</h3>
+              <table class="table table-sm">
+                <tr>
+                  <td class="feature-col"><strong>Cost</strong></td>
+                  <td><span class="badge bg-warning">Paid per hour</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Hardware</strong></td>
+                  <td>A100, H100 GPUs (latest)</td>
+                </tr>
+                <tr>
+                  <td><strong>Memory</strong></td>
+                  <td>Up to multi-TB</td>
+                </tr>
+                <tr>
+                  <td><strong>Storage</strong></td>
+                  <td>Flexible volumes + 750GB/GPU ephemeral</td>
+                </tr>
+                <tr>
+                  <td><strong>OS</strong></td>
+                  <td>Ubuntu 22.04</td>
+                </tr>
+                <tr>
+                  <td><strong>Scheduler</strong></td>
+                  <td>Direct VM access</td>
+                </tr>
+                <tr>
+                  <td><strong>Software</strong></td>
+                  <td>PyTorch 2.5.1, TensorFlow 2.14, Conda, Singularity</td>
+                </tr>
+                <tr>
+                  <td><strong>Best For</strong></td>
+                  <td>Production runs, large-scale training</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- The Recommended Workflow -->
+      <section id="section-workflow" class="content-section">
+        <h2>2. The Recommended Workflow</h2>
+
+        <div class="workflow-diagram">
+┌─────────────────────────────────────────────────────────────────┐
+│                     DEVELOPMENT PHASE                           │
+│                  (Raad2-GFX - FREE)                            │
+│                                                                 │
+│  1. Write code & setup environment (Conda/Singularity)        │
+│  2. Debug on small datasets                                    │
+│  3. Test with V100 GPUs                                        │
+│  4. Verify results & validate approach                         │
+│  5. Export environment specifications                          │
+│                                                                 │
+└─────────────────────┬───────────────────────────────────────────┘
+                      │
+                      │ Environment is ready ✅
+                      │ Code is debugged ✅
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                   PORTABILITY PHASE                             │
+│                                                                 │
+│  1. Export Conda environment → environment.yml                 │
+│  2. OR Build Singularity container → .sif file                │
+│  3. Package code and small test dataset                        │
+│  4. Verify environment portability                             │
+│                                                                 │
+└─────────────────────┬───────────────────────────────────────────┘
+                      │
+                      │ Environment is portable ✅
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    PRODUCTION PHASE                             │
+│              (RCCG GPU Cloud - PAID)                           │
+│                                                                 │
+│  1. Create cloud VM with A100/H100 GPUs                        │
+│  2. Transfer environment & code                                │
+│  3. Upload full dataset via staging VM                         │
+│  4. Run production training/simulation                         │
+│  5. Download results                                           │
+│  6. Delete VM to stop charges                                  │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+        </div>
+
+        <div class="tip-box">
+          <h4>🎯 Goal</h4>
+          <p class="mb-0">Minimize cloud costs by doing all development and testing for free on Raad2-GFX, then use cloud resources only for final production runs with validated code.</p>
+        </div>
+      </section>
+
+      <!-- Phase 1: Development -->
+      <section id="section-phase1" class="content-section">
+        <h2>3. Phase 1: Development on Raad2-GFX</h2>
+
+        <h3>3.1 Accessing Raad2-GFX</h3>
+        
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># SSH to Raad2-GFX login node
+ssh username@raad2-gfx.hbku.edu.qa
+
+# Check available GPUs
+pbsnodes -a | grep -A 5 gpu</code>
+        </div>
+
+        <h3>3.2 Setting Up Your Environment</h3>
+
+        <h4>Option A: Using Conda (Recommended for Python/ML)</h4>
+
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># Load Conda module (if using module system)
+module load anaconda3
+
+# Create a new environment
+conda create -n myproject python=3.11 -y
+
+# Activate environment
+conda activate myproject
+
+# Install packages
+conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
+conda install pandas numpy scikit-learn matplotlib jupyterlab -y
+pip install transformers datasets accelerate
+
+# Save environment specification
+conda env export > environment.yml</code>
+        </div>
+
+        <div class="tip-box">
+          <h4>💡 Why Conda?</h4>
+          <p class="mb-0">Environments created with Conda are easily reproducible on RCCG GPU Cloud VMs.</p>
+        </div>
+
+        <h4>Option B: Using Singularity (Recommended for Complex Dependencies)</h4>
+
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># Load Singularity module
+module load singularityce
+
+# Pull a container from Docker Hub
+singularity pull docker://pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
+
+# Or build from a definition file
+singularity build mycontainer.sif mycontainer.def
+
+# Run your code in the container
+singularity exec --nv mycontainer.sif python train.py</code>
+        </div>
+
+        <div class="tip-box">
+          <h4>💡 Why Singularity?</h4>
+          <p class="mb-0">Containers are identical across systems - what works on Raad2-GFX will work on cloud VMs.</p>
+        </div>
+
+        <h3>3.3 Developing and Testing Your Code</h3>
+
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># Create a PBS job script for interactive testing
+cat > test_job.pbs << 'EOF'
+#!/bin/bash
+#PBS -N gpu_test
+#PBS -l select=1:ncpus=18:ngpus=1:mem=64gb
+#PBS -l walltime=02:00:00
+#PBS -q gpu
+
+# Change to working directory
+cd $PBS_O_WORKDIR
+
+# Load modules
+module load anaconda3
+module load cuda/12.8.0
+
+# Activate conda environment
+source activate myproject
+
+# Verify GPU is available
+nvidia-smi
+
+# Test with small dataset
+python train.py \
+    --data ./test_data/ \
+    --epochs 5 \
+    --batch-size 32 \
+    --checkpoint-dir ./checkpoints/
+
+EOF
+
+# Submit job
+qsub test_job.pbs
+
+# Monitor job
+qstat -u $USER</code>
+        </div>
+
+        <h3>3.4 When Are You Ready for Cloud Migration?</h3>
+
+        <div class="success-box">
+          <h4>✅ Checklist before moving to RCCG GPU Cloud</h4>
+          <ul class="checklist checklist-empty mb-0">
+            <li>Code runs without errors on Raad2-GFX</li>
+            <li>Small-scale results look promising</li>
+            <li>Environment is documented (environment.yml or .sif container)</li>
+            <li>Data pipeline is working efficiently</li>
+            <li>GPU memory usage is optimized</li>
+            <li>Checkpointing is implemented</li>
+            <li>Output format is validated</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Phase 2: Portability -->
+      <section id="section-phase2" class="content-section">
+        <h2>4. Phase 2: Environment Portability</h2>
+
+        <h3>4.1 Exporting Conda Environment</h3>
+
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># On Raad2-GFX: Export complete environment
+conda activate myproject
+conda env export > environment.yml
+
+# Create a minimal environment file (more portable)
+conda env export --from-history > environment_minimal.yml
+
+# Download to your laptop (from laptop)
+scp username@raad2-gfx.hbku.edu.qa:~/environment.yml ./</code>
+        </div>
+
+        <h3>4.2 Building Singularity Container</h3>
+
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># Create definition file
+cat > myproject.def << 'EOF'
+Bootstrap: docker
+From: pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime
+
+%post
+    # Update and install system packages
+    apt-get update && apt-get install -y \
+        git wget vim \
+        && rm -rf /var/lib/apt/lists/*
+    
+    # Install Python packages
+    pip install --no-cache-dir \
+        transformers==4.36.0 \
+        datasets==2.16.0 \
+        accelerate==0.25.0
+
+%environment
+    export PYTHONPATH=/workspace:$PYTHONPATH
+    export HF_HOME=/workspace/cache
+
+%runscript
+    exec python "$@"
+EOF
+
+# Build container
+singularity build myproject.sif myproject.def
+
+# Test container
+singularity exec --nv myproject.sif python -c "import torch; print(torch.cuda.is_available())"</code>
+        </div>
+
+        <h3>4.3 Packaging Your Code</h3>
+
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># Create a clean code archive
+tar -czf myproject_code.tar.gz \
+    --exclude='*.pyc' \
+    --exclude='__pycache__' \
+    --exclude='.git' \
+    --exclude='data/' \
+    ./myproject/
+
+# Download to your laptop
+scp username@raad2-gfx.hbku.edu.qa:~/myproject_code.tar.gz ./</code>
+        </div>
+      </section>
+
+      <!-- Phase 3: Production -->
+      <section id="section-phase3" class="content-section">
+        <h2>5. Phase 3: Production on RCCG GPU Cloud</h2>
+
+        <h3>5.1 Creating Your Cloud VM</h3>
+
+        <ol>
+          <li>Log in to <strong>RCCG GPU Cloud</strong> web interface</li>
+          <li>Navigate to: <strong>Project → Create VM</strong></li>
+          <li>Select GPU Flavor:
+            <ul>
+              <li><code>n3-A100x1</code> - $1.35/hr for most workloads</li>
+              <li><code>n3-H100x1</code> - $1.90/hr for large models</li>
+              <li><code>n3-H100x4</code> - $7.60/hr for multi-GPU training</li>
+            </ul>
+          </li>
+          <li>Select Base Image: <code>ml-dl-gpu-base-image</code></li>
+          <li>Create VM and wait (2-5 minutes)</li>
+        </ol>
+
+        <h3>5.2 Setting Up Staging VM for Data Upload</h3>
+
+        <div class="tip-box">
+          <h4>💡 Cost-Saving Strategy</h4>
+          <p class="mb-0">Use a cheap CPU VM for data uploads, not your expensive GPU VM!</p>
+        </div>
+
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># 1. Create Volume (web interface): 500GB
+
+# 2. Create Staging VM: n1-cpu-small ($0.35/hr)
+
+# 3. Attach volume to staging VM
+
+# 4. SSH to staging VM
+ssh -i ~/.ssh/id_rsa ubuntu@&lt;STAGING-VM-IP&gt;
+
+# 5. Mount volume (copy device path from UI)
+DEVICE="/dev/disk/by-id/virtio-xxxxx"  # From UI
+sudo mkfs.ext4 -F ${DEVICE}  # Only first time!
+sudo mkdir -p /mnt/user_volume
+sudo mount ${DEVICE} /mnt/user_volume
+
+# Verify
+df -h | grep user_volume</code>
+        </div>
+
+        <h3>5.3 Uploading Data and Environment</h3>
+
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># From your laptop - upload everything
+rsync -avP environment.yml ubuntu@&lt;STAGING-VM-IP&gt;:/mnt/user_volume/
+rsync -avP myproject.sif ubuntu@&lt;STAGING-VM-IP&gt;:/mnt/user_volume/
+rsync -avP myproject_code.tar.gz ubuntu@&lt;STAGING-VM-IP&gt;:/mnt/user_volume/
+rsync -avP ./full_dataset/ ubuntu@&lt;STAGING-VM-IP&gt;:/mnt/user_volume/datasets/</code>
+        </div>
+
+        <h3>5.4 Preparing the GPU VM</h3>
+
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># 1. SSH to staging VM and unmount
+ssh ubuntu@&lt;STAGING-VM-IP&gt;
+sync
+sudo umount /mnt/user_volume
+exit
+
+# 2. In web UI: Detach from staging, attach to GPU VM
+
+# 3. SSH to GPU VM
+ssh -i ~/.ssh/id_rsa ubuntu@&lt;GPU-VM-IP&gt;
+
+# 4. Mount volume (NEW device path from UI)
+DEVICE="/dev/disk/by-id/virtio-new-xxxxx"
+sudo mkdir -p /mnt/user_volume
+sudo mount ${DEVICE} /mnt/user_volume
+
+# Verify
+df -h | grep user_volume
+ls -la /mnt/user_volume/</code>
+        </div>
+
+        <h3>5.5 Recreating Your Environment</h3>
+
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># Using Conda
+module load anaconda3/2024.02-1
+conda env create -f /mnt/user_volume/environment.yml
+conda activate myproject
+
+# Verify GPU
+python -c "import torch; print(torch.cuda.is_available())"
+
+# OR Using Singularity
+singularity exec --nv /mnt/user_volume/myproject.sif python -c "import torch; print(torch.cuda.is_available())"</code>
+        </div>
+
+        <h3>5.6 Running Production Training</h3>
+
+        <div class="warning-box">
+          <h4>🔴 CRITICAL</h4>
+          <p class="mb-0">Always use <code>tmux</code> to prevent disconnections from killing your job!</p>
+        </div>
+
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># Start tmux session
+tmux new -s production
+
+# Load modules and activate environment
+module load anaconda3/2024.02-1
+conda activate myproject
+
+# Verify GPU
+nvidia-smi
+
+# Run production training
+python train.py \
+    --data /mnt/user_volume/datasets/ \
+    --output /mnt/user_volume/results/ \
+    --checkpoint-dir /mnt/user_volume/checkpoints/ \
+    --epochs 100 \
+    --batch-size 128 \
+    2>&1 | tee /mnt/user_volume/logs/training.log
+
+# Detach from tmux: Ctrl-B, then D
+# Your training continues running!</code>
+        </div>
+
+        <h3>5.7 Monitoring Production Run</h3>
+
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># In a separate terminal/SSH session
+ssh ubuntu@&lt;GPU-VM-IP&gt;
+
+# Monitor GPU usage
+watch -n 2 nvidia-smi
+
+# Check training logs
+tail -f /mnt/user_volume/logs/training.log
+
+# Monitor disk space
+df -h /mnt/user_volume
+
+# Reattach to tmux
+tmux attach -t production</code>
+        </div>
+
+        <h3>5.8 Downloading Results</h3>
+
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># After training completes - SSH to GPU VM
+ssh ubuntu@&lt;GPU-VM-IP&gt;
+
+# Optional: Compress results
+cd /mnt/user_volume
+tar -czf results_final.tar.gz results/ checkpoints/
+
+# Unmount volume
+sync
+sudo umount /mnt/user_volume
+
+# Detach from GPU VM, attach to staging VM (in UI)
+
+# Download to laptop (from laptop)
+rsync -avP ubuntu@&lt;STAGING-VM-IP&gt;:/mnt/user_volume/results/ ./results/</code>
+        </div>
+
+        <h3>5.9 Cleanup to Stop Charges</h3>
+
+        <div class="warning-box">
+          <h4>💰 Important</h4>
+          <p class="mb-0">You only pay while VMs are running! Delete VMs immediately after downloading results to stop charges.</p>
+        </div>
+
+        <ol>
+          <li>Stop or Delete GPU VM (charges stop)</li>
+          <li>Stop or Delete staging VM</li>
+          <li>Optional: Delete volume if data no longer needed</li>
+          <li>Optional: Snapshot volume for future use</li>
+        </ol>
+      </section>
+
+      <!-- Complete Example -->
+      <section id="section-example" class="content-section">
+        <h2>6. Complete Example: Training a Large Language Model</h2>
+
+        <div class="example-box">
+          <h4>📋 Scenario</h4>
+          <p><strong>Researcher:</strong> Dr. Ahmed, HBKU AI Lab<br>
+          <strong>Task:</strong> Fine-tune BERT-large on custom Arabic dataset (50GB)<br>
+          <strong>Budget:</strong> Limited project credits on RCCG GPU Cloud</p>
+        </div>
+
+        <h3>Week 1: Development on Raad2-GFX (FREE)</h3>
+
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># SSH to Raad2-GFX
+ssh ahmed@raad2-gfx.hbku.edu.qa
+
+# Create environment
+conda create -n arabic_bert python=3.11 -y
+conda activate arabic_bert
+conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
+pip install transformers datasets accelerate tensorboard
+
+# Save environment
+conda env export > environment.yml
+
+# Create test dataset (1GB - 2% of full data)
+python create_test_dataset.py --size 0.02
+
+# Develop and test training script
+# ... iterate, debug, adjust hyperparameters ...
+
+# After successful test runs - Code is ready! ✅</code>
+        </div>
+
+        <h3>Day 1-2: Cloud Setup & Data Upload</h3>
+
+        <ol>
+          <li>Create 1TB Volume in web interface</li>
+          <li>Create Staging VM (n1-cpu-small)</li>
+          <li>Upload data to staging VM (~10 hours, cost: $3.50)</li>
+          <li>Create GPU VM (n3-H100x1)</li>
+          <li>Transfer volume from staging to GPU VM</li>
+          <li>Recreate environment on GPU VM</li>
+        </ol>
+
+        <h3>Days 3-5: Production Training</h3>
+
+        <p>Training runs for 72 hours on H100 GPU:</p>
+
+        <table class="table cost-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Duration</th>
+              <th>Rate</th>
+              <th>Cost</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Staging VM (upload)</td>
+              <td>10 hours</td>
+              <td>$0.35/hr</td>
+              <td>$3.50</td>
+            </tr>
+            <tr>
+              <td>GPU VM H100x1 (training)</td>
+              <td>72 hours</td>
+              <td>$1.90/hr</td>
+              <td>$136.80</td>
+            </tr>
+            <tr>
+              <td>Staging VM (download)</td>
+              <td>2 hours</td>
+              <td>$0.35/hr</td>
+              <td>$0.70</td>
+            </tr>
+            <tr>
+              <td>Volume 1TB</td>
+              <td>84 hours</td>
+              <td>$0.097/TB/hr</td>
+              <td>$8.15</td>
+            </tr>
+            <tr class="cost-total">
+              <td colspan="3"><strong>TOTAL</strong></td>
+              <td><strong>$149.15</strong></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="success-box">
+          <h4>💰 Cost Savings</h4>
+          <ul class="mb-0">
+            <li><strong>Without Raad2-GFX:</strong> Would have debugged on cloud (+20 hours) = $187.15</li>
+            <li><strong>Without staging VM:</strong> Upload/download on GPU VM (+12 hours) = $171.95</li>
+            <li><strong>With optimal workflow:</strong> $149.15</li>
+            <li><strong>Total savings:</strong> $38-$48</li>
+            <li><strong>Plus:</strong> Development on Raad2-GFX was FREE!</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Best Practices -->
+      <section id="section-practices" class="content-section">
+        <h2>7. Best Practices</h2>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="success-box">
+              <h4>✅ DO</h4>
+              <ul class="mb-0">
+                <li>Complete ALL debugging on Raad2-GFX (free!)</li>
+                <li>Use staging VM for uploads ($0.35/hr vs $1.90/hr)</li>
+                <li>Always run jobs in <code>tmux</code></li>
+                <li>Save outputs to mounted volumes</li>
+                <li>Enable checkpointing every few epochs</li>
+                <li>Download results promptly</li>
+                <li>Delete VMs when done</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <div class="warning-box">
+              <h4>❌ DON'T</h4>
+              <ul class="mb-0">
+                <li>Don't upload data to GPU VM directly</li>
+                <li>Don't run jobs without tmux</li>
+                <li>Don't save data to ephemeral storage</li>
+                <li>Don't leave idle VMs running</li>
+                <li>Don't forget to unmount before detaching</li>
+                <li>Don't delete VMs without downloading results</li>
+                <li>Don't skip testing on Raad2-GFX</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <h3>Cost Optimization Tips</h3>
+
+        <table class="table table-bordered mt-3">
+          <thead>
+            <tr>
+              <th>Scenario</th>
+              <th>Using GPU VM</th>
+              <th>Using Staging VM</th>
+              <th>Savings</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Upload 500GB (10 hours)</td>
+              <td>$13.50</td>
+              <td>$3.50</td>
+              <td><strong>$10.00</strong></td>
+            </tr>
+            <tr>
+              <td>Download 100GB (2 hours)</td>
+              <td>$2.70</td>
+              <td>$0.70</td>
+              <td><strong>$2.00</strong></td>
+            </tr>
+            <tr class="table-success">
+              <td><strong>Total</strong></td>
+              <td>$16.20</td>
+              <td>$4.20</td>
+              <td><strong>$12.00</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Troubleshooting -->
+      <section id="section-troubleshooting" class="content-section">
+        <h2>8. Troubleshooting</h2>
+
+        <h3>Environment Doesn't Work on Cloud</h3>
+        
+        <p><strong>Problem:</strong> Conda environment from Raad2-GFX fails to install on cloud VM.</p>
+        
+        <p><strong>Solution:</strong></p>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># On Raad2-GFX: Export with explicit versions
+conda list --explicit > spec-file.txt
+
+# On Cloud VM: Create from spec file
+conda create --name myproject --file spec-file.txt</code>
+        </div>
+
+        <h3>Singularity Container Issues</h3>
+        
+        <p><strong>Problem:</strong> Container works on Raad2-GFX but fails on cloud.</p>
+        
+        <p><strong>Solution:</strong></p>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># Ensure GPU binding is correct
+singularity exec --nv mycontainer.sif nvidia-smi
+
+# Bind volume paths explicitly
+singularity exec --nv \
+    --bind /mnt/user_volume:/workspace \
+    mycontainer.sif \
+    python train.py --data /workspace/datasets/</code>
+        </div>
+
+        <h3>Volume Not Mounting</h3>
+        
+        <p><strong>Problem:</strong> Volume doesn't mount on cloud VM.</p>
+        
+        <p><strong>Solution:</strong></p>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># Check if volume is attached
+lsblk
+ls -l /dev/disk/by-id/virtio-*
+
+# Verify device path from UI (must match exactly!)
+DEVICE="/dev/disk/by-id/virtio-xxxxx"
+ls -l ${DEVICE}
+
+# If already formatted, skip mkfs.ext4!
+sudo mount ${DEVICE} /mnt/user_volume</code>
+        </div>
+
+        <h3>CUDA Version Mismatch</h3>
+        
+        <p><strong>Problem:</strong> Code works on Raad2-GFX (CUDA 12.8) but fails on cloud.</p>
+        
+        <p><strong>Solution:</strong></p>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># Check CUDA version on cloud VM
+nvidia-smi
+nvcc --version
+
+# If using Conda, specify compatible CUDA
+conda install pytorch torchvision pytorch-cuda=12.1 -c pytorch -c nvidia</code>
+        </div>
+      </section>
+
+      <!-- Advanced Topics -->
+      <section id="section-advanced" class="content-section">
+        <h2>9. Advanced Topics</h2>
+
+        <h3>9.1 Multi-GPU Training Migration</h3>
+
+        <p><strong>Developing on Raad2-GFX (2 GPUs):</strong></p>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># PBS script for 2-GPU testing
+#PBS -l select=1:ncpus=36:ngpus=2:mem=128gb
+
+python -m torch.distributed.launch \
+    --nproc_per_node=2 \
+    train.py --data ./test_data --epochs 5</code>
+        </div>
+
+        <p><strong>Scaling to Cloud (4 or 8 GPUs):</strong></p>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># On H100x4 or H100x8
+python -m torch.distributed.launch \
+    --nproc_per_node=4 \
+    train.py \
+    --data /mnt/user_volume/datasets/ \
+    --batch-size 128  # Higher batch with more GPUs</code>
+        </div>
+
+        <h3>9.2 Jupyter Notebook Workflow</h3>
+
+        <p><strong>On Raad2-GFX:</strong></p>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># Interactive PBS job
+qsub -I -l select=1:ncpus=18:ngpus=1:mem=64gb -l walltime=04:00:00 -q gpu
+
+# Start Jupyter
+jupyter lab --ip=0.0.0.0 --port=8888 --no-browser
+
+# From laptop: SSH tunnel
+ssh -L 8888:compute-node:8888 username@raad2-gfx.hbku.edu.qa</code>
+        </div>
+
+        <p><strong>On Cloud:</strong></p>
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">📋 Copy</button>
+          <code># In tmux on GPU VM
+jupyter lab --ip=0.0.0.0 --port=8888 --no-browser
+
+# From laptop: SSH tunnel
+ssh -L 8888:localhost:8888 ubuntu@gpu-vm-ip
+
+# Access: http://localhost:8888</code>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section id="section-faq" class="content-section">
+        <h2>10. Frequently Asked Questions</h2>
+
+        <h3>Q1: Can I skip Raad2-GFX and go directly to cloud?</h3>
+        <p><strong>A:</strong> Yes, but it's not recommended. You'll waste money debugging on expensive GPUs. Raad2-GFX is free and unlimited - use it for all development and testing. Only use cloud for validated production runs.</p>
+
+        <h3>Q2: What if my code works on Raad2-GFX but fails on cloud?</h3>
+        <p><strong>A:</strong> Most likely an environment issue. Make sure to:</p>
+        <ul>
+          <li>Export environment with explicit versions</li>
+          <li>Use Singularity containers for perfect reproducibility</li>
+          <li>Check CUDA version compatibility</li>
+          <li>Verify all paths are relative or configurable</li>
+        </ul>
+
+        <h3>Q3: How long should I develop on Raad2-GFX?</h3>
+        <p><strong>A:</strong> Until you have bug-free code, validated approach, optimized hyperparameters, and tested on small dataset. Typically 1-2 weeks of development/testing.</p>
+
+        <h3>Q4: Can I use the same code on both systems?</h3>
+        <p><strong>A:</strong> Yes! That's the goal. Use relative paths, Conda/Singularity for environments, same Python/PyTorch versions, and configurable hyperparameters.</p>
+
+        <h3>Q5: How do I minimize cloud costs?</h3>
+        <p><strong>A:</strong> Follow this workflow:</p>
+        <ul>
+          <li>✅ Complete ALL development on Raad2-GFX (free!)</li>
+          <li>✅ Use staging VM for transfers ($0.35/hr vs $1.90/hr)</li>
+          <li>✅ Right-size GPU (don't use H100 if A100 sufficient)</li>
+          <li>✅ Stop/delete VMs immediately after downloading</li>
+          <li>✅ Share volumes across team</li>
+        </ul>
+      </section>
+
+      <!-- Summary Checklist -->
+      <section id="section-checklist" class="content-section">
+        <h2>11. Summary Checklist</h2>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="phase-card">
+              <h3>Before Cloud Migration</h3>
+              <ul class="checklist checklist-empty">
+                <li>Code runs successfully on Raad2-GFX</li>
+                <li>Results validated on test dataset</li>
+                <li>Environment exported (.yml or .sif)</li>
+                <li>Code packaged and documented</li>
+                <li>Data size estimated</li>
+                <li>Budget approved</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="phase-card">
+              <h3>During Cloud Setup</h3>
+              <ul class="checklist checklist-empty">
+                <li>Volume created with sufficient size</li>
+                <li>Staging VM created</li>
+                <li>Data uploaded via staging VM</li>
+                <li>GPU VM created</li>
+                <li>Environment recreated successfully</li>
+                <li>GPU access verified</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="phase-card">
+              <h3>During Training</h3>
+              <ul class="checklist checklist-empty">
+                <li>Job running in tmux</li>
+                <li>Outputs saving to volume</li>
+                <li>Checkpointing enabled</li>
+                <li>Monitoring setup</li>
+                <li>Progress logged to file</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="phase-card">
+              <h3>After Training</h3>
+              <ul class="checklist checklist-empty">
+                <li>Results verified</li>
+                <li>Data downloaded locally</li>
+                <li>Volume unmounted safely</li>
+                <li>GPU VM stopped/deleted</li>
+                <li>Staging VM stopped/deleted</li>
+                <li>Volume snapshot created (optional)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="success-box mt-4">
+          <h4>🎯 Key Takeaway</h4>
+          <p class="mb-0">Raad2-GFX is your <strong>free development playground</strong>. RCCG GPU Cloud is your <strong>production powerhouse</strong>. Use each for what it does best!</p>
+        </div>
+      </section>
+
+      <!-- Contact Info -->
+      <section class="content-section">
+        <h2>12. Getting Help</h2>
+
+        <div class="row">
+          <div class="col-md-6">
+            <h3>Raad2-GFX Support</h3>
+            <ul>
+              <li><strong>Email:</strong> rccg@hbku.edu.qa</li>
+              <li><strong>Wiki:</strong> <a href="https://rccg.hbku.edu.qa/wiki/Main_Page" target="_blank">RCCG Wiki</a></li>
+              <li><strong>Office Hours:</strong> Check RCCG website</li>
+            </ul>
+          </div>
+
+          <div class="col-md-6">
+            <h3>RCCG GPU Cloud Support</h3>
+            <ul>
+              <li><strong>In-App:</strong> Feedback button</li>
+              <li><strong>Email:</strong> rccg@hbku.edu.qa</li>
+              <li><strong>Documentation:</strong> Available in app</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<footer class="mt-5 py-4 bg-light">
+  <div class="container text-center">
+    <p class="text-muted mb-0">
+      <strong>Happy Computing! 🚀</strong><br>
+      RCCG - Research Computing Core Group | Hamad Bin Khalifa University<br>
+      <small>Last Updated: November 2024</small>
+    </p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script>
+function copyCode(button) {
+  const codeBlock = button.nextElementSibling;
+  const text = codeBlock.textContent;
+  
+  navigator.clipboard.writeText(text).then(() => {
+    const originalText = button.textContent;
+    button.textContent = '✓ Copied!';
+    button.classList.add('btn-success');
+    button.classList.remove('btn-light');
+    
+    setTimeout(() => {
+      button.textContent = '📋 Copy';
+      button.classList.remove('btn-success');
+      button.classList.add('btn-light');
+    }, 2000);
+  }).catch(err => {
+    console.error('Failed to copy:', err);
+    button.textContent = '✗ Failed';
+  });
+}
+
+// Smooth scroll for navigation
+document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+  link.addEventListener('click', function(e) {
+    e.preventDefault();
+    const targetId = this.getAttribute('href');
+    const targetSection = document.querySelector(targetId);
+    
+    // Update active state
+    document.querySelectorAll('.sidebar .nav-link').forEach(l => l.classList.remove('active'));
+    this.classList.add('active');
+    
+    // Smooth scroll
+    targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+// Update active nav on scroll
+window.addEventListener('scroll', () => {
+  let current = '';
+  document.querySelectorAll('.content-section').forEach(section => {
+    const sectionTop = section.offsetTop;
+    if (pageYOffset >= sectionTop - 100) {
+      current = section.getAttribute('id');
+    }
+  });
+  
+  document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('href') === `#${current}`) {
+      link.classList.add('active');
+    }
+  });
+});
+</script>
+
+</body>
+</html>

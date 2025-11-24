@@ -61,11 +61,14 @@ body {
     /* margin-left: auto; */
     background: white;
     border-radius: 10px;
-    padding: 20px;
+    /* padding: 20px; */
+    padding: 10px 20px 0px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     height: fit-content;
     position: sticky;
     top: 90px;
+    max-height: 560px; /* or any value y*/
+    overflow-y: auto;  /* adds scroll if content exceeds */
 }
 
 /* Help Card */
@@ -81,10 +84,12 @@ body {
     /* min-height: fit-content; */
     background: #fff9e6;
     border-left: 4px solid #ffc107;
-    padding: 15px;
+    padding: 2px;
     border-radius: 5px;
     margin-bottom: 20px;
-    overflow: hidden;
+    /* overflow: hidden; */
+    max-height: 350px; /* or any value y*/
+    overflow-y: auto;  /* adds scroll if content exceeds */
 }
 .help-card .copy-btn {
     font-size: 0.85rem;
@@ -204,7 +209,7 @@ body {
     display: flex;
     align-items: center;
     padding: 12px;
-    margin-bottom: 8px;
+    margin-bottom: 2px;
     border-radius: 6px;
     cursor: pointer;
     transition: background 0.2s;
@@ -224,20 +229,24 @@ body {
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: #e0e0e0;
+    background: #fffefe;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-right: 10px;
     font-size: 12px;
+    font-weight: bold;
+    color: #333 
 }
 .workflow-step.active .icon {
     background: white;
     color: #667eea;
+    font-weight: bold;
 }
 .workflow-step.completed .icon {
     background: #28a745;
     color: white;
+    font-weight: bold;
 }
 
 .card-header {
