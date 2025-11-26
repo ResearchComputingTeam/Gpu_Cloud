@@ -25,14 +25,17 @@
       <div class="d-flex justify-content-end gap-1">
         <!-- Documentation Links -->
         <div class="btn-group btn-group-sm" role="group">
+          <a href="project_overview.html" class="btn btn-outline-light btn-sm" target="_blank" title="Complete User Guide">
+            🗺️ Overview
+          </a>
           <a href="documentation.html" class="btn btn-outline-light btn-sm" target="_blank" title="Complete User Guide">
-            📚 Docs
+            📖 Documentation
           </a>
           <a href="cheatsheet.html" class="btn btn-outline-light btn-sm" target="_blank" title="Quick Reference">
-            ⚡ Cheat Sheet
+            ⚡Cheat Sheet
           </a>
         </div>
-          <button class="btn btn-light btn-sm" onclick="goBackToProjectPanel()">← Back</button>
+          <!-- <button class="btn btn-light btn-sm" onclick="goBackToProjectPanel()">← Back</button> -->
         </div>
       </div>
     </div>
@@ -358,7 +361,7 @@ async function displayProjectInfo(data, isSuccess) {
       <small>Project Responsible: ${data.pi_name}</small><br>
       <small>ID: ${escapeHtml(data.project_id)}</small><br>
       <small>Status: ${data.status || 'Active'}</small><br>
-      <small>Remaining Credits: ${remainingCredits.toFixed(2)}</small>
+      <small>Remaining Credits: $${remainingCredits.toFixed(2)}</small>
       <br>
       ${(isOwner || isSystemAdmin) ? `
         <button class="btn btn-sm btn-outline-primary mt-2" onclick="window.open('team_management.html', '_blank')">
@@ -522,6 +525,105 @@ function initializeFromUrl() {
     console.log('📍 Project ID from URL:', projectIdFromUrl);
   }
 }
+
+
+
+
+
+
+
+// async function importSshKey() {
+//   const projectIdstored = document.getElementById('projectId').value.trim();
+//   console.log('importSshKey() called for project:', projectIdstored);
+
+//   // Show ssh public key field card
+//   document.getElementById('pubkey').style.display = 'block';
+
+//   // Get and validate inputs
+//   // const inputs = getFormInputs();
+//   // const errors = validateFormInputs(inputs);
+  
+//   // if (errors.length > 0) {
+//   //   showMessage(errors.join(' | '), 'warning');
+//   //   return;
+//   // }
+
+
+// const key = document.getElementById("pubkey").value.trim();
+// const user = await supabase.auth.getUser();
+// console.log('user email:', user.data.user.email);
+
+// if (!user.data.user) return alert("Not authenticated");
+
+// const token = (await supabase.auth.getSession()).data.session.access_token;
+// console.log('token:', token);
+
+// const res = await fetch("https://your-n8n-domain/webhook/import_ssh", {
+//   method: "POST",
+//   headers: {
+//     "Content-Type": "application/json",
+//     "Authorization": `Bearer ${token}`
+//   },
+//   body: JSON.stringify({
+//     project_id: CURRENT_PROJECT_ID,
+//     public_key: key
+//   })
+//   });
+
+//   const result = await res.json();
+//   document.getElementById("result").innerText = result.message;
+
+
+
+  
+//   console.log('Creating VM with inputs:', inputs);
+
+//   const payload = { project_id: projectIdstored,  };
+//   try {
+//       const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/${action}`;
+      
+//       console.log('Calling webhook:', webhookUrl, 'with payload:', inputs);
+//       showProgress("Volume Creation is starting", 'info', 'create_volume');
+      
+//       const response = await fetch(webhookUrl, {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify(inputs)
+//       });
+
+//       if (!response.ok) {
+//         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+//       }
+
+//       const data = await response.json();
+
+//       if (!data.success) {
+//         throw new Error(data.message || 'Action failed');
+//       }
+      
+//       showProgress("Volume creation is starting", 'info', 'volume_creation');
+//       //CheckVolumeStatus(volumeName.user_vm_name);
+//       console.log('Response received:', data);
+      
+//       if (data.success) {
+//         showProgress('Volume creation is over', 'info', 'vm_available');
+//         displayVolumeDetails(data);
+//         // loadVolumes();
+//         return;
+//       } else {
+//           showProgress(`Volume creation failed: ${data.message || 'Unknown error'}`, 'danger', 'volume_error');
+//           showError(JSON.stringify(data));
+//           throw new Error(data.message || 'Action failed');
+//       }
+      
+//     } catch (error) {
+//       console.error('Error:', error);
+//       showProgress(`Error: ${error.message}`, 'danger', 'volume_error');
+//       showError(error.message);
+//       throw error; // Re-throw so caller knows it failed
+//     }
+//}
+
 
 // Initialize on page load
 window.addEventListener('load', () => {

@@ -386,6 +386,10 @@ function displayVmDetails(data) {
               </tr>
             </tbody>
           </table>
+
+          <!-- Action Button -->
+          <div style="margin-top: 16px;">
+            <button class="btn btn-primary" onclick="goToHandleVmsPage()">🖥️ Manage this VM</button> 
           </div>
         </div>
       </div>
@@ -510,9 +514,129 @@ function displayVmDetails(data) {
             📎 Attach Volume
           </button>
         </div>
+
+        <!-- Add SSH key Button -->
+        <button class="btn btn-sm btn-outline-secondary mt-2" onclick="openImportSshModal('${data.ssh_key_name}', '${data.user_vm_ip}')" ${data.request_status !== 'running' ? 'disabled' : ''} title="${data.request_status !== 'running' ? 'VM must be running to add ssh key' : 'Import a ssh key to this VM'}">
+          ➕🔐Import my SSH public key
+        </button>
+
       </div>
     `;
   }
+}
+
+let currentEnvKeyName = null;
+let currentVmIp = null;
+
+// Open the modal
+function openImportSshModal(env_key_name, vm_ip) {
+  console.log('openImportSshModal called with params:', env_key_name, vm_ip);
+  currentEnvKeyName = env_key_name;
+  currentVmIp = vm_ip;
+
+  // Clear previous feedback and textarea
+  document.getElementById("sshPublicKey").value = '';
+  const feedback = document.getElementById("importSshFeedback");
+  feedback.style.display = 'none';
+  feedback.innerText = '';
+
+  // Show the modal
+  const modalEl = document.getElementById('importSshModal');
+  const modal = new bootstrap.Modal(modalEl);
+  modal.show();
+}
+
+// async function openImportSshModal(env_key_name, vm_ip) {
+
+// Handle Import click inside modal
+document.getElementById("importSshBtn").addEventListener("click", async () => {
+
+  const publicKey = document.getElementById("sshPublicKey").value.trim();
+  const feedback = document.getElementById("importSshFeedback");
+
+  console.log('publicKey, feedback:', publicKey, feedback);
+
+
+  if (!publicKey) {
+    feedback.style.display = "block";
+    feedback.innerText = "Please paste your SSH public key.";
+    return;
+  }
+
+  // Clear previous messages
+  feedback.style.display = "none";
+
+  const user = await supabase.auth.getUser();
+  if (!user.data.user) return alert("Not authenticated");
+  console.log('user email:', user.data.user.email);
+
+  // Get Supabase access token
+  const session = (await supabase.auth.getSession()).data.session;
+  if (!session) {
+    feedback.style.display = "block";
+    feedback.innerText = "You must be logged in.";
+    return;
+  }
+
+  // Call n8n webhook
+  const payload = { pubkey: publicKey, envkey_name: currentEnvKeyName, vm_ip: currentVmIp};
+
+  try {
+    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/add_ssh_key`;
+    
+    console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
+    
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      feedback.style.display = "block";
+      feedback.innerText = "HTTP Error importing SSH key.";
+      // throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      return;
+    }
+
+    const data = await response.json();
+    console.log('Response received:', data);
+
+    if (!data.success) {
+      feedback.style.display = "block";
+      feedback.innerText = data.error || "Error importing SSH key.";
+      return;
+    } else { 
+      // data.success = true 
+      const modalEl = document.getElementById('importSshModal');
+      const modal = bootstrap.Modal.getInstance(modalEl);
+      modal.hide();
+      // alert("SSH key imported successfully!");
+      // Show success toast
+      const toastEl = document.getElementById('sshToast');
+      const toastBody = document.getElementById('sshToastBody');
+      toastBody.innerText = "SSH key imported successfully!";
+      const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+      toast.show();
+      return;
+    }
+
+  } catch (error) {
+    console.error('Error caught:', error);
+    feedback.style.display = "block";
+    feedback.innerText = "ERROR importing SSH key.";
+    throw error; // Re-throw so caller knows it failed
+  }
+
+});
+
+
+function goToHandleVmsPage() {
+  const projectID =  getProjectIdFromUrl();
+  // Pass project ID to new page via URL parameter
+  const creatVmUrl = `handle_vms.html?project_id=${encodeURIComponent(projectID)}`;
+  // Open in new tab
+  window.open(creatVmUrl, '_blank');
 }
 
 function displayVolumeDetails(data) {

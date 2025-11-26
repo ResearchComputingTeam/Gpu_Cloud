@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RCCG GPU Cloud Project – Detailed Summary</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js"></script>
+  <style>
+    .card { 
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        border: none;
+        /* max-width: 100%; */
+        overflow: hidden;
+        /* This makes it responsive but caps its size */
+        width: 100%; 
+        max-width: none;
+    }
+    .card-header {
+      color: white;
+      border: none;
+      padding: 20px;
+    }
+    h1 {
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      font-size: 2rem;
+      margin-bottom: 2px;
+    }
+    h1 span.icon {
+      margin-right: 12px;
+      font-size: 2.2rem;
+    }
+    h2 {
+      margin-top: 36px;
+      color: #1e3a8a;
+      display: flex;
+      align-items: center;
+      font-size: 1.6rem;
+    }
+    h2 span.icon {
+      font-size: 1.7rem;
+      margin-right: 10px;
+    }
+    h3 {
+      color: #eea508;
+      margin-top: 2px;
+    }
+    .callout {
+      padding: 18px 22px;
+      border-radius: 10px;
+      margin: 20px 0;
+      border-left: 6px solid;
+    }
+    .highlight {
+      background: #eff6ff;
+      border-color: #3b82f6;
+    }
+   .note {
+      background: #ecfdf5;
+      border-color: #10b981;
+    }
+    .warning {
+      background: #fff7ed;
+      border-color: #f97316;
+    }
+    .benefits {
+      background: #f0f9ff;
+      border-color: #0ea5e9;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 0.95rem;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #e2e8f0;
+    }
+    th {
+      background: #f1f5f9;
+      font-weight: 600;
+    }
+    pre {
+      background: #0f172a;
+      padding: 16px;
+      color: #fff;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="main-wrapper">
+  <main class="main-container" style="max-width: 1000px;">
+    
+    <!-- Breadcrumbs -->
+    <nav class="breadcrumbs" aria-label="breadcrumb">
+      <ol>
+        <li><a href="project_panel.html">🏠 Home</a></li>
+        <li class="active">Project Overview</li>
+      </ol>
+    </nav>
+
+    <!-- Main Card -->
+    <div class="card">
+      <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h1 class="mb-0">🗺️RCCG GPU Cloud Project</h1>
+            <h4 class="mt-2 d-block" style="opacity: 0.9;">Detailed Summary</h4>
+          </div>
+          <!-- <button class="btn btn-light btn-sm" onclick="window.history.back()">← Back</button> -->
+        </div>
+      </div>
+
+      <div class="card-body">
+        <p class="lead"><strong>Managed by the Research Computing Core Group (RCCG)</strong>, supported by the <strong>Office of the Vice President of Research (OVPR)</strong>, and developed exclusively for <strong>HBKU researchers</strong>.</p>
+
+        <div class="callout highlight">
+          <strong>💡 What is this document?</strong><br>
+          A comprehensive overview of the RCCG GPU Cloud Project: purpose, architecture, workflow, benefits, and future plans.
+        </div>
+
+        <hr class="my-4">
+
+        <!-- <h3 class="mt-4"><span class="section-icon">📘</span>1. Background & Strategic Motivation</h3> -->
+        <h2><span class="icon">📘</span>1. Background & Strategic Motivation</h2>
+
+        <p>
+          HBKU research increasingly relies on GPU-intensive workloads (AI/ML, image processing, scientific simulations).  
+          However, the new GPU-enabled HPC system (Raad3) is still under preparation.  
+          To ensure continuity and prevent delays in research output, RCCG launched the <strong>GPU Cloud Pilot Project</strong>.
+        </p>
+
+        <div class="callout note">
+          <strong>🌱 Strategic Goal:</strong> Provide temporary GPU capacity while building experience and understanding user needs for Raad3.
+        </div>
+
+        <p>The project supports a 4-month allocation (Nov 2025 – Feb 2026) of cloud-based GPU compute resources for selected HBKU research proposals.</p>
+
+        <hr class="my-4">
+
+        <h3 class="mt-4"><span class="section-icon">🛠️</span>2. RCCG's Fully In-House GPU Cloud Platform</h3>
+        <p>
+          A major accomplishment of this initiative is that <strong>RCCG engineered the entire cloud platform from scratch</strong>—architecture, automation, UI, backend, workflows, security, and integration.
+        </p>
+
+        <h4 class="mt-3">2.1 Platform Components</h4>
+        <ul>
+          <li>🖥 <strong>Custom Frontend Dashboard</strong> – deploy VMs, view status, track credits, access browser-based SSH.</li>
+          <li>📡 <strong>Supabase</strong> – real-time data layer, authentication, and live state broadcasting.</li>
+          <li>🔄 <strong>n8n Automation</strong> – orchestrates VM creation, stop/start, volume handling, credit consumption, and error recovery.</li>
+          <li>🎛 <strong>Hyperstack API</strong> – underlying GPU infrastructure (A100/H100 GPU nodes).</li>
+          <li>🔐 <strong>ngrok</strong> – secure tunneled access for web SSH.</li>
+        </ul>
+
+        <div class="callout benefits">
+          <strong>✨ Result:</strong> A unified HBKU-branded control panel that hides complex cloud mechanics and ensures RCCG-managed governance.
+        </div>
+
+        <h4 class="mt-3">2.2 Architecture Flow</h4>
+        <pre>User action in UI
+    ↓
+Supabase trigger or HTTP call
+    ↓
+n8n workflow
+    ↓
+Hyperstack API performs VM action (create/start/stop/delete)
+    ↓
+n8n writes results to Supabase
+    ↓
+UI refreshes instantly via real-time channels</pre>
+
+        <hr class="my-4">
+
+        <h3 class="mt-4"><span class="section-icon">🔑</span>3. Purpose of the Call for Proposals</h3>
+
+        <p>The call invites HBKU researchers to apply for GPU credits. This program aims to:</p>
+
+        <ul>
+          <li>🔧 Provide <strong>interim GPU power</strong> during the HPC upgrade period.</li>
+          <li>📈 Support promising research aligned with HBKU priorities.</li>
+          <li>📊 Gather insight into <strong>user needs and computational workflows</strong>.</li>
+          <li>🧪 Test RCCG's newly built platform with real workloads and real users.</li>
+        </ul>
+
+        <div class="callout highlight">
+          <strong>💰 Allocation:</strong> Up to <strong>7,500 QAR</strong> per project (or less if requested).
+        </div>
+
+        <hr class="my-4">
+
+        <h3 class="mt-4"><span class="section-icon">🧮</span>4. GPU Hardware Resources</h3>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="table-light">
+              <tr>
+                <th>Tier</th>
+                <th>GPU(s)</th>
+                <th>CPU / RAM</th>
+                <th>Storage</th>
+                <th>Cost (USD/h)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>MA1</strong></td>
+                <td>1×A100 (80GB)</td>
+                <td>28 vCPU / 120GB</td>
+                <td>100GB NVMe + 750GB ephemeral</td>
+                <td>1.35</td>
+              </tr>
+              <tr>
+                <td><strong>MH1</strong></td>
+                <td>1×H100 (80GB)</td>
+                <td>28 vCPU / 180GB</td>
+                <td>100GB NVMe + 750GB ephemeral</td>
+                <td>1.9</td>
+              </tr>
+              <tr>
+                <td><strong>MH4</strong></td>
+                <td>4×H100</td>
+                <td>124 vCPU / 720GB</td>
+                <td>3.2TB ephemeral</td>
+                <td>7.6</td>
+              </tr>
+              <tr>
+                <td><strong>MH8</strong></td>
+                <td>8×H100</td>
+                <td>252 vCPU / 1440GB</td>
+                <td>6.5TB ephemeral</td>
+                <td>15.2</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 class="mt-3">Storage</h4>
+        <ul>
+          <li>💾 <strong>Root Disk</strong> – 100GB included.</li>
+          <li>🗄 <strong>Network SSD Volumes</strong> – 1GB–2TB at $0.097/hr.</li>
+        </ul>
+
+        <h4 class="mt-3">Data Transfer</h4>
+        <p>RCCG recommends using <code>rsync</code> for all data movement due to its integrity checks and resumability.</p>
+
+        <hr class="my-4">
+
+        <h3 class="mt-4"><span class="section-icon">🎓</span>5. Award Workflow</h3>
+
+        <h4 class="mt-3">Application Requirements</h4>
+        <ul>
+          <li>HBKU LPI (research-active faculty or senior scientist)</li>
+          <li>One proposal per LPI</li>
+          <li>Justification of GPU hours</li>
+          <li>Alignment with HBKU themes</li>
+          <li>Demonstration of efficient resource usage</li>
+        </ul>
+
+        <h4 class="mt-3">Selection Criteria</h4>
+        <ul>
+          <li>📌 Strategic alignment</li>
+          <li>📌 Potential scientific impact</li>
+          <li>📌 Efficient use of GPU time</li>
+        </ul>
+
+        <div class="callout note">
+          <strong>🔬 Awardees:</strong> RCCG handles all onboarding, access creation, and platform support.
+        </div>
+
+        <hr class="my-4">
+
+        <h3 class="mt-4"><span class="section-icon">🎁</span>6. Benefits to HBKU Researchers</h3>
+
+        <div class="callout benefits">
+          <strong>Key Advantages:</strong><br>
+          • Instant access to powerful GPUs (A100/H100)<br>
+          • HBKU-branded platform – no external portals<br>
+          • Browser-based SSH (zero setup)<br>
+          • Fair-credit usage model<br>
+          • RCCG-managed security, governance & tracking<br>
+          • Smooth transition toward Raad3<br>
+        </div>
+
+        <hr class="my-4">
+
+        <h3 class="mt-4"><span class="section-icon">🚀</span>7. Future Directions</h3>
+
+        <h4 class="mt-3">7.1 Hybrid "GPU Burst-Out" with On-Prem Raad3</h4>
+        <ul>
+          <li>Use on-prem GPUs by default</li>
+          <li>Automatically burst to cloud during heavy load</li>
+          <li>Unified experience across environments</li>
+        </ul>
+
+        <h4 class="mt-3">7.2 Multi-Cloud Abstraction (Azure, AWS, Google, Hyperstack)</h4>
+        <ul>
+          <li>Prevent cloud vendor lock-in</li>
+          <li>Enable switching to cheaper or faster providers</li>
+          <li>Abstract VM provisioning across providers</li>
+        </ul>
+
+        <div class="callout warning">
+          <strong>🌍 Long-Term Vision:</strong> A flexible, vendor-agnostic GPU orchestration framework for HBKU.
+        </div>
+
+        <hr class="my-4">
+
+        <h3 class="mt-4"><span class="section-icon">🏁</span>8. Conclusion</h3>
+        <p>
+          The RCCG GPU Cloud Project delivers immediate GPU power for HBKU researchers, while simultaneously laying the foundation for future hybrid computing across cloud and on-prem systems.  
+          Through an entirely RCCG-built platform—UI, automation, database, integration, SSH access, and workflows—HBKU now has a scalable and extensible model for GPU computing support.
+        </p>
+
+      </div>
+
+      <div class="card-footer text-center bg-white">
+        <img src="https://commons.wikimedia.org/wiki/Special:FilePath/HBKU_logo.svg"
+            alt="HBKU Logo"
+            style="height: 60px; width: auto;">
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="utils.js"></script>
+
+<script>
+let currentUser = null;
+
+document.addEventListener('DOMContentLoaded', async function() {
+  currentUser = await requireAuth();
+  if (!currentUser) {
+    return;
+  }
+});
+</script>
+
+</body>
+</html>

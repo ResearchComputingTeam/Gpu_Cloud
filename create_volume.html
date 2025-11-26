@@ -79,7 +79,7 @@
             <!-- Documentation Links -->
             <div class="btn-group" role="group">
               <a href="documentation.html" class="btn btn-outline-light btn-sm" target="_blank" title="Complete User Guide">
-                📚 Docs
+                📖 Docs
               </a>
               <a href="cheatsheet.html" class="btn btn-outline-light btn-sm" target="_blank" title="Quick Reference">
                 ⚡ Cheat Sheet
@@ -551,7 +551,7 @@ async function loadVolumes() {
     console.log('Response received:', data);
     
     if (data.success) {
-      showMessage(`🔄 VM list updated`, 'success');
+      // showMessage(`🔄 VM list updated`, 'success');
       // showProgress('.', 'info', 'list_vms');
       //list the VMs
       displayVmsList(data);

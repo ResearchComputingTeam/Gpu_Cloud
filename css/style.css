@@ -7,7 +7,7 @@
     right: 0;
     background: rgba(255,255,255,0.95);
     border-top: 1px solid #e0e0e0;
-    padding: 10px 0;
+    padding: 10px 10px;
     text-align: center;
     font-size: 0.85rem;
 }
@@ -229,7 +229,7 @@ body {
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: #fffefe;
+    background: #dcd6f3;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -298,6 +298,16 @@ body {
 .vm-status.deleted {
     background: #f8d7da;
     color: #721c24;
+}
+
+.vm-status.vm_creation {
+    background: #eeb64e;
+    color: #704402;
+}
+
+.vm-status.vm_resuming {
+    background: #68c4a5;
+    color: #115c43;
 }
 
 

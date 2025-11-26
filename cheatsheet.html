@@ -379,7 +379,7 @@
     <!-- Volume Management - UPDATED WITH HYPERSTACK -->
     <div class="section-card">
       <div class="section-title">
-        <span class="section-icon">🔧</span>
+        <span class="section-icon">💽</span>
         Volume Management
       </div>
       
@@ -663,21 +663,47 @@ python train.py  # uses GPU 0 and 1 only</code>
       </div>
     </div>
 
-    <!-- SSH Tips -->
+    <!-- SSH Key Management - NEW -->
     <div class="section-card">
       <div class="section-title">
-        <span class="section-icon">🔐</span>
-        SSH Best Practices
+        <span class="section-icon">🔑</span>
+        SSH Key Management
       </div>
       
+      <div class="cmd-label">View your public key</div>
+      <div class="cmd-block">
+        <button class="copy-icon" onclick="copyCode(this)">📋</button>
+        <code>cat ~/.ssh/my_ssh_key.pub</code>
+      </div>
+
+      <div class="cmd-label">Generate new key pair</div>
+      <div class="cmd-block">
+        <button class="copy-icon" onclick="copyCode(this)">📋</button>
+        <code>ssh-keygen -t ed25519 -f ~/.ssh/my_ssh_key</code>
+      </div>
+
+      <div class="cmd-label">Copy to clipboard (macOS)</div>
+      <div class="cmd-block">
+        <button class="copy-icon" onclick="copyCode(this)">📋</button>
+        <code>pbcopy < ~/.ssh/my_ssh_key.pub</code>
+      </div>
+
+      <div class="tip">
+        <strong>Import SSH keys to VMs:</strong> Use the "Import SSH Key" button in VM details to add your ssh key to the VM you want to get access to.
+      </div>
+
       <div class="cmd-label">SSH with key</div>
       <div class="cmd-block">
         <button class="copy-icon" onclick="copyCode(this)">📋</button>
         <code>ssh -i ~/.ssh/id_rsa user@vm-ip</code>
       </div>
 
+      <div class="warning">
+        <strong>⚠️ Never share private keys!</strong> Only import .pub files to VMs.
+      </div>
+
       <div class="tip">
-        <strong>💡 Security:</strong> Always use SSH keys, never passwords. Upload your public key to Profile → SSH Keys.
+        <strong>💡 Security:</strong> Always use SSH keys, never passwords.
       </div>
     </div>
 
@@ -689,6 +715,7 @@ python train.py  # uses GPU 0 and 1 only</code>
       </div>
       
       <ul class="quick-list mb-0">
+        <li>✅ SSH key imported to VM</li>
         <li>✅ Copy device path from UI</li>
         <li>✅ Mount volume correctly</li>
         <li>✅ Setup auto-mount if needed</li>
@@ -719,6 +746,8 @@ python train.py  # uses GPU 0 and 1 only</code>
           <li>Delete VMs without backing up</li>
           <li>Forget <code>nofail</code> in fstab</li>
           <li>Use wrong device path</li>
+          <li>Forget to import SSH key to your VMs</li>
+          <li>Share or upload private SSH keys (.pem, id_rsa without .pub)</li>
         </ul>
       </div>
     </div>
@@ -818,11 +847,11 @@ python train.py  # uses GPU 0 and 1 only</code>
       </div>
       
       <div class="tip">
-        <strong>📚 Full Documentation:</strong> See <code>documentation.html</code> for detailed guides
+        <strong>📖 Full Documentation:</strong> See <a href="documentation.html" target="_blank">RCCG GPU Cloud documentation</a>
       </div>
       
       <div class="tip">
-        <strong>🐛 Issues:</strong> Report bugs or request features through the UI feedback button
+        <strong>🐛 Issues:</strong> Report bugs or request new features at <strong>rccg@hbku.edu.qa</strong>
       </div>
     </div>
 

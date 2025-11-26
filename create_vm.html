@@ -89,10 +89,10 @@
                 <!-- Documentation Links -->
                 <div class="btn-group" role="group">
                   <a href="documentation.html" class="btn btn-outline-light btn-sm" target="_blank" title="Complete User Guide">
-                    📚 Docs
+                    📖 Docs
                   </a>
                   <a href="cheatsheet.html" class="btn btn-outline-light btn-sm" target="_blank" title="Quick Reference">
-                    ⚡ Cheat Sheet
+                    ⚡Cheat Sheet
                   </a>
                 </div>
                 <button class="btn btn-light btn-sm" onclick="goBackToProjectPanel()">← Back</button>
@@ -106,23 +106,23 @@
               <label class="form-label"><strong>Hardware Flavor</strong></label>
               <div class="form-check">
                   <input class="form-check-input" type="radio" name="flavor" id="n1-cpu-small" value="n1-cpu-small">
-                  <label class="form-check-label" for="n1-cpu-small">CPU Only $0.3484/hour <small class="text-muted">(can be used as staging VM)</small></label>
+                  <label class="form-check-label" for="n1-cpu-small">CPU Only <small class="text-muted">$0.3484/hour (can be used as staging VM)</small></label>
               </div>
               <div class="form-check">
                   <input class="form-check-input" type="radio" name="flavor" id="n3-A100x1" value="n3-A100x1">
-                  <label class="form-check-label" for="n3-A100x1">Single A100 GPU PCIe $1.35/hour</label>
+                  <label class="form-check-label" for="n3-A100x1">Single A100 GPU PCIe <small class="text-muted">$1.35/hour</small></label>
               </div>
               <div class="form-check">
                   <input class="form-check-input" type="radio" name="flavor" id="n3-H100x1" value="n3-H100x1">
-                  <label class="form-check-label" for="n3-H100x1">Single H100 GPU PCIe $1.90/hour</label>
+                  <label class="form-check-label" for="n3-H100x1">Single H100 GPU PCIe <small class="text-muted">$1.90/hour</small></label>
               </div>
               <div class="form-check">
                   <input class="form-check-input" type="radio" name="flavor" id="n3-H100x4" value="n3-H100x4">
-                  <label class="form-check-label" for="n3-H100x4">4 x H100 GPU PCIe $7.60/hour</label>
+                  <label class="form-check-label" for="n3-H100x4">4 x H100 GPU PCIe <small class="text-muted">$7.60/hour</small></label>
               </div>
               <div class="form-check">
                   <input class="form-check-input" type="radio" name="flavor" id="n3-H100x8" value="n3-H100x8">
-                  <label class="form-check-label" for="n3-H100x8">8 x H100 GPU PCIe $15.20/hour</label>
+                  <label class="form-check-label" for="n3-H100x8">8 x H100 GPU PCIe <small class="text-muted">$15.20/hour</small></label>
               </div>
           </div>
           <div class="col-md-6">
@@ -303,10 +303,36 @@ const helpContent = {
   ssh: {
     title: '🔑 Step 3: SSH Access',
     content: `<p>Once your VM is ready, connect via SSH:</p>
-    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0;">
-      <code>ssh -i ~/.ssh/my_ssh_private_key ubuntu@VM_IP</code>
-    </div>
-    <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('ssh -i ~/.ssh/my_ssh_private_key ubuntu@VM_IP')">Copy</button>`
+    <p class="mb-0 mt-0"><strong>To access your VM, you first need to:</strong></p>
+    <ol class="mb-0 mt-0">
+      <li>Generate your own SSH key pair</li>
+        <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0;">
+          <code>ssh-keygen -t ed25519 -f ~/.ssh/my_ssh_key</code>
+          <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('ssh-keygen -t ed25519 -f ~/.ssh/my_ssh_key')">Copy</button>
+        </div>
+      <li>Import the public part of this key pair (aka your public key) to your VM:</li>
+        <ol class="mb-0">
+          <li>Go to "Manage VMs" page, select your target VM</li>
+          <li>In the "Details" panel, click on "➕🔐Import my SSH public key" button</li>
+          <li>Paste the content of your public key (my_ssh_key.pub) into the displayed field and click "import"</li>
+          <li>⚠️Warning: don't paste the content of your private key (my_ssh_key), this should never be disclosed</li>
+        </ol>
+      <li>Then you can access your VM through the <strong>SSH Command</strong> by pointing to the path of your private ssh keys:</li>
+        <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0;">
+          <code>ssh -i ~/.ssh/my_ssh_key ubuntu@&lt;VM_IP&gt;</code>
+          <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('ssh -i ~/.ssh/my_ssh_private_key ubuntu@&lt;VM_IP&gt;')">Copy</button>
+        </div>
+        <div>
+          <p class="mt-2 mb-0"><strong>Alternative: Use MobaXterm (Windows):</strong></p>
+            <ol class="mb-0">
+              <li>Create new SSH session</li>
+              <li>Enter VM IP address</li>
+              <li>Specify username</li>
+              <li>Use private key authentication (in "Advanced SSH settings")</li>
+              <li>Save session for future use</li>
+            </ol>
+        </div>
+    </ol>`
   },
   software: {
     title: '⚙️ Step 4: Setup Software Stack',
