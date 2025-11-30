@@ -124,7 +124,7 @@
 <script>
 // Create client using the global supabase object from CDN
 const { createClient } = supabase;
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 
 // Check if already logged in
 async function checkExistingSession() {

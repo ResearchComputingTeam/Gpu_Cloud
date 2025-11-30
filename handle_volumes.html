@@ -130,7 +130,7 @@
           <div class="btn-group d-flex gap-2">
               <button class="btn btn-primary" onclick="goToCreateVolumePage()">▶️ Create Volume</button>
           </div>
-          <button id="deleteVolumeButton" class="btn btn-danger">🗑️ Delete Volume</button>
+          <button id="deleteVolumeButton" class="btn btn-danger" data-loading="Deleting Volume...">🗑️ Delete Volume</button>
       </div>
     </div>
 
@@ -144,7 +144,8 @@
 
   </main>
 
-  <rightside>
+  <rightside class="rightside">
+  <!-- <rightside> -->
      <div id="progress-panel" class="card mt-1" style="box-shadow: none; border: 1px solid #757de7;">
       <div class="card-header" style="background: #757de7; padding: 6px 6px; line-height: 1.1;">
         <div class="d-flex justify-content-between align-items-center">
@@ -595,15 +596,11 @@ async function deleteVolume() {
   // Show the modal
   deleteModal.show();
 
-  // 🔴 FIX: Ensure UI is fully restored when modal is hidden
-  deleteModalEl.addEventListener('hidden.bs.modal', () => {
-    // Remove the class that disables scrolling
-    document.body.classList.remove('modal-open');
-
-    // Remove the backdrop manually if it’s still there
-    const backdrop = document.querySelector('.modal-backdrop');
-    if (backdrop) backdrop.remove();
-  });
+  // AFTER (proper cleanup):
+  const modal = bootstrap.Modal.getInstance(deleteModalEl);
+  if (modal) {
+    modal.hide();
+  }
 }
 
 
@@ -721,7 +718,7 @@ function displayVolumesList(responseData) {
               <strong>${escapeHtml(volume.volume_name.replace(/_[^_]*$/, ''))}</strong>
               <br>
               <small class="text-muted">
-                ${escapeHtml(volume.volume_size_gb) || 'N/A'}GB • $${escapeHtml(volume.volume_total_cost || 0).toFixed(2)}
+                ${escapeHtml(volume.volume_size_gb) || 'N/A'}GB • $${(volume.volume_total_cost || 0).toFixed(2)}
               </small>
             </div>
             <span class="volume-status ${escapeHtml(volume.volume_state)}">${escapeHtml(volume.volume_state.toLowerCase())}</span>

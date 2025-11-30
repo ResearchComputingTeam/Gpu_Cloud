@@ -9,7 +9,9 @@
   <script src="js/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
   <script src="auth.js"></script>
+  <script src="utils.js"></script>
 </head>
 
 <body>
@@ -148,7 +150,7 @@
                     placeholder="Volume Name"
                     onkeypress="handleEnter(event)">
         </div>
-        <button id="createVolumeButton" class="btn btn-primary">▶️ Create Volume</button>
+        <button id="createVolumeButton" class="btn btn-primary" data-loading="Creating Volume...">▶️ Create Volume</button>
       </div>
 
       <!-- Help Card (contextual) -->
@@ -161,7 +163,8 @@
 
   </main>
 
-  <rightside>
+  <!-- <rightside> -->
+  <rightside class="rightside">
 
     <div id="progress-panel" class="card mt-1" style="box-shadow: none; border: 1px solid #757de7;">
       <div class="card-header" style="background: #757de7; padding: 6px 6px; line-height: 1.1;">
@@ -208,7 +211,6 @@
   </rightside>
 </div>
 
-<script src="utils.js"></script>
 <script>
 
 let projectId = null;

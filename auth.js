@@ -1,10 +1,8 @@
-<script src="js/config.js"></script>
-
 // auth.js - Shared authentication utilities
 
 // CORRECT initialization
 const { createClient } = supabase;
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 
 // Check if user is authenticated
 async function requireAuth() {

@@ -13,9 +13,8 @@
   <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
   <script src="js/config.js"></script>
-  <script src="utils.js"></script>
   <script src="auth.js"></script>
-
+  <script src="utils.js"></script>
 </head>
 
 <body>
@@ -82,25 +81,33 @@
         <li class="active">Create VM</li>
       </ol>
     </nav>
+  
     <!-- Main Form Card -->
-      <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+      <div class="card-header">
         <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <h2 class="mb-0">➕ Create new VM</h2>
-                Project: <code id="projectIdDisplay" class="text-white">Loading...</code>
+          <div>
+            <h2 class="mb-0">💻Create VM</h2>
+            <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+              <span style="background: rgba(255,255,255,0.3); padding: 5px 15px; border-radius: 20px; font-weight: 600; font-size: 1rem; display: inline-flex; align-items: center; gap: 6px;">
+                <span style="font-size: 1.2rem;">📂</span>
+                <span id="projectNameDisplay">Loading...</span>
+              </span>
+              <small style="opacity: 0.75;">
+                <code class="text-white" id="projectIdDisplay" style="font-size: 0.85rem;">Loading...</code>
+              </small>
             </div>
-            <div class="d-flex gap-1">
-                <!-- Documentation Links -->
-                <div class="btn-group" role="group">
-                  <a href="documentation.html" class="btn btn-outline-light btn-sm" target="_blank" title="Complete User Guide">
-                    📖 Docs
-                  </a>
-                  <a href="cheatsheet.html" class="btn btn-outline-light btn-sm" target="_blank" title="Quick Reference">
-                    ⚡Cheat Sheet
-                  </a>
-                </div>
-                <button class="btn btn-light btn-sm" onclick="goBackToProjectPanel()">← Back</button>
+          </div>
+          <div class="d-flex gap-1">
+            <div class="btn-group" role="group">
+              <a href="documentation.html" class="btn btn-outline-light btn-sm" target="_blank" title="Complete User Guide">
+                📖 Docs
+              </a>
+              <a href="cheatsheet.html" class="btn btn-outline-light btn-sm" target="_blank" title="Quick Reference">
+                ⚡Cheat Sheet
+              </a>
             </div>
+            <button class="btn btn-light btn-sm" onclick="goBackToProjectPanel()">← Back</button>
+          </div>
         </div>
       </div>
 
@@ -157,7 +164,7 @@
                     placeholder="VM Name"
                     onkeypress="handleEnter(event)">
         </div>
-        <button id="createVmButton" class="btn btn-primary">▶️ Create GPU VM</button>
+        <button id="createVmButton" class="btn btn-primary" data-loading="⏳Creating VM...">▶️ Create GPU VM</button>
       </div>
 
       <!-- Help Card (contextual) -->
@@ -184,7 +191,8 @@
       </div>
   </main>
 
-  <rightside>
+  <!-- <rightside> -->
+  <rightside class="rightside">
 
     <div id="progress-panel" class="card mt-1" style="box-shadow: none; border: 1px solid #757de7;">
       <div class="card-header" style="background: #757de7; padding: 6px 6px; line-height: 1.1;">
@@ -231,7 +239,6 @@
   </rightside>
 </div>
 
-<script src="utils.js"></script>
 <script>
 let currentUser = null;
 
@@ -512,7 +519,7 @@ document.getElementById("createVmButton").addEventListener("click", async () => 
   // Show spinner + text
   createVmButton.innerHTML = `
     <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-    ⏳ Creating VM...
+    ⏳Creating VM...
   `;
 
   try {
@@ -632,7 +639,6 @@ async function triggerVmAction(action, inputs) {
       
     });
     return finalData;
-    
   } catch (error) {
     // Cleanup on any error
     if (requestId && actionResolvers[requestId]) {

@@ -175,17 +175,6 @@ async function fetchAssignedProjects() {
     renderProjectsList(data.projects, data.message);
     return;
 
-    // if (data.success) {
-    //   // Hide loading
-    //   // document.getElementById("projectsList").style.display = "none";
-    //   console.log('Success response received:');
-    //   renderProjectsList(data.projects, data.message);
-    //   return;
-    // } else {
-    //   console.log('Fail response received:');
-    //   renderProjectsList(data.projects, data.message);
-    //   return;
-    // }
   } catch (error) {
       console.error(error);
       document.getElementById("projectsList").innerHTML =
@@ -216,10 +205,10 @@ function renderProjectsList(projectlist, message) {
               style="cursor: pointer;">
           <div class="d-flex justify-content-between align-items-center">
             <div>
-              <strong>${escapeHtml(project.project_name)}</strong>
+              <strong class="badge bg-light text-dark border fs-6">${escapeHtml(project.project_name)}</strong>
               <br>
               <small class="text-muted">
-                ${escapeHtml(project.project_id) || 'N/A'} • Remaining Credits: $${escapeHtml(project.remaining_credits || 0).toFixed(2)}
+                ${escapeHtml(project.project_id) || 'N/A'} • Remaining Credits: $${(project.remaining_credits || 0).toFixed(2)}
               </small>
             </div>
             <span class="project-role ${project.role}">${escapeHtml(project.role)}</span>
@@ -318,32 +307,9 @@ let projectState = {
   projectData: null
 };
 
-// Show loading spinner on button
-// function setButtonLoading(isLoading) {
-//   const btn = document.querySelector('button[onclick="checkProjectStatus()"]');
-//   const spinner = document.getElementById('checkBtn-spinner');
-//   const text = document.getElementById('checkBtn-text');
-  
-//   if (isLoading) {
-//     btn.disabled = true;
-//     spinner.style.display = 'inline-block';
-//     text.style.opacity = '0.7';
-//   } else {
-//     btn.disabled = false;
-//     spinner.style.display = 'none';
-//     text.style.opacity = '1';
-//   }
-// }
 
 // Check project status
 async function checkProjectStatus(projectId) {
-  // const projectIdInput = document.getElementById('projectId').value.trim();
-  
-  // if (!projectId) {
-  //   showMessage('Please enter a Project ID', 'warning');
-  //   return;
-  // }
-
   // Check if user has access to this project
   const hasAccess = userProjects.some(p => p.project_id === projectId);
   
@@ -604,12 +570,6 @@ function openHandleVolumesPage() {
   window.open(handleVolumesUrl, '_blank');
 }
 
-// Handle Enter key on input field
-// function handleEnter(event) {
-//   if (event.key === 'Enter') {
-//     checkProjectStatus();
-//   }
-// }
 
 // Extract project ID from URL if provided
 function initializeFromUrl() {

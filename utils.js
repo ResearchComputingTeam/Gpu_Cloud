@@ -1,7 +1,4 @@
 // utils.js
-src="js/config.js"
-src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"
-
 
 const actionResolvers = {}; // { request_id: resolveFunction }
 
@@ -169,8 +166,9 @@ function sanitizeSSHKey(key) {
  * Basic validation - checks for common SSH key prefixes
  */
 function isValidSSHKey(key) {
+  console.log('1');
   if (!key || typeof key !== 'string') return false;
-  
+  console.log('2');
   // Common SSH key types
   const validPrefixes = [
     'ssh-rsa',
@@ -180,39 +178,27 @@ function isValidSSHKey(key) {
     'ecdsa-sha2-nistp384',
     'ecdsa-sha2-nistp521'
   ];
-  
+  console.log('3');
   // Check if key starts with a valid prefix
   const hasValidPrefix = validPrefixes.some(prefix => key.startsWith(prefix));
-  
+  console.log('4');
   if (!hasValidPrefix) return false;
-  
+  console.log('5');
   // SSH keys should have at least 3 parts: type, key, optional comment
   const parts = key.split(/\s+/);
   if (parts.length < 2) return false;
-  
+  console.log('6');
   // The key part should be base64 (letters, numbers, +, /, =)
   const keyPart = parts[1];
   if (!/^[A-Za-z0-9+/=]+$/.test(keyPart)) return false;
+  console.log('7');
   
   // Key should be reasonably long (at least 100 chars for the key part)
-  if (keyPart.length < 100) return false;
+  if (keyPart.length < 50) return false;
+  console.log('8');
   
   return true;
 }
-
-
-console.log('Testing SSH key validation:');
-
-// Valid key
-const validKey = 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl user@example.com';
-console.log('Valid key:', isValidSSHKey(validKey)); // Should be true
-
-// Invalid keys
-console.log('Empty:', isValidSSHKey('')); // false
-console.log('Too short:', isValidSSHKey('ssh-ed25519 ABC')); // false
-console.log('Wrong prefix:', isValidSSHKey('invalid AAAAC3Nz...')); // false
-console.log('With script tag:', isValidSSHKey('ssh-ed25519 <script>alert(1)</script>AAAA...')); // false after sanitization
-
 
 function showSpinner() {
   document.getElementById('loading-spinner').style.display = 'block';
@@ -291,7 +277,7 @@ function handleRealtimeUpdate(data, action) {
   const isError = 
     data.request_status === 'failed' || data.request_status === 'error';
 
-  const resolver = actionResolvers[data.form_submission_unique_id];
+  resolver = actionResolvers[data.form_submission_unique_id];
 
   if (isComplete && resolver) {
     showMessage(`✅ ${action} completed successfully!`, 'success');
@@ -1476,4 +1462,37 @@ window.addEventListener('beforeunload', () => {
     socket.close();
   }
 });
+
+// utils.js
+function withButtonLoading(buttonId, asyncFn) {
+  const btn = document.getElementById(buttonId);
+  if (!btn) {
+    console.error(`Button '${buttonId}' not found`);
+    return asyncFn();
+  }
+
+  const loadingText = btn.dataset.loading || 'Loading...';
+  const originalHTML = btn.innerHTML;
+  const originalDisabled = btn.disabled;
+
+  btn.disabled = true;
+  btn.classList.add('loading');
+  btn.innerHTML = `
+    <span class="spinner-border spinner-border-sm me-2"></span>
+    ${loadingText}
+  `;
+
+  return Promise.resolve()
+    .then(asyncFn)
+    .catch(err => {
+      console.error(err);
+      showMessage('An unexpected error occurred.', 'danger');
+    })
+    .finally(() => {
+      btn.disabled = originalDisabled;
+      btn.classList.remove('loading');
+      btn.innerHTML = originalHTML;
+    });
+}
+
 

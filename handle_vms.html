@@ -157,7 +157,7 @@
               <button class="btn btn-warning" onclick="triggerLongAction('hibernate_vm')">⏸️ Hibernate GPU VM</button>
               <button class="btn btn-success" onclick="triggerLongAction('restore_vm')">♻️ Restore GPU VM</button>
           </div>
-          <button id="deleteVmButton" class="btn btn-danger">🛑 Delete GPU VM</button>
+          <button id="deleteVmButton" class="btn btn-danger" data-loading="Deleting VM...">🛑 Delete GPU VM</button>
       </div>
     </div>
 
@@ -188,7 +188,7 @@
 
   </main>
 
-  <rightside>
+  <rightside class="rightside">
      <div id="progress-panel" class="card mt-1" style="box-shadow: none; border: 1px solid #757de7;">
       <div class="card-header" style="background: #757de7; padding: 6px 6px; line-height: 1.1;">
         <div class="d-flex justify-content-between align-items-center">
@@ -734,7 +734,7 @@ async function deleteVm() {
   // AFTER (proper cleanup):
   const modal = bootstrap.Modal.getInstance(deleteModalEl);
   if (modal) {
-    modal.dispose();
+    modal.hide();
   }
 }
 
@@ -968,7 +968,7 @@ function displayVmsList(responseData) {
               <strong>${escapeHtml(vm.vm_name.replace(/_[^_]*$/, ''))}</strong>
               <br>
               <small class="text-muted">
-                ${escapeHtml(vm.vm_ip) || 'N/A'} • $${escapeHtml(vm.total_cost || 0).toFixed(2)}
+                ${escapeHtml(vm.vm_ip) || 'N/A'} • $${(vm.total_cost || 0).toFixed(2)}
               </small>
             </div>
             <span class="vm-status ${escapeHtml(vm.status)}">${escapeHtml(vm.status.toUpperCase())}</span>

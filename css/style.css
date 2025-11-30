@@ -48,9 +48,9 @@ body {
 }
 
 .rightside {
-    flex: 0 0 200;
-    min-width: 200px; 
-    max-width: 200px;
+    flex: 0 0 400px;
+    min-width: 400px; 
+    max-width: 400px;
 }
 
 .workflow-sidebar {
