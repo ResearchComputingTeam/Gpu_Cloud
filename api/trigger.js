@@ -1,3 +1,4 @@
+<script src="js/config.js"></script>
 export default async function handler(req, res) {
   // Enable CORS - allows requests from your frontend
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -37,7 +38,7 @@ export default async function handler(req, res) {
     }
     
     // Build n8n URL
-    const n8nUrl = `https://nonserially-unpent-jin.ngrok-free.dev${webhookPath}?request_id=${request_id}`;
+    const n8nUrl = `${CONFIG.API_BASE_URL}${webhookPath}?request_id=${request_id}`;
     
     console.log('Calling n8n:', n8nUrl);
     

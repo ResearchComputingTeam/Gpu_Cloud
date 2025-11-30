@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Existing Volumes</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="js/config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -612,7 +613,7 @@ async function triggerDeleteAction(volumeName) {
   const payload = { ...volumeName, project_id: projectId };
 
   try {
-    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/delete_volume`;
+    const webhookUrl = `${CONFIG.API_BASE_URL}/webhook/delete_volume`;
     
     console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
     showProgress("Volume deletion is starting", 'info', 'delete_volume');
@@ -662,7 +663,7 @@ async function CheckVolumeStatus(volumeName) {
   const payload = { volume_name: volumeName };
 
   try {
-    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/check_volume_status`;
+    const webhookUrl = `${CONFIG.API_BASE_URL}/webhook/check_volume_status`;
     
     console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
     
@@ -712,18 +713,18 @@ function displayVolumesList(responseData) {
     <div class="list-group list-group-flush">
       ${volumes.map(volume => `
         <div class="list-group-item list-group-item-action" 
-              onclick="selectVolume('${volume.volume_name}')"
-              data-volume-name="${volume.volume_name}"
+              onclick="selectVolume('${escapeHtml(volume.volume_name)}')"
+              data-volume-name="${escapeHtml(volume.volume_name)}"
               style="cursor: pointer;">
           <div class="d-flex justify-content-between align-items-center">
             <div>
               <strong>${escapeHtml(volume.volume_name.replace(/_[^_]*$/, ''))}</strong>
               <br>
               <small class="text-muted">
-                ${volume.volume_size_gb || 'N/A'}GB • $${(volume.volume_total_cost || 0).toFixed(2)}
+                ${escapeHtml(volume.volume_size_gb) || 'N/A'}GB • $${escapeHtml(volume.volume_total_cost || 0).toFixed(2)}
               </small>
             </div>
-            <span class="volume-status ${volume.volume_state}">${volume.volume_state.toLowerCase()}</span>
+            <span class="volume-status ${escapeHtml(volume.volume_state)}">${escapeHtml(volume.volume_state.toLowerCase())}</span>
           </div>
         </div>
       `).join('')}
@@ -757,7 +758,7 @@ async function loadVolumes() {
   const payload = { project_id: projectId };
 
   try {
-    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/list_volumes`;
+    const webhookUrl = `${CONFIG.API_BASE_URL}/webhook/list_volumes`;
     
     console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
     // showProgress("VMs listing", 'info', 'list_volumes');

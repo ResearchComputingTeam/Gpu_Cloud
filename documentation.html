@@ -417,10 +417,12 @@
             <div class="command-block">
               <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
               <pre><code class="language-bash"># From your local Linux machine
-ssh-keygen -t ed25519 -f ~/.ssh/my_ssh_key</code></pre>
+ssh-keygen -t ed25519 -f ~/.ssh/my_ssh_key
+# Restrict accesss to your private key
+chmod 600 ~/.ssh/my_ssh_key</code></pre>
             </div>
              <div>
-                <li>This command will generate 2 elements:</li>
+                <li>The <code>ssh-keygen</code> command will generate 2 elements:</li>
                 <ol class="mb-0">
                   <li>A public key, named <code>my_ssh_key.pub</code> </li>
                   <li>Its related private key, named <code>my_ssh_key</code> </li>
@@ -462,7 +464,7 @@ ssh -i ~/.ssh/my_ssh_key ubuntu@&lt;GPU_VM_IP&gt;</code></pre>
 <div class="workflow-step">
   <div class="workflow-number">0</div>
   <div>
-    <strong>Generate his own ssh-key pair</strong>
+    <strong>Generate your own ssh-key pair</strong>
     <p>Using <code>ssh-keygen</code> command. May be ignored if you already have your ssh key</p>
   </div>
 </div>

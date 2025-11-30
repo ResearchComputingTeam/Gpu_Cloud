@@ -1,6 +1,6 @@
+<script src="js/config.js"></script>
+
 // auth.js - Shared authentication utilities
-const SUPABASE_URL = 'https://dgttklfdlwaxvxjubcxx.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRndHRrbGZkbHdheHZ4anViY3h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3MTkzNTAsImV4cCI6MjA3NDI5NTM1MH0.ZggUBEE_GN0e_-b4TQL8yaXfe5ckoD6AglORC7NdYwQ';
 
 // CORRECT initialization
 const { createClient } = supabase;

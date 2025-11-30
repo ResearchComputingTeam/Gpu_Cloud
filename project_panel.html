@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="js/config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="auth.js"></script>
   <meta charset="UTF-8">
@@ -41,32 +42,21 @@
     </div>
 
     <div class="card-body">
-      
-      <!-- Project ID Input -->
-      <!-- <div class="input-group"> -->
-      <div class="mb-3">
-        <label for="projectId" class="form-label"><strong>Project ID</strong></label>
-        <input type="text" 
-               id="projectId" 
-               class="form-control" 
-               placeholder="Enter your project ID"
-               onkeypress="handleEnter(event)">
-      </div>
-
-      <!-- Check Project Status Button -->
-      <button class="btn btn-primary w-100" onclick="checkProjectStatus()">
-        <span id="checkBtn-text">🔍 Check Project Status</span>
-        <span id="checkBtn-spinner" class="spinner-border spinner-border-sm ms-2" style="display: none;"></span>
-      </button>
-
       <!-- Status Message -->
       <div id="status-message"></div>
+
+      <div id="projectsList" style="max-height: 220px; overflow-y: auto; padding: 0;">
+        <div class="text-center text-muted p-3">
+          <p class="text-center mt-0 mb-0 fs-5">Loading Projects...</p>
+          <div class="empty-state-icon" style="font-size: 2.5rem;">⏳</div>
+        </div>
+      </div>
 
       <!-- Project Info Display -->
       <div id="project-info" class="project-info">
         <div id="project-info-content"></div>
       </div>
-
+      
       <!-- Action Buttons (Create VM / Handle VMs) -->
       <div class="button-group">
         <button class="btn btn-success" 
@@ -157,7 +147,114 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   // Display user info
   displayUserInfo();
+  fetchAssignedProjects();
 });
+
+async function fetchAssignedProjects() {
+
+  const payload = { user_email: currentUser.email };
+  try {
+    // Show loading
+    document.getElementById("projectsList").style.display = "block";
+    const webhookUrl = `${CONFIG.API_BASE_URL}/webhook/list_projects`;
+
+    console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
+
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch assigned projects");
+    }
+
+    const data = await response.json();
+    console.log('Response received:', data);
+    renderProjectsList(data.projects, data.message);
+    return;
+
+    // if (data.success) {
+    //   // Hide loading
+    //   // document.getElementById("projectsList").style.display = "none";
+    //   console.log('Success response received:');
+    //   renderProjectsList(data.projects, data.message);
+    //   return;
+    // } else {
+    //   console.log('Fail response received:');
+    //   renderProjectsList(data.projects, data.message);
+    //   return;
+    // }
+  } catch (error) {
+      console.error(error);
+      document.getElementById("projectsList").innerHTML =
+          "<p class='text-danger'>Unable to load your projects.</p>";
+      return;
+  }
+}
+
+function renderProjectsList(projectlist, message) {
+  console.log('renderProjectsList called with projects:', projectlist);  
+  const projects = projectlist || [];
+  const projectsListDiv = document.getElementById('projectsList');
+
+  if (projects.length === 0) {
+    console.log('projects.length === 0:', message); 
+    projectsListDiv.innerHTML = '<div class="text-muted p-3">No Projects Assigned</div>';
+    // Disable buttons if no Projects exist
+    disableActionButtons();
+    return;
+  }
+
+  projectsListDiv.innerHTML = `
+    <div class="list-group list-group-flush">
+      ${projects.map(project => `
+        <div class="list-group-item list-group-item-action" 
+              onclick="selectProject('${escapeHtml(project.project_name)}', '${escapeHtml(project.project_id)}')"
+              data-project-name="${escapeHtml(project.project_name)}"
+              style="cursor: pointer;">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <strong>${escapeHtml(project.project_name)}</strong>
+              <br>
+              <small class="text-muted">
+                ${escapeHtml(project.project_id) || 'N/A'} • Remaining Credits: $${escapeHtml(project.remaining_credits || 0).toFixed(2)}
+              </small>
+            </div>
+            <span class="project-role ${project.role}">${escapeHtml(project.role)}</span>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  // Ensure buttons are disabled until a selection is made (unless a selection was preserved)
+  disableActionButtons();
+}
+
+function selectProject(projectName, projectId) {
+
+    // Highlight the selected item in the list
+    const listItems = document.querySelectorAll('#projectsList .list-group-item');
+    listItems.forEach(item => {
+        item.classList.remove('selected');
+    });
+
+    // Find and highlight the specific item
+    const selectedItem = document.querySelector(`[data-project-name="${projectName}"]`);
+    if (selectedItem) {
+        selectedItem.classList.add('selected');
+    }
+
+    // 4. Enable the action buttons
+    // enableActionButtons();
+    const projectInfo = document.getElementById('project-info');
+    projectInfo.className = '';
+
+    const projectInfoContent = document.getElementById('project-info-content');
+    projectInfoContent.innerHTML = "";
+    checkProjectStatus(projectId);
+}
 
 async function checkAdminAccess() {
   const user = await getCurrentUser();
@@ -222,33 +319,33 @@ let projectState = {
 };
 
 // Show loading spinner on button
-function setButtonLoading(isLoading) {
-  const btn = document.querySelector('button[onclick="checkProjectStatus()"]');
-  const spinner = document.getElementById('checkBtn-spinner');
-  const text = document.getElementById('checkBtn-text');
+// function setButtonLoading(isLoading) {
+//   const btn = document.querySelector('button[onclick="checkProjectStatus()"]');
+//   const spinner = document.getElementById('checkBtn-spinner');
+//   const text = document.getElementById('checkBtn-text');
   
-  if (isLoading) {
-    btn.disabled = true;
-    spinner.style.display = 'inline-block';
-    text.style.opacity = '0.7';
-  } else {
-    btn.disabled = false;
-    spinner.style.display = 'none';
-    text.style.opacity = '1';
-  }
-}
+//   if (isLoading) {
+//     btn.disabled = true;
+//     spinner.style.display = 'inline-block';
+//     text.style.opacity = '0.7';
+//   } else {
+//     btn.disabled = false;
+//     spinner.style.display = 'none';
+//     text.style.opacity = '1';
+//   }
+// }
 
 // Check project status
-async function checkProjectStatus() {
-  const projectIdInput = document.getElementById('projectId').value.trim();
+async function checkProjectStatus(projectId) {
+  // const projectIdInput = document.getElementById('projectId').value.trim();
   
-  if (!projectIdInput) {
-    showMessage('Please enter a Project ID', 'warning');
-    return;
-  }
+  // if (!projectId) {
+  //   showMessage('Please enter a Project ID', 'warning');
+  //   return;
+  // }
 
   // Check if user has access to this project
-  const hasAccess = userProjects.some(p => p.project_id === projectIdInput);
+  const hasAccess = userProjects.some(p => p.project_id === projectId);
   
   if (!hasAccess) {
     showMessage('⚠️ You do not have access to this project. Please contact the project owner.', 'warning');
@@ -256,19 +353,19 @@ async function checkProjectStatus() {
   }
 
   // Set loading state
-  setButtonLoading(true);
-  projectState.projectId = projectIdInput;
+  // setButtonLoading(true);
+  projectState.projectId = projectId;
 
   try {
     // Call n8n webhook to validate project
-    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/project_id_check?project_id=${encodeURIComponent(projectIdInput)}`;
+    const webhookUrl = `${CONFIG.API_BASE_URL}/webhook/project_id_check?project_id=${encodeURIComponent(projectId)}`;
     
-    console.log('🔍 Checking project status for:', projectIdInput);
+    console.log('🔍 Checking project status for:', projectId);
 
     const response = await fetch(webhookUrl, { 
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ project_id: projectIdInput })
+      body: JSON.stringify({ project_id: projectId })
     });
 
     const responseText = await response.text();
@@ -320,7 +417,7 @@ async function checkProjectStatus() {
     disableActionButtons();
     showMessage(`Error: ${error.message}`, 'danger');
   } finally {
-    setButtonLoading(false);
+    // setButtonLoading(false);
   }
 }
 
@@ -353,15 +450,14 @@ async function displayProjectInfo(data, isSuccess) {
       .single();
     
     const isSystemAdmin = profile?.is_system_admin || false;
-
     projectInfo.className = 'project-info visible success';
     projectInfoContent.innerHTML = `
       <strong>✓ Project Validated</strong><br>
       <small>Project: ${escapeHtml(data.project_name || 'My Project')}</small><br>
-      <small>Project Responsible: ${data.pi_name}</small><br>
+      <small>Project Responsible: ${escapeHtml(data.pi_name)}</small><br>
       <small>ID: ${escapeHtml(data.project_id)}</small><br>
-      <small>Status: ${data.status || 'Active'}</small><br>
-      <small>Remaining Credits: $${remainingCredits.toFixed(2)}</small>
+      <small>Status: ${escapeHtml(data.status) || 'Active'}</small><br>
+      <small>Remaining Credits: $${escapeHtml(remainingCredits.toFixed(2))}</small>
       <br>
       ${(isOwner || isSystemAdmin) ? `
         <button class="btn btn-sm btn-outline-primary mt-2" onclick="window.open('team_management.html', '_blank')">
@@ -373,36 +469,36 @@ async function displayProjectInfo(data, isSuccess) {
           🔐 System Admin
         </button>
       ` : ''}
-    `;
-  } else if (isSuccess && remainingCredits <= 0) {
-    projectInfo.className = 'project-info visible error';
-    projectInfoContent.innerHTML = `
+    `;    
+    } else if (isSuccess && remainingCredits <= 0) {
+      projectInfo.className = 'project-info visible error';
+      projectInfoContent.innerHTML = `
       <strong>💰❌ Project Out of Credits</strong><br>
       <small>Project: ${escapeHtml(data.project_name || 'My Project')}</small><br>
       <small>ID: ${escapeHtml(data.project_id)}</small><br>
       <small style="color: #dc3545; font-weight: bold;">
-        Credits exhausted: ${data.used_credits.toFixed(2)} / ${data.credits.toFixed(2)}
+        Credits exhausted: ${escapeHtml(data.used_credits.toFixed(2))} / ${escapeHtml(data.credits.toFixed(2))}
       </small><br>
       <small>Please contact RCCG to add more credits.</small>
-    `;
-    
-    // Store credit status
-    localStorage.setItem('hasCredits', 'false');
-    
-    // Keep buttons disabled
-    disableActionButtons();
-    document.getElementById('disabledInfo').innerHTML = 
-      '💰❌ Project is out of credits';
-  } else {
-    projectInfo.className = 'project-info visible error';
-    projectInfoContent.innerHTML = `
-      <strong>✗ Validation Failed</strong><br>
-      <small>${escapeHtml(data.message || 'Unknown error')}</small>
-    `;
-    localStorage.setItem('hasCredits', 'false');
-    projectInfo.classList.add('error');
-    projectInfo.classList.remove('success');
-  }
+      `;
+      
+      // Store credit status
+      localStorage.setItem('hasCredits', 'false');
+      
+      // Keep buttons disabled
+      disableActionButtons();
+      document.getElementById('disabledInfo').innerHTML = 
+        '💰❌ Project is out of credits';
+    } else {
+      projectInfo.className = 'project-info visible error';
+      projectInfoContent.innerHTML = `
+        <strong>✗ Validation Failed</strong><br>
+        <small>${escapeHtml(data.message || 'Unknown error')}</small>
+      `;
+      localStorage.setItem('hasCredits', 'false');
+      projectInfo.classList.add('error');
+      projectInfo.classList.remove('success');
+    }
 }
 
 // Enable action buttons
@@ -509,11 +605,11 @@ function openHandleVolumesPage() {
 }
 
 // Handle Enter key on input field
-function handleEnter(event) {
-  if (event.key === 'Enter') {
-    checkProjectStatus();
-  }
-}
+// function handleEnter(event) {
+//   if (event.key === 'Enter') {
+//     checkProjectStatus();
+//   }
+// }
 
 // Extract project ID from URL if provided
 function initializeFromUrl() {
@@ -525,105 +621,6 @@ function initializeFromUrl() {
     console.log('📍 Project ID from URL:', projectIdFromUrl);
   }
 }
-
-
-
-
-
-
-
-// async function importSshKey() {
-//   const projectIdstored = document.getElementById('projectId').value.trim();
-//   console.log('importSshKey() called for project:', projectIdstored);
-
-//   // Show ssh public key field card
-//   document.getElementById('pubkey').style.display = 'block';
-
-//   // Get and validate inputs
-//   // const inputs = getFormInputs();
-//   // const errors = validateFormInputs(inputs);
-  
-//   // if (errors.length > 0) {
-//   //   showMessage(errors.join(' | '), 'warning');
-//   //   return;
-//   // }
-
-
-// const key = document.getElementById("pubkey").value.trim();
-// const user = await supabase.auth.getUser();
-// console.log('user email:', user.data.user.email);
-
-// if (!user.data.user) return alert("Not authenticated");
-
-// const token = (await supabase.auth.getSession()).data.session.access_token;
-// console.log('token:', token);
-
-// const res = await fetch("https://your-n8n-domain/webhook/import_ssh", {
-//   method: "POST",
-//   headers: {
-//     "Content-Type": "application/json",
-//     "Authorization": `Bearer ${token}`
-//   },
-//   body: JSON.stringify({
-//     project_id: CURRENT_PROJECT_ID,
-//     public_key: key
-//   })
-//   });
-
-//   const result = await res.json();
-//   document.getElementById("result").innerText = result.message;
-
-
-
-  
-//   console.log('Creating VM with inputs:', inputs);
-
-//   const payload = { project_id: projectIdstored,  };
-//   try {
-//       const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/${action}`;
-      
-//       console.log('Calling webhook:', webhookUrl, 'with payload:', inputs);
-//       showProgress("Volume Creation is starting", 'info', 'create_volume');
-      
-//       const response = await fetch(webhookUrl, {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify(inputs)
-//       });
-
-//       if (!response.ok) {
-//         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-//       }
-
-//       const data = await response.json();
-
-//       if (!data.success) {
-//         throw new Error(data.message || 'Action failed');
-//       }
-      
-//       showProgress("Volume creation is starting", 'info', 'volume_creation');
-//       //CheckVolumeStatus(volumeName.user_vm_name);
-//       console.log('Response received:', data);
-      
-//       if (data.success) {
-//         showProgress('Volume creation is over', 'info', 'vm_available');
-//         displayVolumeDetails(data);
-//         // loadVolumes();
-//         return;
-//       } else {
-//           showProgress(`Volume creation failed: ${data.message || 'Unknown error'}`, 'danger', 'volume_error');
-//           showError(JSON.stringify(data));
-//           throw new Error(data.message || 'Action failed');
-//       }
-      
-//     } catch (error) {
-//       console.error('Error:', error);
-//       showProgress(`Error: ${error.message}`, 'danger', 'volume_error');
-//       showError(error.message);
-//       throw error; // Re-throw so caller knows it failed
-//     }
-//}
-
 
 // Initialize on page load
 window.addEventListener('load', () => {

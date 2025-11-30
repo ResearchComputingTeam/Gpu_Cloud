@@ -1,4 +1,7 @@
 // utils.js
+src="js/config.js"
+src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"
+
 
 const actionResolvers = {}; // { request_id: resolveFunction }
 
@@ -32,10 +35,8 @@ function copyToClipboard(text) {
 
 
 // Initialize Supabase client
-const supabaseUrl = 'https://dgttklfdlwaxvxjubcxx.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRndHRrbGZkbHdheHZ4anViY3h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg3MTkzNTAsImV4cCI6MjA3NDI5NTM1MH0.ZggUBEE_GN0e_-b4TQL8yaXfe5ckoD6AglORC7NdYwQ';
-const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
-
+const supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+ 
 // Show status message
 function showMessage(message, type = 'info') {
   const statusDiv = document.getElementById('status-message');
@@ -115,6 +116,102 @@ function getActionLabel(action) {
   };
   return labels[action] || action;
 }
+
+/**
+ * Sanitize user input to prevent XSS
+ * @param {string} input - Raw user input
+ * @param {object} options - DOMPurify options
+ * @returns {string} - Sanitized string
+ */
+function sanitizeInput(input, options = {}) {
+  if (!input) return '';
+  if (typeof input !== 'string') return String(input);
+  
+  const defaultOptions = {
+    ALLOWED_TAGS: [],           // Strip all HTML tags
+    ALLOWED_ATTR: [],           // Strip all attributes
+    KEEP_CONTENT: true,         // Keep text content
+    RETURN_DOM: false,          // Return string not DOM
+    RETURN_DOM_FRAGMENT: false
+  };
+  
+  const clean = DOMPurify.sanitize(input, {
+    ...defaultOptions,
+    ...options
+  });
+  
+  return clean.trim();
+}
+
+/**
+ * Sanitize SSH public key
+ * SSH keys should only contain: alphanumeric, +, /, =, spaces, and newlines
+ */
+function sanitizeSSHKey(key) {
+  if (!key) return '';
+  if (typeof key !== 'string') return '';
+  
+  // Remove any HTML/script tags but keep SSH key characters
+  let cleaned = DOMPurify.sanitize(key, {
+    ALLOWED_TAGS: [],
+    ALLOWED_ATTR: []
+  });
+  
+  // SSH keys only contain: letters, numbers, +, /, =, spaces, and dashes
+  // Remove anything else
+  cleaned = cleaned.replace(/[^A-Za-z0-9+/=\s\-]/g, '');
+  
+  return cleaned.trim();
+}
+
+/**
+ * Validate SSH public key format
+ * Basic validation - checks for common SSH key prefixes
+ */
+function isValidSSHKey(key) {
+  if (!key || typeof key !== 'string') return false;
+  
+  // Common SSH key types
+  const validPrefixes = [
+    'ssh-rsa',
+    'ssh-ed25519',
+    'ssh-dss',
+    'ecdsa-sha2-nistp256',
+    'ecdsa-sha2-nistp384',
+    'ecdsa-sha2-nistp521'
+  ];
+  
+  // Check if key starts with a valid prefix
+  const hasValidPrefix = validPrefixes.some(prefix => key.startsWith(prefix));
+  
+  if (!hasValidPrefix) return false;
+  
+  // SSH keys should have at least 3 parts: type, key, optional comment
+  const parts = key.split(/\s+/);
+  if (parts.length < 2) return false;
+  
+  // The key part should be base64 (letters, numbers, +, /, =)
+  const keyPart = parts[1];
+  if (!/^[A-Za-z0-9+/=]+$/.test(keyPart)) return false;
+  
+  // Key should be reasonably long (at least 100 chars for the key part)
+  if (keyPart.length < 100) return false;
+  
+  return true;
+}
+
+
+console.log('Testing SSH key validation:');
+
+// Valid key
+const validKey = 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl user@example.com';
+console.log('Valid key:', isValidSSHKey(validKey)); // Should be true
+
+// Invalid keys
+console.log('Empty:', isValidSSHKey('')); // false
+console.log('Too short:', isValidSSHKey('ssh-ed25519 ABC')); // false
+console.log('Wrong prefix:', isValidSSHKey('invalid AAAAC3Nz...')); // false
+console.log('With script tag:', isValidSSHKey('ssh-ed25519 <script>alert(1)</script>AAAA...')); // false after sanitization
 
 
 function showSpinner() {
@@ -243,7 +340,7 @@ async function CheckVmStatus(vmName) {
   const payload = { vm_name: vmName };
 
   try {
-    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/check_vm_status`;
+    const webhookUrl = `${CONFIG.API_BASE_URL}/webhook/check_vm_status`;
     
     console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
     // showProgress("VMs listing", 'info', 'list_vms');
@@ -274,7 +371,7 @@ async function CheckVmStatus(vmName) {
 async function checkCredits(projectId) {
   try {
     // Call n8n webhook to validate project
-    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/project_id_check`;
+    const webhookUrl = `${CONFIG.API_BASE_URL}/webhook/project_id_check`;
     
     console.log('🔍 Checking project status for:', projectId);
 
@@ -343,11 +440,11 @@ function displayVmDetails(data) {
           <div style="margin-bottom: 8px;">
             <div style="font-size: 10px; color: #6c757d; margin-bottom: 4px;">IP ADDRESS</div>
             <code style="font-size: 16px; display: block; word-break: break-all;">
-              ${data.user_vm_ip}
+              ${escapeHtml(data.user_vm_ip)}
             </code>
             <button class="btn btn-sm btn-outline-primary" 
                     style="margin-top: 6px; font-size: 11px; width: 100%; padding: 4px 10px;"
-                    onclick="copyToClipboard('${data.user_vm_ip}')">
+                    onclick="copyToClipboard('${escapeHtml(data.user_vm_ip)}')">
               📋 Copy IP
             </button>
           </div>
@@ -409,11 +506,11 @@ function displayVmDetails(data) {
           <div style="margin-bottom: 8px;">
             <div style="font-size: 10px; color: #6c757d; margin-bottom: 4px;">IP ADDRESS</div>
             <code style="font-size: 16px; display: block; word-break: break-all;">
-              ${data.user_vm_ip}
+              ${escapeHtml(data.user_vm_ip)}
             </code>
             <button class="btn btn-sm btn-outline-primary" 
                     style="margin-top: 6px; font-size: 11px; width: 100%; padding: 4px 10px;"
-                    onclick="copyToClipboard('${data.user_vm_ip}')">
+                    onclick="copyToClipboard('${escapeHtml(data.user_vm_ip)}')">
               📋 Copy IP
             </button>
           </div>
@@ -465,7 +562,7 @@ function displayVmDetails(data) {
         </div>
       </div>
       <div class="col-12 mt-3">
-        <button class="btn btn-primary w-100" onclick="connectToTerminal('${data.user_vm_ip}', '${escapeHtml(data.environment_name)}')" ${data.request_status !== 'running' || !data.user_vm_ip || data.user_vm_ip === 'N/A' ? 'disabled' : ''}>
+        <button class="btn btn-primary w-100" onclick="connectToTerminal('${escapeHtml(data.user_vm_ip)}', '${escapeHtml(data.environment_name)}')" ${escapeHtml(data.request_status) !== 'running' || !escapeHtml(data.user_vm_ip) || escapeHtml(data.user_vm_ip) === 'N/A' ? 'disabled' : ''}>
           🖥️ Open Web Terminal
         </button>
 
@@ -483,10 +580,10 @@ function displayVmDetails(data) {
                     <div class="d-flex justify-content-between align-items-center">
                       <div>
                         <strong>${escapeHtml(vol.volume.name.replace(/_[^_]*$/, '') || 'Volume')}</strong><br>
-                        <small class="text-muted">${vol.volume.size || 'N/A'} GB • ${vol.status}</small>
+                        <small class="text-muted">${vol.volume.size || 'N/A'} GB • ${escapeHtml(vol.status)}</small>
                       </div>
                       <button class="btn btn-sm btn-outline-danger" id="detachBtn"
-                              onclick="detachVolume('${data.user_vm_id}', '${vol.volume.id}', '${data.user_vm_name}')"
+                              onclick="detachVolume('${escapeHtml(data.user_vm_id)}', '${escapeHtml(vol.volume.id)}', '${escapeHtml(data.user_vm_name)}')"
                               title="Detach volume">
                         DETACH
                       </button>
@@ -546,90 +643,102 @@ function openImportSshModal(env_key_name, vm_ip) {
   modal.show();
 }
 
-// async function openImportSshModal(env_key_name, vm_ip) {
+if (document.getElementById("importSshBtn")) {
+  // Handle Import click inside modal
+  document.getElementById("importSshBtn").addEventListener("click", async () => {
 
-// Handle Import click inside modal
-document.getElementById("importSshBtn").addEventListener("click", async () => {
+    // Get the raw value first, then sanitize
+    const rawPublicKey = document.getElementById("sshPublicKey").value.trim();
 
-  const publicKey = document.getElementById("sshPublicKey").value.trim();
-  const feedback = document.getElementById("importSshFeedback");
+    // Sanitize SSH key - but preserve the key format
+    const publicKey = sanitizeSSHKey(rawPublicKey);
 
-  console.log('publicKey, feedback:', publicKey, feedback);
+    // const publicKey = sanitizeInput(document.getElementById("sshPublicKey").value.trim());
+    const feedback = document.getElementById("importSshFeedback");
+
+    console.log('publicKey, feedback:', publicKey, feedback);
 
 
-  if (!publicKey) {
-    feedback.style.display = "block";
-    feedback.innerText = "Please paste your SSH public key.";
-    return;
-  }
-
-  // Clear previous messages
-  feedback.style.display = "none";
-
-  const user = await supabase.auth.getUser();
-  if (!user.data.user) return alert("Not authenticated");
-  console.log('user email:', user.data.user.email);
-
-  // Get Supabase access token
-  const session = (await supabase.auth.getSession()).data.session;
-  if (!session) {
-    feedback.style.display = "block";
-    feedback.innerText = "You must be logged in.";
-    return;
-  }
-
-  // Call n8n webhook
-  const payload = { pubkey: publicKey, envkey_name: currentEnvKeyName, vm_ip: currentVmIp};
-
-  try {
-    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/add_ssh_key`;
-    
-    console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
-    
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
+    if (!publicKey) {
       feedback.style.display = "block";
-      feedback.innerText = "HTTP Error importing SSH key.";
-      // throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      feedback.innerText = "Please paste your SSH public key.";
       return;
     }
 
-    const data = await response.json();
-    console.log('Response received:', data);
-
-    if (!data.success) {
+    // Validate SSH key format
+    if (!isValidSSHKey(publicKey)) {
       feedback.style.display = "block";
-      feedback.innerText = data.error || "Error importing SSH key.";
-      return;
-    } else { 
-      // data.success = true 
-      const modalEl = document.getElementById('importSshModal');
-      const modal = bootstrap.Modal.getInstance(modalEl);
-      modal.hide();
-      // alert("SSH key imported successfully!");
-      // Show success toast
-      const toastEl = document.getElementById('sshToast');
-      const toastBody = document.getElementById('sshToastBody');
-      toastBody.innerText = "SSH key imported successfully!";
-      const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
-      toast.show();
+      feedback.innerText = "Invalid SSH key format. Please paste a valid public key.";
       return;
     }
 
-  } catch (error) {
-    console.error('Error caught:', error);
-    feedback.style.display = "block";
-    feedback.innerText = "ERROR importing SSH key.";
-    throw error; // Re-throw so caller knows it failed
-  }
+    // Clear previous messages
+    feedback.style.display = "none";
 
-});
+    const user = await supabase.auth.getUser();
+    if (!user.data.user) return alert("Not authenticated");
+    console.log('user email:', user.data.user.email);
 
+    // Get Supabase access token
+    const session = (await supabase.auth.getSession()).data.session;
+    if (!session) {
+      feedback.style.display = "block";
+      feedback.innerText = "You must be logged in.";
+      return;
+    }
+
+    // Call n8n webhook
+    const payload = { pubkey: publicKey, envkey_name: currentEnvKeyName, vm_ip: currentVmIp};
+
+    try {
+      const webhookUrl = `${CONFIG.API_BASE_URL}/webhook/add_ssh_key`;
+      
+      console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
+      
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        feedback.style.display = "block";
+        feedback.innerText = "HTTP Error importing SSH key.";
+        // throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        return;
+      }
+
+      const data = await response.json();
+      console.log('Response received:', data);
+
+      if (!data.success) {
+        feedback.style.display = "block";
+        feedback.innerText = sanitizeInput(data.error || "Error importing SSH key.");
+        return;
+      } else { 
+        // data.success = true 
+        const modalEl = document.getElementById('importSshModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        modal.hide();
+        // alert("SSH key imported successfully!");
+        // Show success toast
+        const toastEl = document.getElementById('sshToast');
+        const toastBody = document.getElementById('sshToastBody');
+        toastBody.innerText = "SSH key imported successfully!";
+        const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+        toast.show();
+        return;
+      }
+
+    } catch (error) {
+      console.error('Error caught:', error);
+      feedback.style.display = "block";
+      feedback.innerText = "ERROR importing SSH key.";
+      throw error; // Re-throw so caller knows it failed
+    }
+
+  });
+}
 
 function goToHandleVmsPage() {
   const projectID =  getProjectIdFromUrl();
@@ -967,7 +1076,7 @@ async function getProjectNameFromSupabase(projectId) {
   // Connection through n8n, more secure
   try {
     // Call n8n webhook to validate project
-    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/get_project_name?project_id=${encodeURIComponent(projectId)}`;
+    const webhookUrl = `${CONFIG.API_BASE_URL}/webhook/get_project_name?project_id=${encodeURIComponent(projectId)}`;
     
     console.log('🔍 Retrieving project name for:', projectId);
 
@@ -1146,7 +1255,7 @@ async function fetchAvailableVolumes() {
   const payload = { project_id: projectId };
 
   try {
-    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/list_volumes?project_id=${projectId}`;
+    const webhookUrl = `${CONFIG.API_BASE_URL}/webhook/list_volumes?project_id=${projectId}`;
     
     console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
     const response = await fetch(webhookUrl, {
@@ -1193,8 +1302,8 @@ function populateVolumeDropdown(volumes) {
   
   // Filter out already-attached volumes (optional - or show them disabled)
   select.innerHTML = volumes.map(volume => 
-    `<option value="${volume.volume_id}" data-name="${escapeHtml(volume.volume_name)}" data-size="${volume.volume_size_gb}">
-      ${escapeHtml(volume.volume_name)} (${volume.volume_size_gb} GB) - ${volume.volume_state || 'available'}
+    `<option value="${escapeHtml(volume.volume_id)}" data-name="${escapeHtml(volume.volume_name)}" data-size="${escapeHtml(volume.volume_size_gb)}">
+      ${escapeHtml(volume.volume_name)} (${escapeHtml(volume.volume_size_gb)} GB) - ${escapeHtml(volume.volume_state) || 'available'}
     </option>`
   ).join('');
   
@@ -1206,7 +1315,7 @@ function populateVolumeDropdown(volumes) {
       const volSize = selectedOption.dataset.size;
       
       document.getElementById('volumeDetails').innerHTML = 
-        `<strong>${volName}</strong><br>Size: ${volSize} GB`;
+        `<strong>${escapeHtml(volName)}</strong><br>Size: ${escapeHtml(volSize)} GB`;
       document.getElementById('volumeInfo').style.display = 'block';
       document.getElementById('confirmAttachBtn').disabled = false;
     } else {
@@ -1252,7 +1361,7 @@ async function confirmAttachVolume() {
   };
 
   try {
-    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/attach_volume`;
+    const webhookUrl = `${CONFIG.API_BASE_URL}/webhook/attach_volume`;
     console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
 
     const response = await fetch(webhookUrl, {
@@ -1309,7 +1418,7 @@ async function detachVolume(vmId, volumeId, vmName) {
   };
 
   try {
-    const webhookUrl = `https://nonserially-unpent-jin.ngrok-free.dev/webhook/detach_volume`;
+    const webhookUrl = `${CONFIG.API_BASE_URL}/webhook/detach_volume`;
     console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
 
     const response = await fetch(webhookUrl, {
@@ -1346,4 +1455,25 @@ async function detachVolume(vmId, volumeId, vmName) {
 
 }
 
+// Add at bottom of utils.js
+window.addEventListener('beforeunload', () => {
+  // Cleanup all active subscriptions
+  if (activeChannel) {
+    activeChannel.unsubscribe();
+    activeChannel = null;
+  }
+  
+  // Cleanup all resolvers
+  Object.keys(actionResolvers).forEach(key => {
+    if (actionResolvers[key].timeout) {
+      clearTimeout(actionResolvers[key].timeout);
+    }
+    delete actionResolvers[key];
+  });
+  
+  // Disconnect terminal if open
+  if (socket) {
+    socket.close();
+  }
+});
 

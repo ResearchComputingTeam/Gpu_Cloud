@@ -310,6 +310,23 @@ body {
     color: #115c43;
 }
 
+.project-role {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.project-role.member {
+    background: #d4edda;
+    color: #155724;
+}
+
+.project-role.owner {
+    background: #8e13be;
+    color: #f3f0f0;
+}
 
 .volume-status {
     display: inline-block;
