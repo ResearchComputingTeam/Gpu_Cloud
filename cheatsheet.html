@@ -192,8 +192,17 @@
       font-size: 0.75rem;
       font-weight: 600;
       display: inline-block;
-      margin: 0.25rem 0.25rem 0.25rem 0;
+      /* margin: 0.25rem 0.25rem 0.25rem 0; */
     }
+
+    artefact {
+      background-color: var(--primary);
+      color: #fff;
+      padding: 0.2em 0.5em;
+      border-radius: 0.25rem;
+      font-weight: normal; /* override bold if you want */
+    }
+
     
     .table-compact {
       font-size: 0.85rem;
@@ -360,19 +369,23 @@
       <div class="cmd-label">Upload to VM (from laptop)</div>
       <div class="cmd-block">
         <button class="copy-icon" onclick="copyCode(this)">📋</button>
-        <code>rsync -avP ./dataset/ user@vm-ip:/mnt/user_volume/</code>
+        <code>rsync -avz --progress ./dataset/ ubuntu@VM_IP:/mnt/user_volume</code>
       </div>
 
       <div class="cmd-label">Download from VM (to laptop)</div>
       <div class="cmd-block">
         <button class="copy-icon" onclick="copyCode(this)">📋</button>
-        <code>rsync -avP user@vm-ip:/mnt/user_volume/results/ ./results/</code>
+        <code>rsync -avz --progress ubuntu@VM_IP:/mnt/user_volume/results/ ./local_results/</code>
       </div>
-
-      <div class="cmd-label">Compress before transfer</div>
-      <div class="cmd-block">
-        <button class="copy-icon" onclick="copyCode(this)">📋</button>
-        <code>tar -cvf - results/ | pigz > results.tar.gz</code>
+      <div class="cmd-label">Cost-Saving Strategy</div>
+      <div class="tip">
+        <ol class="mb-2 mt-2" style="padding-left: 1.2rem;">
+          <li>Create a <artefact>Volume</artefact></li>
+          <li>Attach it to a cheap <artefact>Staging VM</artefact> (CPU-only)</li>
+          <li>Upload data to <artefact>Volume</artefact> on <artefact>Staging VM</artefact></li>
+          <li>Unmount-Detach <artefact>Volume</artefact> from <artefact>Staging VM</artefact> then Attach-Mount it to <artefact>GPU VM</artefact></li>
+          <li>Saves GPU hours during uploads!</li>
+        </ol>
       </div>
     </div>
 
@@ -601,21 +614,21 @@ nvcc --version</code>
       
       <table class="table table-compact mb-0">
         <tr>
-          <td><strong>Stop</strong></td>
-          <td>VM off, volumes persist, saves cost</td>
+          <td><strong>▶️Running</strong></td>
+          <td>VM has been created or restored and is up and running. VM is billed for compute.</td>
         </tr>
         <tr>
-          <td><strong>Hibernate</strong></td>
-          <td>Save RAM state, faster resume</td>
+          <td><strong>💤Hibernate</strong></td>
+          <td>Save RAM state, faster resume. Still billed for the root disk data and the public IP address</td>
         </tr>
         <tr>
-          <td><strong>Delete</strong></td>
-          <td>Destroy VM + ephemeral disk</td>
+          <td><strong>🗑️Deleted</strong></td>
+          <td>VM + ephemeral disk is destroyed</td>
         </tr>
       </table>
 
       <div class="warning">
-        <strong>⚠️ Before delete:</strong> Copy data to volume, snapshot, then detach!
+        <strong>⚠️ Before delete:</strong> Copy data to volume, then unmont and detach!
       </div>
     </div>
 
@@ -799,49 +812,57 @@ python train.py  # uses GPU 0 and 1 only</code>
       
       <div class="cmd-block">
         <button class="copy-icon" onclick="copyCode(this)">📋</button>
-        <code># 1. Create & attach volume to staging VM <br>
+        <code># 1. Create & attach volume to staging VM in UI<br>
         # 2. Copy device path from UI (📋 button) <br>
 
-        # 3. SSH to staging VM <br>
+        # 3. Imports her SSH public key into the staging VM in UI<br>
+
+        # 4. SSH to staging VM <br>
         ssh -i ~/.ssh/id_rsa user@staging-vm <br>
 
-        # 4. Mount volume with device path <br>
+        # 5. Mount volume with device path <br>
         DEVICE="/dev/disk/by-id/virtio-c72d3b45-dc19-48ec-9" <br>
         sudo mkfs.ext4 -F ${DEVICE} <br>
         sudo mkdir -p /mnt/user_volume <br>
         sudo mount ${DEVICE} /mnt/user_volume <br>
 
-        # 5. Upload data <br>
+        # 6. Upload data <br>
         # (From laptop in another terminal) <br>
-        rsync -avP ./dataset/ user@staging-vm:/mnt/user_volume/ <br>
+        rsync -avz --progress ./dataset/ ubuntu@staging_VM_IP:/mnt/user_volume <br>
 
-        # 6. Unmount & detach (on staging VM) <br>
+        # 7. Unmount & detach (on staging VM) <br>
         sync <br>
         sudo umount /mnt/user_volume <br>
-        # Detach in UI, attach to GPU VM <br>
+        # Detach volume in UI <br>
 
-        # 7. SSH to GPU VM & mount <br>
+        # 8. Create GPU VM in UI<br>
+
+        # 9. Imports her SSH public key into GPU VM in UI<br>
+
+        # 10. Attach volume to GPU VM in UI <br>
+
+        # 11. SSH to GPU VM & mount <br>
         ssh -i ~/.ssh/id_rsa user@gpu-vm <br>
         # Copy NEW device path from UI for GPU VM <br>
         DEVICE="/dev/disk/by-id/virtio-new-path" <br>
         sudo mount ${DEVICE} /mnt/user_volume <br>
 
-        # 8. Start training in tmux <br>
+        # 12. Start training in tmux <br>
         tmux new -s train <br>
         module load anaconda3/2024.02-1 ml_dl_gpu_base_all <br>
         python train.py --data /mnt/user_volume | tee train.log <br>
         # Detach: Ctrl-B, D <br>
 
-        # 9. Monitor <br>
+        # 13. Monitor <br>
         watch -n 2 nvidia-smi <br>
 
-        # 10. After training, unmount & download <br>
+        # 14. After training, unmount & download <br>
         sync <br>
         sudo umount /mnt/user_volume <br>
-        # Detach, attach to staging, download results <br>
-        rsync -avP user@staging:/mnt/user_volume/results/ ./ <br>
+        # Detach from GPU VM, attach to staging VM, download results <br>
+        rsync -avz --progress ubuntu@staging_VM_IP:/mnt/user_volume/results/ ./local_results/
 
-        # 11. Clean up: Stop/delete VMs, snapshot volume</code>
+        # 15. Clean up: delete VMs, volume</code>
       </div>
     </div>
 

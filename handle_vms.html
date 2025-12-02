@@ -424,10 +424,10 @@ const helpContent = {
       <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('rsync -avz --progress ./dataset/ ubuntu@staging-vm-ip:/mnt/user_volume')">📋 Copy</button>
       <p class="mt-2"><strong>Cost-Saving Strategy:</strong></p>
       <ol class="mb-0">
-        <li>Create volume</li>
-        <li>Attach to cheap CPU staging VM</li>
-        <li>Upload data to volume on staging VM</li>
-        <li>Detach and attach to GPU VM</li>
+        <li>Create a <code>Volume</code></li>
+        <li>Attach it to a cheap <code>Staging VM</code> (CPU-only)</li>
+        <li>Upload data to <code>Volume</code> on <code>Staging VM</code></li>
+        <li>Unmount & Detach <code>Volume</code> from <code>Staging VM</code> then Attach & Mount it to <code>GPU VM</code></li>
         <li>Saves GPU hours during uploads!</li>
       </ol>`
   },
