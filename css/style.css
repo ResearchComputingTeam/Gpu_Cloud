@@ -65,7 +65,7 @@ body {
     padding: 10px 20px 0px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     height: fit-content;
-    position: sticky;
+    /* position: sticky; */
     top: 90px;
     max-height: 560px; /* or any value y*/
     overflow-y: auto;  /* adds scroll if content exceeds */
