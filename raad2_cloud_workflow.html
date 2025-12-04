@@ -701,6 +701,9 @@ ssh -i ~/.ssh/id_rsa ubuntu@&lt;STAGING-VM-IP&gt;
 DEVICE="/dev/disk/by-id/virtio-xxxxx"  # From UI
 sudo mkfs.ext4 -F ${DEVICE}  # Only first time!
 sudo mkdir -p /mnt/user_volume
+# Change the ownership of the folder
+sudo chown ubuntu:ubuntu /mnt/user_volume/
+# Mount the volume to the created folder
 sudo mount ${DEVICE} /mnt/user_volume
 
 # Verify
@@ -736,6 +739,9 @@ ssh -i ~/.ssh/id_rsa ubuntu@&lt;GPU-VM-IP&gt;
 # 4. Mount volume (NEW device path from UI)
 DEVICE="/dev/disk/by-id/virtio-new-xxxxx"
 sudo mkdir -p /mnt/user_volume
+# Change the ownership of the folder
+sudo chown ubuntu:ubuntu /mnt/user_volume/
+# Mount the volume to the created folder
 sudo mount ${DEVICE} /mnt/user_volume
 
 # Verify

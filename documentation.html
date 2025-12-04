@@ -421,6 +421,22 @@ ssh-keygen -t ed25519 -f ~/.ssh/my_ssh_key
 # Restrict accesss to your private key
 chmod 600 ~/.ssh/my_ssh_key</code></pre>
             </div>
+            <div class="tip-box">
+              <h4>💡 You can also create your ssh key on Windows</h4>
+              <ul class="mb-0">
+                <li><strong>via WSL</strong></li>
+                <ul class="mb-0">
+                  <li>Same as in Linux (see commands above) </li>
+                  <li>But make sure you are on the WSL native filesystem like <code>~/</code> because permission restriction won't work in Windows filesystem <code>(/mnt/c/...)</code></li>
+                </ul>
+                <li><strong>via Powershell</strong></li>
+                <ul class="mb-0">
+                  <li>Use <code>ssh-keygen -t ed25519 -f $env:USERPROFILE\.ssh\my_ssh_key</code> to generate the key pair </li>
+                  <li>Use <code>icacls $env:USERPROFILE\.ssh\my_ssh_key /inheritance:r</code></li>
+                  <li>And <code>icacls $env:USERPROFILE\.ssh\my_ssh_key /grant:r "$env:USERNAME:R"</code> to restrict permission</li>
+                </ul>
+              </ul>
+            </div>
              <div>
                 <li>The <code>ssh-keygen</code> command will generate 2 elements:</li>
                 <ol class="mb-0">
@@ -582,7 +598,31 @@ ssh-keygen -t ed25519 -f ~/.ssh/my_ssh_key</code></pre>
         <div class="command-block">
           <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
           <pre><code class="language-bash"># Using rsync (recommended - can resume, shows progress)
-rsync -avz --progress ./local_dataset/ ubuntu@staging-vm-ip:/mnt/my_volume/</code></pre>
+rsync -avz --progress --checksum -e "ssh -i /path/to/ssh_private_key" ./local_dataset/ ubuntu@VM-IP:/mnt/my_volume/</code></pre>
+        </div>
+        <div class="tip-box">
+          <h4>💡Options</h4>
+          <ul class="mb-0">
+            <li><span class="badge bg-primary">-a</span>→ archive mode: recursively copy everything, preserve timestamps, permissions, symlinks</li>
+            <li><span class="badge bg-primary">-v</span>→ verbose (optional but helpful)</li>
+            <li><span class="badge bg-primary">-z</span>→ compression (very useful for text, less useful for images or already-compressed data)</li>
+            <li><span class="badge bg-primary">--progress</span>→ per-file progress indicator</li>
+            <li><span class="badge bg-primary">--checksum</span>→ detects changes based on checksum, not only size+timestamp</li>
+            <li><span class="badge bg-primary">-e "ssh -i /path/to/ssh_private_key"</span>→ use SSH as the transport layer, and authenticate using this specific private key
+          SSH key authentication → secure, non-interactive</li>
+          </ul>
+        </div>
+
+        <div class="warning-box">
+          <h4>⚠️ When <span class="badge bg-primary">--checksum</span> may be overkill</h4>
+          <span>It forces rsync to read every file on both sides, even if unchanged.</span>
+          <span>For large datasets (1M+ files, multi-TB), it can slow things down.</span>
+          <span>But for ML datasets smaller than a few hundred GB, it’s fine.</span>
+        </div>
+
+        <div class="example-box">
+          <h4>🚀 Faster transfers => disable compression (i.e. don't use <span class="badge bg-primary">-z</span>) for already-compressed data</h4>
+          <span>Typically when datasets contain images, videos, archives </span>
         </div>
 
         <div class="command-block">
@@ -1030,7 +1070,7 @@ jupyter lab --ip=0.0.0.0 --port=8888 --no-browser \
         <div class="command-block">
           <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
           <pre><code class="language-bash"># From your laptop - using rsync
-rsync -avz --progress ubuntu@gpu-vm-ip:/mnt/user_volume/results/ ./local_results/
+rsync -avz --progress --checksum -e "ssh -i /path/to/ssh_private_key" ubuntu@gpu-vm-ip:/mnt/user_volume/results/ ./local_results/
 
 # Or using scp (for smaller files)
 scp -r ubuntu@gpu-vm-ip:/mnt/user_volume/results ./local_results</code></pre>
@@ -1144,6 +1184,9 @@ sudo mkfs.ext4 -F ${DEVICE}
 
 # Create mountpoint and mount 
 sudo mkdir -p /mnt/user_volume 
+# Change the ownership of the folder
+sudo chown ubuntu:ubuntu /mnt/user_volume/
+# Mount the volume to the created folder
 sudo mount ${DEVICE} /mnt/user_volume 
 
 # Verify
@@ -1174,7 +1217,10 @@ DEVICE="/dev/disk/by-id/virtio-c72d3b45-dc19-48ec-9"
 
 # Step 3: Format and mount 
 sudo mkfs.ext4 -F ${DEVICE} 
-sudo mkdir -p /mnt/user_volume 
+sudo mkdir -p /mnt/user_volume
+# Change the ownership of the folder
+sudo chown ubuntu:ubuntu /mnt/user_volume/
+# Mount the volume to the created folder
 sudo mount ${DEVICE} /mnt/user_volume
 
 # Step 4: Verify it worked 
@@ -1476,7 +1522,7 @@ sudo umount /mnt/user_volume</code></pre>
 
             <h4>Data Transfer</h4>
             <div class="command-block">
-              <pre><code class="language-bash">rsync -avz --progress ./local_results/ ubuntu@gpu-vm-ip:/mnt/user_volume/
+              <pre><code class="language-bash">rsync -avz --progress --checksum -e "ssh -i /path/to/ssh_private_key" ./local_results/ ubuntu@gpu-vm-ip:/mnt/user_volume/
 scp -r ./local_results ubuntu@vm:/mnt/user_volume/</code></pre>
             </div>
           </div>
@@ -1542,7 +1588,7 @@ python -c "import torch; print(torch.cuda.is_available())"</code></pre>
             <li>Results saved to <code>/mnt/user_volume/results/</code></li>
             <li>Safely unmounts, detaches volume, attaches to staging VM</li>
             <li>Delete/Hibernate powerful GPU VM to save credits</li>
-            <li>Downloads: <code>rsync -avz --progress ubuntu@staging_ip:/mnt/user_volume/results/ ./</code></li>
+            <li>Downloads: <code>rsync -avz --progress --checksum -e "ssh -i /path/to/ssh_private_key" ubuntu@staging_ip:/mnt/user_volume/results/ ./</code></li>
             <li>Delete/Hibernate staging VM to save credits</li>
           </ol>
         </div>

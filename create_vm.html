@@ -385,9 +385,8 @@ const helpContent = {
     <p>Use <code>rsync</code> to transfer files securely:</p>
     <p><strong>Upload Command (from laptop):</strong></p>
     <code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
-      rsync -avz --progress ./dataset/ ubuntu@staging-vm-ip:/mnt/user_volume
+      rsync -avz --progress --checksum -e "ssh -i /path/to/ssh_private_key" ./dataset/ ubuntu@staging-vm-ip:/mnt/user_volume
     </code>
-    <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('rsync -avz --progress ./dataset/ ubuntu@staging-vm-ip:/mnt/user_volume')">📋 Copy</button> <br>
     <p><strong>📌 Tip:</strong></p>
     <ul>
       <li>Place your <em>scripts and input data</em> on <strong>Volumes</strong> if you want them to persist after VM hibernation/deletion.</li>
@@ -426,9 +425,8 @@ const helpContent = {
     title: '📥 Step 7: Download Results',
     content: `<p><strong>From your laptop, run:</strong></p>
       <code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
-        rsync -avz --progress ubuntu@VM_IP:/mnt/user_volume/results/ ./local_results/
-      </code>
-      <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('rsync -avz --progress ubuntu@VM_IP:/mnt/user_volume/results/ ./local_results/')">📋 Copy</button>`
+        rsync -avz --progress --checksum -e "ssh -i /path/to/ssh_private_key" ubuntu@VM_IP:/mnt/user_volume/results/ ./local_results/
+      </code>`
   },
   storage: {
     title: '💾Storage Types',

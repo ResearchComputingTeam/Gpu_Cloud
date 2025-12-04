@@ -319,8 +319,10 @@ const helpContent = {
       # 3. Format (FIRST TIME ONLY! Erases data!)<br>
       sudo mkfs.ext4 -F \${DEVICE}<br><br>
       # 4. Create mount point<br>
-      sudo mkdir -p /mnt/user_volume<br><br>
-      # 5. Mount the volume<br>
+      sudo mkdir -p /mnt/user_volume<br>
+      # Change the ownership of the folder <br>
+      sudo chown ubuntu:ubuntu /mnt/user_volume/ <br>
+      # 5. Mount the volume to the created folder<br>
       sudo mount \${DEVICE} /mnt/user_volume<br><br>
       # 6. Verify mounted<br>
       df -h | grep user_volume<br>

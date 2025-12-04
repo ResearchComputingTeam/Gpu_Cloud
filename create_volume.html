@@ -307,6 +307,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         sudo mkfs.ext4 -F \${DEVICE}<br><br>
         # 3. Create mount point<br>
         sudo mkdir -p /mnt/user_volume<br><br>
+        # Change the ownership of the folder <br>
+        sudo chown ubuntu:ubuntu /mnt/user_volume/ <br>
         # 4. Mount<br>
         sudo mount \${DEVICE} /mnt/user_volume<br><br>
         # 5. Verify<br>
