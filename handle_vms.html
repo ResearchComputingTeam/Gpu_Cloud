@@ -15,7 +15,6 @@
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     <script src="auth.js"></script>
-    <script src="utils.js"></script>
 </head>
 
 <body>
@@ -299,7 +298,7 @@ let currentUser = null;
 let projectId = null;
 
 document.addEventListener('DOMContentLoaded', async function() {
-  console.log('Hanldle VMs page loaded');
+  console.log('Handle VMs page loaded');
   // check if user is allowed
   currentUser = await requireAuth();
   if (!currentUser) {
@@ -412,7 +411,7 @@ const helpContent = {
     content: `Upload your code and data to the running VM:
       <p><strong>⚠️Important:</strong> Use a <strong>staging VM</strong> (cheap CPU) + volume for data uploads to save money!</p>
       <code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
-        rsync -avz --progress --checksum -e "ssh -i /path/to/ssh_private_key" ./dataset/ ubuntu@staging-vm-ip:/mnt/user_volume
+        rsync -avz -P --checksum -e "ssh -i /path/to/ssh_private_key" ./dataset/ ubuntu@staging-vm-ip:/mnt/user_volume
         </code>
       <p class="mt-2"><strong>Cost-Saving Strategy:</strong></p>
       <ol class="mb-0">
@@ -453,7 +452,7 @@ const helpContent = {
     title: '📥 Step 7: Download Results',
     content: `<p><strong>From your laptop, run:</strong></p>
       <code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
-        rsync -avz --progress --checksum -e "ssh -i /path/to/ssh_private_key" ubuntu@VM_IP:/mnt/user_volume/results/ ./local_results/
+        rsync -avz -P --checksum -e "ssh -i /path/to/ssh_private_key" ubuntu@VM_IP:/mnt/user_volume/results/ ./local_results/
       </code>`
   },
   attach: {
@@ -906,6 +905,7 @@ async function triggerLongAction(action) {
       // subscribeToStatusUpdates(requestId, action).catch(reject);
     });
     displayVmDetails(data);
+    loadVms();
     return finalData;
     
   } catch (error) {
@@ -1031,6 +1031,8 @@ async function loadVms() {
 }
 
 </script>
+
+<script src="utils.js"></script>
 
 <!-- Attach Volume Modal -->
 <div class="modal fade" id="attachVolumeModal" tabindex="-1" aria-labelledby="attachVolumeModalLabel" aria-hidden="true">

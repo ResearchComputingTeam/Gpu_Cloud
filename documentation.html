@@ -598,7 +598,7 @@ ssh-keygen -t ed25519 -f ~/.ssh/my_ssh_key</code></pre>
         <div class="command-block">
           <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
           <pre><code class="language-bash"># Using rsync (recommended - can resume, shows progress)
-rsync -avz --progress --checksum -e "ssh -i /path/to/ssh_private_key" ./local_dataset/ ubuntu@VM-IP:/mnt/my_volume/</code></pre>
+rsync -avz -P --checksum -e "ssh -i /path/to/ssh_private_key" ./dataset/ ubuntu@VM-IP:/mnt/my_volume/</code></pre>
         </div>
         <div class="tip-box">
           <h4>💡Options</h4>
@@ -606,7 +606,7 @@ rsync -avz --progress --checksum -e "ssh -i /path/to/ssh_private_key" ./local_da
             <li><span class="badge bg-primary">-a</span>→ archive mode: recursively copy everything, preserve timestamps, permissions, symlinks</li>
             <li><span class="badge bg-primary">-v</span>→ verbose (optional but helpful)</li>
             <li><span class="badge bg-primary">-z</span>→ compression (very useful for text, less useful for images or already-compressed data)</li>
-            <li><span class="badge bg-primary">--progress</span>→ per-file progress indicator</li>
+            <li><span class="badge bg-primary">-P</span>→ same as <code>--partial --progress</code>: allows resuming interupted file tranfer, from partially transferred file, and shows progress for each file</li>
             <li><span class="badge bg-primary">--checksum</span>→ detects changes based on checksum, not only size+timestamp</li>
             <li><span class="badge bg-primary">-e "ssh -i /path/to/ssh_private_key"</span>→ use SSH as the transport layer, and authenticate using this specific private key
           SSH key authentication → secure, non-interactive</li>
@@ -628,7 +628,7 @@ rsync -avz --progress --checksum -e "ssh -i /path/to/ssh_private_key" ./local_da
         <div class="command-block">
           <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
           <pre><code class="language-bash"># Using scp (simpler, but less resume-friendly)
-scp -r ./local_dataset ubuntu@staging-vm-ip:/mnt/my_volume/</code></pre>
+scp -r ./dataset ubuntu@VM-IP/mnt/my_volume/</code></pre>
         </div>
 
         <h3>Safe Detach Procedure</h3>
@@ -1070,7 +1070,7 @@ jupyter lab --ip=0.0.0.0 --port=8888 --no-browser \
         <div class="command-block">
           <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
           <pre><code class="language-bash"># From your laptop - using rsync
-rsync -avz --progress --checksum -e "ssh -i /path/to/ssh_private_key" ubuntu@gpu-vm-ip:/mnt/user_volume/results/ ./local_results/
+rsync -avz -P --checksum -e "ssh -i /path/to/ssh_private_key" ubuntu@gpu-vm-ip:/mnt/user_volume/results/ ./local_results/
 
 # Or using scp (for smaller files)
 scp -r ubuntu@gpu-vm-ip:/mnt/user_volume/results ./local_results</code></pre>
@@ -1522,7 +1522,7 @@ sudo umount /mnt/user_volume</code></pre>
 
             <h4>Data Transfer</h4>
             <div class="command-block">
-              <pre><code class="language-bash">rsync -avz --progress --checksum -e "ssh -i /path/to/ssh_private_key" ./local_results/ ubuntu@gpu-vm-ip:/mnt/user_volume/
+              <pre><code class="language-bash">rsync -avz -P --checksum -e "ssh -i /path/to/ssh_private_key" ./local_results/ ubuntu@gpu-vm-ip:/mnt/user_volume/
 scp -r ./local_results ubuntu@vm:/mnt/user_volume/</code></pre>
             </div>
           </div>
@@ -1588,7 +1588,7 @@ python -c "import torch; print(torch.cuda.is_available())"</code></pre>
             <li>Results saved to <code>/mnt/user_volume/results/</code></li>
             <li>Safely unmounts, detaches volume, attaches to staging VM</li>
             <li>Delete/Hibernate powerful GPU VM to save credits</li>
-            <li>Downloads: <code>rsync -avz --progress --checksum -e "ssh -i /path/to/ssh_private_key" ubuntu@staging_ip:/mnt/user_volume/results/ ./</code></li>
+            <li>Downloads: <code>rsync -avz -P --checksum -e "ssh -i /path/to/ssh_private_key" ubuntu@staging_ip:/mnt/user_volume/results/ ./</code></li>
             <li>Delete/Hibernate staging VM to save credits</li>
           </ol>
         </div>

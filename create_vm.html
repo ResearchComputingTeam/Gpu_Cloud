@@ -385,7 +385,7 @@ const helpContent = {
     <p>Use <code>rsync</code> to transfer files securely:</p>
     <p><strong>Upload Command (from laptop):</strong></p>
     <code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
-      rsync -avz --progress --checksum -e "ssh -i /path/to/ssh_private_key" ./dataset/ ubuntu@staging-vm-ip:/mnt/user_volume
+      rsync -avz -P --checksum -e "ssh -i /path/to/ssh_private_key" ./dataset/ ubuntu@staging-vm-ip:/mnt/user_volume
     </code>
     <p><strong>📌 Tip:</strong></p>
     <ul>
@@ -393,7 +393,7 @@ const helpContent = {
       <li>Use <strong>ephemeral storage</strong> for temporary computations and intermediate results.</li>
       <li>Use <strong>root disk</strong> for data smaller than 50GB, it's free, and auto preserved as long as your VM is not deleted.</li>
     </ul>
-    <br><br><small class="text-muted">Replace VM_IP with your actual VM IP address</small>`
+    <small class="text-muted">Replace VM_IP with your actual VM IP address</small>`
   },
   run: {
     title: '🚀 Step 6: Run Your Tasks',
@@ -425,7 +425,7 @@ const helpContent = {
     title: '📥 Step 7: Download Results',
     content: `<p><strong>From your laptop, run:</strong></p>
       <code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
-        rsync -avz --progress --checksum -e "ssh -i /path/to/ssh_private_key" ubuntu@VM_IP:/mnt/user_volume/results/ ./local_results/
+        rsync -avz -P --checksum -e "ssh -i /path/to/ssh_private_key" ubuntu@VM_IP:/mnt/user_volume/results/ ./local_results/
       </code>`
   },
   storage: {

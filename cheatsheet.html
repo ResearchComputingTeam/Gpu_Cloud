@@ -369,13 +369,13 @@
       <div class="cmd-label">Upload to VM (from laptop)</div>
       <div class="cmd-block">
         <button class="copy-icon" onclick="copyCode(this)">📋</button>
-        <code>rsync -avz --progress --checksum -e "ssh -i /path/to/ssh_private_key" ./dataset/ ubuntu@VM_IP:/mnt/user_volume</code>
+        <code>rsync -avz -P --checksum -e "ssh -i /path/to/ssh_private_key" ./dataset/ ubuntu@VM_IP:/mnt/user_volume</code>
       </div>
 
       <div class="cmd-label">Download from VM (to laptop)</div>
       <div class="cmd-block">
         <button class="copy-icon" onclick="copyCode(this)">📋</button>
-        <code>rsync -avz --progress --checksum -e "ssh -i /path/to/ssh_private_key" ubuntu@VM_IP:/mnt/user_volume/results/ ./local_results/</code>
+        <code>rsync -avz -P --checksum -e "ssh -i /path/to/ssh_private_key" ubuntu@VM_IP:/mnt/user_volume/results/ ./local_results/</code>
       </div>
       <div class="cmd-label">Cost-Saving Strategy</div>
       <div class="tip">
@@ -828,7 +828,7 @@ python train.py  # uses GPU 0 and 1 only</code>
 
         # 6. Upload data <br>
         # (From laptop in another terminal) <br>
-        rsync -avz --progress --checksum -e "ssh -i /path/to/ssh_private_key" ./dataset/ ubuntu@staging_VM_IP:/mnt/user_volume <br>
+        rsync -avz -P --checksum -e "ssh -i /path/to/ssh_private_key" ./dataset/ ubuntu@staging_VM_IP:/mnt/user_volume <br>
 
         # 7. Unmount & detach (on staging VM) <br>
         sync <br>
@@ -860,7 +860,7 @@ python train.py  # uses GPU 0 and 1 only</code>
         sync <br>
         sudo umount /mnt/user_volume <br>
         # Detach from GPU VM, attach to staging VM, download results <br>
-        rsync -avz --progress --checksum -e "ssh -i /path/to/ssh_private_key" ubuntu@staging_VM_IP:/mnt/user_volume/results/ ./local_results/
+        rsync -avz -P --checksum -e "ssh -i /path/to/ssh_private_key" ubuntu@staging_VM_IP:/mnt/user_volume/results/ ./local_results/
 
         # 15. Clean up: delete VMs, volume</code>
       </div>

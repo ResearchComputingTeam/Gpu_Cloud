@@ -321,7 +321,7 @@ async function CheckVmStatus(vmName) {
   resetErrorCard();
   clearProgressPanel();
 
-  console.log('Test', vmName);
+  console.log('CheckVmStatus called with vmName=', vmName);
   const payload = { vm_name: vmName };
 
   try {
@@ -634,6 +634,8 @@ if (document.getElementById("importSshBtn")) {
 
     // Get the raw value first, then sanitize
     const rawPublicKey = document.getElementById("sshPublicKey").value.trim();
+
+    console.log('importSshBtn called with param rawPublicKey:', rawPublicKey);
 
     // Sanitize SSH key - but preserve the key format
     const publicKey = sanitizeSSHKey(rawPublicKey);
