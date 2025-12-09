@@ -353,7 +353,7 @@
               </div>
             </div>
           </div>
-          
+
           <div class="col-md-6 mb-3">
             <div class="card h-100">
               <div class="card-body">
@@ -368,6 +368,70 @@
             </div>
           </div>
         </div>
+
+        <h3>Hardware Flavor details</h3>
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th>Tier</th>
+                  <th>GPU(s)</th>
+                  <th>GPU RAM</th>
+                  <th>CPU(s)</th>
+                  <th>CPU RAM</th>
+                  <th>Storage</th>
+                  <th>Cost (USD/h)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>CPU Only</strong></td>
+                  <td>N.A.</td>
+                  <td>N.A.</td>
+                  <td>1 vCPU</td>
+                  <td>4GB</td>
+                  <td>100GB NVMe</td>
+                  <td>0.3484</td>
+                </tr>
+                <tr>
+                  <td><strong>A100 GPU PCIe</strong></td>
+                  <td>1×A100</td>
+                  <td>80GB</td>
+                  <td>28 vCPU</td>
+                  <td>120GB</td>
+                  <td>100GB NVMe + 750GB ephemeral</td>
+                  <td>1.35</td>
+                </tr>
+                <tr>
+                  <td><strong>H100 GPU PCIe</strong></td>
+                  <td>1×H100</td>
+                  <td>80GB</td>
+                  <td>28 vCPU</td>
+                  <td>180GB</td>
+                  <td>100GB NVMe + 750GB ephemeral</td>
+                  <td>1.9</td>
+                </tr>
+                <tr>
+                  <td><strong>4*H100 GPU PCIe</strong></td>
+                  <td>4×H100</td>
+                  <td>4x80GB</td>
+                  <td>124 vCPU</td>
+                  <td>720GB</td>
+                  <td>100GB NVMe + 3.2TB ephemeral</td>
+                  <td>7.6</td>
+                </tr>
+                <tr>
+                  <td><strong>8*H100 GPU PCIe</strong></td>
+                  <td>8×H100</td>
+                  <td>8x80GB</td>
+                  <td>252 vCPU</td>
+                  <td>1440GB</td>
+                  <td>100GB NVMe + 6.5TB ephemeral</td>
+                  <td>15.2</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
         <h3>Disk Types Explained</h3>
         <div class="command-grid">
@@ -769,7 +833,7 @@ ssh -i ~/.ssh/my_private_key ubuntu@192.168.1.100</code></pre>
 module avail
 
 # Output shows:
-# -------------------------------------------------------- /opt/modulefiles --------------------------------------------
+# ------------------------------------------- /opt/modulefiles --------------------------------------------
 # anaconda3/2024.02-1  cmake/3.27.7  conda_hdf5  conda_netcdf4  conda_python  
 # gdb/13.2  go/1.25  ml_dl_gpu_base_all  openmpi/4.1.6  python/3.11  singularityce/4.3.3</code></pre>
         </div>
@@ -841,7 +905,117 @@ sudo apt update
 sudo apt install htop vim tmux -y</code></pre>
         </div>
 
-        <h3>C. Using Containers with SingularityCE</h3>
+        <h3>C. Using Containers with Docker</h3>
+        <div class="tip-box">
+          <h4>⚡<strong>Container X GPU Cloud</strong></h4>
+          <ul class="mb-0">
+            <li>In a <strong>GPU cloud environment</strong>, users often run complex scientific or machine-learning apps that depend on specific versions of CUDA, libraries, compilers, or OS packages.</li>
+            <li>Re-creating these environments manually on every VM is time-consuming and error-prone.</li>
+            <li><strong>Docker</strong> solves this: a container acts like a portable, self-contained execution environment that always behaves the same, no matter which VM it runs on. This ensures:</li>
+            <ul class="mb-0">
+              <li><strong>Reproducibility:</strong> Your application runs identically across VMs.</li>
+              <li><strong>Portability:</strong> Move your app between your laptop, the GPU cloud, other clusters, etc.</li>
+              <li><strong>Isolation:</strong> Avoid conflicting dependencies or system-level failures.</li>
+              <li><strong>Performance:</strong> NVIDIA supports GPU pass-through for containers with almost zero overhead.</li>
+            </ul>
+            <li>For GPU workloads specifically, Docker integrates with the NVIDIA Container Runtime, which exposes the GPUs safely and efficiently to the container.</li>
+            <li>Docker is pre-installed on all base images for running containerized applications.</li>
+          </ul>
+        </div>
+  
+        <h4>Best practice: use an official container from NVIDIA NGC</h4>
+        <p>Before building anything yourself, check NVIDIA GPU Cloud (NGC), which hosts official, optimized, GPU-ready containers for major scientific and AI applications:
+        NAMD, GROMACS, OpenMM, TensorFlow, PyTorch, and many others.</p>
+        <h5>How to find the right container</h5>
+        <ol class="mb-0">
+          <li>Visit: <a href="https://catalog.ngc.nvidia.com" target="_blank">NVIDIA NGC Catalog</a> </li>
+          <li>Search for your application (e.g., “namd”)</li>
+          <li>Open the container page and copy the pull command</li>
+          <li>For example, for NAMD 3.0.1:
+            <pre><code class="language-bash">docker pull nvcr.io/hpc/namd:3.0.1</code></pre>
+          </li>
+        </ol>
+
+        <h4>Example workflow using an NGC container (NAMD)</h4>
+        <p>Once your GPU VM is created and you're connected via SSH, this is the typical pattern:</p>
+
+        <div class="command-block">
+          <button class="btn btn-sm btn-light copy-btn" onclick="copyCode(this)">Copy</button>
+          <pre><code class="language-bash"># 1. Pull the container
+docker pull nvcr.io/hpc/namd:3.0.1
+
+# 2. Download example input files
+mkdir namd_workspace
+cd namd_workspace/
+wget -O - https://gitlab.com/NVHPC/ngc-examples/raw/master/namd/3.0/get_apoa1.sh | bash
+
+# 3. Prepare the output directory
+mkdir apoa1/output
+
+# 4. Edit the configuration file
+#Inside apoa1/apoa1.namd, set:
+outputname output/apoa1
+
+# 5. Run NAMD inside the NGC container
+export NAMD_EXE=namd3
+export NAMD_TAG=3.0.1
+docker run --rm --runtime=nvidia --gpus all --ipc=host -v $PWD:/namd_workspace/apoa1 \
+ -w /namd_workspace/apoa1 nvcr.io/hpc/namd:$NAMD_TAG ${NAMD_EXE} \ 
+ +p28 +devices 0 +setcpuaffinity ./apoa1/apoa1.namd
+
+# Options explanation:
+--rm → Automatically remove the container when finished
+--runtime=nvidia --gpus all → Give container access to all GPUs
+--ipc=host → Enable proper inter-process communication for MPI / multicore execution
+-v $PWD:/namd_workspace/apoa1 → Mount the host folder into the container
+-w /namd_workspace/apoa1 → Set the container’s working directory
++p28 → Use 28 CPU threads (adjust depending on your VM)
++devices 0 → Use GPU 0 (if you have 4 GPUS, you can do +devices 0,1,2,3)
++setcpuaffinity → Bind CPU threads to physical cores for performance
+./apoa1/apoa1.namd → NAMD input file to run
+
+# 6. Display output file :
+cat apoa1/output/apoa1.xsc</code></pre>
+        </div>
+
+        <h4>If no suitable NGC container exists: building your own</h4>
+
+        <p>Sometimes your application is not available on NGC, or you need custom dependencies.
+        In such cases, you will build your own image locally, i.e. on your local laptop/desktop and then transfer it to your GPU VM.
+        You do not need Docker Hub or any external registry.</p>
+        <h6>1. Build the image on your local machine</h6>
+          <ul class="mb-0">
+          <li>Example Dockerfile for a custom NAMD build:
+            <pre><code class="language-bash">FROM nvidia/cuda:12.2.0-devel
+RUN apt-get update && apt-get install -y build-essential tcl-dev wget
+RUN wget https://www.ks.uiuc.edu/Research/namd/3.0/download/...
+RUN tar xvf namd.tar.gz
+RUN cd namd && make -j install</code></pre>
+          </li>
+          <li>Build this image in your local laptop with: <pre><code class="language-bash">docker build -t my_namd_custom:1.0 .</code></pre></li>
+        </ul>
+        <h6>2. Save the image to a tar file</h6>
+        <ul class="mb-0">
+          <li><pre><code class="language-bash">docker save my_namd_custom:1.0 -o namd_custom.tar</code></pre></li>
+          <li>You can compress it further with gzip if needed</li>
+        </ul>
+        <h6>3. Transfer the tar file from your laptop to the GPU VM</h6>
+        <ul class="mb-0">
+          <li>Use scp, rsync, or any secure file transfer method</li>
+          <li><pre><code class="language-bash">scp -i your_key.pem namd_custom.tar ubuntu@GPU_VM_IP:/home/ubuntu/</code></pre></li>
+        </ul>
+        <h6>4. Import (load) the image on the GPU VM</h6>
+        <ul class="mb-0">
+          <li>ssh into your GPU VM</li>
+          <li><pre><code class="language-bash">docker load -i namd_custom.tar</code></pre></li>
+        </ul>
+        <h6>6. Run your custom container</h6>
+        <ul class="mb-0">
+          <li><pre><code class="language-bash">docker run --rm --gpus all my_namd_custom:1.0 namd3 input.namd</code></pre></li>
+          <li>"This commands means: Start a temporary container, give it access to all GPUs, run the namd3 executable using the configuration file input.namd, and delete the container once the job finishes."</li>
+        </ul>
+
+        <h3>D. Using Containers with SingularityCE</h3>
         <p>SingularityCE 1.3.0 is pre-installed on research base images for running containerized applications:</p>
         <p>Before using Singularity, you can have a look at this RCCG article: 
             <a href="https://rccg.hbku.edu.qa/wiki/Sing_Containers" target="_blank"> Singularity Containers</a>
