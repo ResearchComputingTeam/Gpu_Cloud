@@ -1,0 +1,1814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GPU Cloud Platform - Intermediate Guide</title>
+  <style>
+    @media print {
+      @page {
+        size: A4;
+        margin: 0;
+      }
+      
+      html, body {
+        width: 210mm;
+        height: 297mm;
+        margin: 0;
+        padding: 0;
+      }
+      
+      .slide {
+        width: 210mm;
+        height: 297mm;
+        page-break-after: always;
+        page-break-inside: avoid;
+        margin: 0;
+        padding: 15mm 20mm;
+        box-shadow: none;
+      }
+      
+      .slide:last-child {
+        page-break-after: avoid;
+      }
+    }
+    
+    @media screen {
+      body {
+        background: #f5f5f5;
+        padding: 20px 0;
+      }
+      
+      .slide {
+        margin: 0 auto 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      }
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      line-height: 1.6;
+      background: linear-gradient(135deg, #7c90ec 0%, #764ba2 100%);
+    }
+    
+    .slide {
+      width: 210mm;
+      height: 297mm;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      position: relative;
+      overflow: hidden;
+      padding: 15mm 20mm;
+    }
+    
+    .slide-number {
+      position: absolute;
+      bottom: 10mm;
+      right: 20mm;
+      font-size: 12px;
+      color: #999;
+    }
+    
+    .slide-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px 30px;
+      margin: -15mm -20mm 20px;
+    }
+    
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 15px;
+    }
+    
+    .slide-header h1 {
+      color: white;
+      margin-bottom: 8px;
+      font-size: 32px;
+    }
+    
+    h2 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 20px;
+      border-bottom: 3px solid #667eea;
+      padding-bottom: 10px;
+    }
+    
+    h3 {
+      font-size: 22px;
+      font-weight: 600;
+      color: #4a5568;
+      margin: 20px 0 12px;
+    }
+    
+    p, li {
+      font-size: 16px;
+      color: #4a5568;
+      margin-bottom: 10px;
+    }
+    
+    ul, ol {
+      margin-left: 30px;
+      margin-bottom: 15px;
+    }
+    
+    li {
+      margin-bottom: 8px;
+      padding-left: 5px;
+    }
+    
+    .code-block {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 12px 15px;
+      border-radius: 6px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 13px;
+      margin: 12px 0;
+      overflow-x: auto;
+      border-left: 4px solid #52c41a;
+      line-height: 1.6;
+    }
+    
+    .code-block code {
+      color: inherit;
+      background: none;
+    }
+    
+    .highlight-box {
+      background: #e6f7ff;
+      border-left: 4px solid #1890ff;
+      padding: 12px 15px;
+      margin: 15px 0;
+      border-radius: 4px;
+      font-size: 15px;
+    }
+    
+    .warning-box {
+      background: #fff7e6;
+      border-left: 4px solid #fa8c16;
+      padding: 12px 15px;
+      margin: 15px 0;
+      border-radius: 4px;
+      font-size: 15px;
+    }
+    
+    .success-box {
+      background: #f6ffed;
+      border-left: 4px solid #52c41a;
+      padding: 12px 15px;
+      margin: 15px 0;
+      border-radius: 4px;
+      font-size: 15px;
+    }
+    
+    .step-number {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 32px;
+      font-weight: bold;
+      margin-right: 12px;
+      font-size: 16px;
+    }
+    
+    .workflow-step {
+      display: flex;
+      align-items: flex-start;
+      margin: 15px 0;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+    
+    .workflow-step-content {
+      flex: 1;
+    }
+    
+    .subtitle {
+      font-size: 20px;
+      color: #ebad03;
+      font-weight: 400;
+    }
+    
+    .footer-logo {
+      position: absolute;
+      bottom: 10mm;
+      left: 20mm;
+      font-size: 12px;
+      color: #999;
+    }
+    
+    strong {
+      color: #2d3748;
+      font-weight: 600;
+    }
+    
+    .center-content {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+    }
+    
+    .large-icon {
+      font-size: 60px;
+      margin-bottom: 20px;
+    }
+    
+    .command-label {
+      font-size: 14px;
+      color: #718096;
+      margin-bottom: 6px;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+    
+    .phase-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 6px 15px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Slide 1: Title -->
+<div class="slide">
+  <div class="slide-header">
+    <h1>🚀 GPU Cloud Platform</h1>
+    <p class="subtitle">Intermediate Guide - Advanced Workflows</p>
+  </div>
+  <div class="center-content">
+    <div class="large-icon">⚡</div>
+    <p style="font-size: 24px; max-width: 800px; margin-bottom: 20px;">
+      Master volumes, staging VMs, and containerized applications
+    </p>
+    <p style="font-size: 18px; color: #718096;">
+      A complete workflow for production-ready GPU computing
+    </p>
+  </div>
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">1</div>
+</div>
+
+<!-- Slide 2: Scenario Overview -->
+<div class="slide">
+  <h2>📋 Scenario: Aysha's Multi-Stage Project</h2>
+  
+  <h3>What We'll Cover:</h3>
+  
+  <div class="workflow-step">
+    <span class="step-number">1</span>
+    <div class="workflow-step-content">
+      <strong>Infrastructure Setup</strong>
+      <p>Volumes, staging VM, GPU VM with proper data management</p>
+    </div>
+  </div>
+  
+  <div class="workflow-step">
+    <span class="step-number">2</span>
+    <div class="workflow-step-content">
+      <strong>First Simulation</strong>
+      <p>Traditional Python/conda workflow with module loading</p>
+    </div>
+  </div>
+  
+  <div class="workflow-step">
+    <span class="step-number">3</span>
+    <div class="workflow-step-content">
+      <strong>Second Simulation</strong>
+      <p>Running pre-built containers from NVIDIA NGC (NAMD example)</p>
+    </div>
+  </div>
+  
+  <div class="workflow-step">
+    <span class="step-number">4</span>
+    <div class="workflow-step-content">
+      <strong>Third Simulation</strong>
+      <p>Building and deploying custom Docker containers</p>
+    </div>
+  </div>
+  
+  <div class="workflow-step">
+    <span class="step-number">5</span>
+    <div class="workflow-step-content">
+      <strong>Cleanup & Download</strong>
+      <p>Efficient resource management and results retrieval</p>
+    </div>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">2</div>
+</div>
+
+<!-- Slide 3: Why This Workflow? -->
+<div class="slide">
+  <h2>💡 Why Use This Advanced Workflow?</h2>
+  
+  <h3><i data-lucide="zap"></i> Cost Optimization</h3>
+  <ul style="font-size: 15px;">
+    <li><strong>Staging VM Strategy:</strong> Upload large datasets using cheap CPU VM ($0.35/hr) instead of expensive GPU VM ($1.90/hr)</li>
+    <li><strong>Volume Reusability:</strong> Attach/detach volumes between VMs without re-uploading data</li>
+  </ul>
+  
+  <h3 style="margin-top: 15px;"><i data-lucide="database"></i> Data Persistence</h3>
+  <ul style="font-size: 15px;">
+    <li><strong>Volumes survive VM deletion</strong> - your data is safe</li>
+    <li><strong>Share datasets</strong> across multiple VMs or team members</li>
+  </ul>
+  
+  <h3 style="margin-top: 15px;"><i data-lucide="package-open"></i> Containerization Benefits</h3>
+  <ul style="font-size: 15px;">
+    <li><strong>Reproducibility:</strong> Exact same environment every time</li>
+    <li><strong>Pre-configured tools:</strong> NVIDIA NGC provides optimized GPU containers</li>
+    <li><strong>Isolation:</strong> No dependency conflicts between projects</li>
+  </ul>
+  
+  <div class="success-box">
+    <strong>💰 Cost Savings Example:</strong> Uploading 500GB on staging VM (2 hours @ $0.35) vs GPU VM (2 hours @ $1.90) saves <strong>$3.10!</strong>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">3</div>
+</div>
+
+<!-- Slide 4: Prerequisites -->
+<div class="slide">
+  <h2>✅ Prerequisites</h2>
+  
+  <h3><i data-lucide="brain"></i> Knowledge Requirements</h3>
+  <ul style="font-size: 15px;">
+    <li>Comfortable with Linux command line and SSH</li>
+    <li>Understanding of file systems, mounting, and storage</li>
+    <li>Basic familiarity with Docker concepts</li>
+    <li>Experience with tmux/screen for persistent sessions</li>
+  </ul>
+  
+  <h3 style="margin-top: 15px;"><i data-lucide="circle-check"></i> What You Need</h3>
+  <ul style="font-size: 15px;">
+    <li><strong>Project membership</strong> with sufficient credits (>$100 recommended)</li>
+    <li><strong>Large dataset</strong> (>100GB) to benefit from staging strategy</li>
+    <li><strong>SSH client</strong> on your local machine</li>
+    <li><strong>Docker installed</strong> on your local machine (for custom container workflow)</li>
+  </ul>
+  
+  <div class="highlight-box">
+    <strong>💡 Assumed:</strong> You've completed the beginner workflow and understand basic VM creation, SSH key management, and file transfers.
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">4</div>
+</div>
+
+<!-- Slide 5: Phase 1 Overview -->
+<div class="slide">
+  <h2>Phase 1: Infrastructure Setup</h2>
+  <span class="phase-badge">PART 1 OF 5</span>
+  
+  <h3>High-Level Steps:</h3>
+  
+  <div style="font-size: 15px; line-height: 1.7;">
+    <p><strong>A.</strong> Generate SSH keys (one-time setup)</p>
+    <p><strong>B.</strong> Create 1TB volume for persistent storage</p>
+    <p><strong>C.</strong> Spin up staging VM (cheap CPU-only)</p>
+    <p><strong>D.</strong> Mount volume to staging VM</p>
+    <p><strong>E.</strong> Upload datasets and scripts</p>
+    <p><strong>F.</strong> Safely detach volume from staging VM</p>
+    <p><strong>G.</strong> Create powerful GPU VM (H100)</p>
+    <p><strong>H.</strong> Attach volume to GPU VM</p>
+    <p><strong>I.</strong> Mount volume on GPU VM</p>
+  </div>
+  
+  <div class="success-box">
+    <strong>✅ End Result:</strong> GPU VM ready with all your data accessible at <code>/mnt/user_volume/</code>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">5</div>
+</div>
+
+<!-- Slide 6: Step A - SSH Keys -->
+<div class="slide">
+  <h2>Step A: Generate SSH Key Pair</h2>
+  
+  <h3>On Your Local Machine:</h3>
+  
+  <div class="command-label">Generate SSH key:</div>
+  <div class="code-block">
+    <code>
+      ssh-keygen -t ed25519 -f ~/.ssh/gpu_cloud_key
+    </code>
+  </div>
+  
+  <div class="command-label">Set correct permissions:</div>
+  <div class="code-block">
+    <code>
+      chmod 600 ~/.ssh/gpu_cloud_key
+    </code>
+  </div>
+  
+  <div class="highlight-box">
+    <strong>📁 Two files created:</strong>
+    <ul style="margin-top: 8px; font-size: 14px;">
+      <li><code>~/.ssh/gpu_cloud_key</code> - Private key (keep secret!)</li>
+      <li><code>~/.ssh/gpu_cloud_key.pub</code> - Public key (import to VMs)</li>
+    </ul>
+  </div>
+  
+  <div class="warning-box">
+    <strong>⚠️ Important:</strong> You'll need to import the <strong>public key</strong> to <strong>both</strong> staging VM and GPU VM separately via the UI.
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">6</div>
+</div>
+
+<!-- Slide 7: Step B - Create Volume -->
+<div class="slide">
+  <h2>Step B: Create Persistent Volume</h2>
+  
+  <h3>In the Web UI:</h3>
+  
+  <ol style="font-size: 15px;">
+    <li>Navigate to <strong>Project Panel</strong></li>
+    <li>Click <strong>"➕💾 Create Volume"</strong></li>
+    <li>Select size: <strong>1TB (1000 GB)</strong></li>
+    <li>Enter name: <code>aysha-research-data</code></li>
+    <li>Click <strong>"▶️ Create Volume"</strong></li>
+    <li>Wait 2-5 minutes for volume creation</li>
+  </ol>
+  
+  <div class="success-box">
+    <strong>✅ Status:</strong> Volume state should show <span style="background: #d4edda; padding: 2px 8px; border-radius: 3px; color: #155724; font-weight: 600;">AVAILABLE</span>
+  </div>
+  
+  <div class="highlight-box">
+    <strong>💰 Cost:</strong> 1TB volume = $0.097/hour (~$70/month). Only pay while it exists, regardless of usage.
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">7</div>
+</div>
+
+<!-- Slide 8: Step C - Create Staging VM -->
+<div class="slide">
+  <h2>Step C: Create Staging VM</h2>
+  
+  <h3>In the Web UI:</h3>
+  
+  <ol style="font-size: 15px;">
+    <li>Click <strong>"➕🖥️ Create VM"</strong></li>
+    <li>Select <strong>Hardware Flavor:</strong> <code>n1-cpu-small</code> (CPU Only - $0.35/hr)</li>
+    <li>Select <strong>Base Image:</strong> <code>Ubuntu Server 22.04 + CUDA 12.2</code></li>
+    <li>Enter name: <code>aysha-staging</code></li>
+    <li>Click <strong>"▶️ Create VM"</strong></li>
+    <li>Wait for status: <code>running</code></li>
+  </ol>
+  
+  <div class="highlight-box">
+    <strong>Import SSH Key:</strong>
+    <ul style="margin-top: 8px; font-size: 14px;">
+      <li>Go to <strong>"⚙️🖥️ Manage VMs"</strong>, select <code>aysha-staging</code></li>
+      <li>Click <strong>"➕🔐 Import my SSH public key"</strong></li>
+      <li>Paste contents of <code>~/.ssh/gpu_cloud_key.pub</code></li>
+      <li>Click "Import"</li>
+    </ul>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">8</div>
+</div>
+
+<!-- Slide 9: Step D - Attach & Mount Volume (Staging) -->
+<div class="slide">
+  <h2>Step D: Attach & Mount Volume (Staging)</h2>
+  
+  <h3>Attach Volume via UI:</h3>
+  <ol style="font-size: 14px;">
+    <li>In <strong>Manage VMs</strong>, select <code>aysha-staging</code></li>
+    <li>Click <strong>"🔗 Attach Volume"</strong></li>
+    <li>Select <code>aysha-research-data</code></li>
+    <li>Click <strong>"📋 Copy Device"</strong> button to copy device path</li>
+  </ol>
+  
+  <h3 style="margin-top: 15px;">SSH to Staging VM:</h3>
+  <div class="code-block">
+    <code>
+      ssh -i ~/.ssh/gpu_cloud_key ubuntu@&lt;STAGING_VM_IP&gt;
+    </code>
+  </div>
+  
+  <h3 style="margin-top: 15px;">Format & Mount (First Time Only):</h3>
+  <div class="code-block">
+    <code>
+      # Paste device path from UI<br>
+      DEVICE="/dev/disk/by-id/virtio-abc123..."<br>
+      <br>
+      # Format (ONLY if brand new volume!)<br>
+      sudo mkfs.ext4 -F ${DEVICE}<br>
+      <br>
+      # Create mount point & set ownership<br>
+      sudo mkdir -p /mnt/user_volume<br>
+      sudo chown ubuntu:ubuntu /mnt/user_volume<br>
+      <br>
+      # Mount<br>
+      sudo mount ${DEVICE} /mnt/user_volume<br>
+      <br>
+      # Verify<br>
+      df -h | grep user_volume
+    </code>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">9</div>
+</div>
+
+<!-- Slide 10: Step E - Upload Data -->
+<div class="slide">
+  <h2>Step E: Upload Datasets and Scripts</h2>
+  
+  <h3>From Your Local Machine (New Terminal):</h3>
+  
+  <div class="command-label">Upload dataset:</div>
+  <div class="code-block">
+    <code>
+      rsync -avz -P --checksum \<br>
+      -e "ssh -i ~/.ssh/gpu_cloud_key" \<br>
+      ./my_large_dataset/ \<br>
+      ubuntu@&lt;STAGING_IP&gt;:/mnt/user_volume/dataset/
+    </code>
+  </div>
+  
+  <div class="command-label">Upload scripts and configs:</div>
+  <div class="code-block">
+    <code>
+      rsync -avz -P --checksum \<br>
+      -e "ssh -i ~/.ssh/gpu_cloud_key" \<br>
+      ./scripts/ \<br>
+      ubuntu@&lt;STAGING_IP&gt;:/mnt/user_volume/scripts/
+    </code>
+  </div>
+  
+  <div class="success-box">
+    <strong>✅ Advantage:</strong> Large uploads on cheap VM! For 500GB @ 2 hours: staging costs <strong>$0.70</strong> vs GPU VM <strong>$3.80</strong>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">10</div>
+</div>
+
+<!-- Slide 11: Step F - Safely Detach Volume -->
+<div class="slide">
+  <h2>Step F: Safely Detach Volume from Staging</h2>
+  
+  <h3>On Staging VM (SSH Session):</h3>
+  
+  <div class="command-label">Flush writes and unmount:</div>
+  <div class="code-block">
+    <code>
+      sync<br>
+      sudo umount /mnt/user_volume<br>
+      <br>
+      # Verify unmounted<br>
+      df -h | grep user_volume  # Should show nothing
+    </code>
+  </div>
+  
+  <h3 style="margin-top: 15px;">In the Web UI:</h3>
+  <ol style="font-size: 15px;">
+    <li>Go to <strong>Manage VMs</strong> → <code>aysha-staging</code></li>
+    <li>Find <strong>Attached Volumes</strong> section</li>
+    <li>Click <strong>"DETACH"</strong> button next to the volume</li>
+    <li>Wait for volume status to change to <span style="background: #d4edda; padding: 2px 6px; border-radius: 3px; color: #155724; font-weight: 600;">AVAILABLE</span></li>
+  </ol>
+  
+  <div class="warning-box">
+    <strong>⚠️ Critical:</strong> Always <code>sync</code> and <code>umount</code> before detaching! Skipping this can cause <strong>data corruption</strong>.
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">11</div>
+</div>
+
+<!-- Slide 12: Step G - Create GPU VM -->
+<div class="slide">
+  <h2>Step G: Create Powerful GPU VM</h2>
+  
+  <h3>In the Web UI:</h3>
+  
+  <ol style="font-size: 15px;">
+    <li>Click <strong>"➕🖥️ Create VM"</strong></li>
+    <li>Select <strong>Hardware Flavor:</strong> <code>n3-H100x1</code> (Single H100 - $1.90/hr)</li>
+    <li>Select <strong>Base Image:</strong> <code>ml-dl-gpu-base-image</code></li>
+    <li>Enter name: <code>aysha-gpu-h100</code></li>
+    <li>Click <strong>"▶️ Create VM"</strong></li>
+    <li>Wait 2-5 minutes for status: <code>running</code></li>
+  </ol>
+  
+  <div class="highlight-box">
+    <strong>Import SSH Key (Again):</strong>
+    <ul style="margin-top: 8px; font-size: 14px;">
+      <li>Go to <strong>"⚙️🖥️ Manage VMs"</strong>, select <code>aysha-gpu-h100</code></li>
+      <li>Click <strong>"➕🔐 Import my SSH public key"</strong></li>
+      <li>Paste contents of <code>~/.ssh/gpu_cloud_key.pub</code></li>
+    </ul>
+  </div>
+  
+  <div class="success-box">
+    <strong>🎮 What You Get:</strong> H100 GPU (80GB VRAM), 28 vCPUs, 180GB RAM, 100GB NVMe + 750GB ephemeral
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">12</div>
+</div>
+
+<!-- Slide 13: Steps H & I - Attach & Mount to GPU VM -->
+<div class="slide">
+  <h2>Steps H & I: Attach & Mount to GPU VM</h2>
+  
+  <h3>Attach Volume via UI:</h3>
+  <ol style="font-size: 14px;">
+    <li>In <strong>Manage VMs</strong>, select <code>aysha-gpu-h100</code></li>
+    <li>Click <strong>"🔗 Attach Volume"</strong></li>
+    <li>Select <code>aysha-research-data</code></li>
+    <li>Click <strong>"📋 Copy Device"</strong> (will be different from staging!)</li>
+  </ol>
+  
+  <h3 style="margin-top: 15px;">SSH to GPU VM:</h3>
+  <div class="code-block">
+    <code>
+      ssh -i ~/.ssh/gpu_cloud_key ubuntu@&lt;GPU_VM_IP&gt;
+    </code>
+  </div>
+  
+  <h3 style="margin-top: 15px;">Mount Volume (No Formatting Needed):</h3>
+  <div class="code-block">
+    <code>
+      # Get NEW device path from UI for GPU VM<br>
+      DEVICE="/dev/disk/by-id/virtio-xyz789..."<br>
+      <br>
+      # Create mount point<br>
+      sudo mkdir -p /mnt/user_volume<br>
+      <br>
+      # Mount (no formatting since volume has data!)<br>
+      sudo mount ${DEVICE} /mnt/user_volume<br>
+      <br>
+      # Verify your data is there<br>
+      ls -lh /mnt/user_volume/
+    </code>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">13</div>
+</div>
+
+<!-- Slide 14: Infrastructure Complete -->
+<div class="slide">
+  <h2>✅ Phase 1 Complete!</h2>
+  
+  <h3>What We've Accomplished:</h3>
+  
+  <div class="success-box">
+    <strong>Infrastructure Status:</strong>
+    <ul style="margin-top: 10px; font-size: 15px;">
+      <li>✅ 1TB volume created with all your data</li>
+      <li>✅ Staging VM created (can keep or delete)</li>
+      <li>✅ H100 GPU VM running and accessible</li>
+      <li>✅ Volume mounted at <code>/mnt/user_volume/</code> on GPU VM</li>
+      <li>✅ SSH access configured to both VMs</li>
+    </ul>
+  </div>
+  
+  <h3 style="margin-top: 20px;">Current Directory Structure on GPU VM:</h3>
+  <div class="code-block">
+    <code>
+      /mnt/user_volume/<br>
+      ├── dataset/          # Your uploaded data<br>
+      ├── scripts/          # Your training scripts<br>
+      ├── training_output/  # Will create for results<br>
+      └── namd_workspace/   # Will create for NAMD
+    </code>
+  </div>
+  
+  <div class="highlight-box">
+    <strong>💡 Next:</strong> We're ready to run simulations!
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">14</div>
+</div>
+
+<!-- Slide 15: Phase 2 Overview -->
+<div class="slide">
+  <h2>Phase 2: Traditional Python Workflow</h2>
+  <span class="phase-badge">PART 2 OF 5</span>
+  
+  <h3>Workflow Overview:</h3>
+  
+  <div style="font-size: 15px; line-height: 1.7;">
+    <p><strong>1.</strong> Load pre-installed modules (Anaconda, ML/DL stack)</p>
+    <p><strong>2.</strong> Start persistent tmux session</p>
+    <p><strong>3.</strong> Run training script with data from volume</p>
+    <p><strong>4.</strong> Save outputs to volume</p>
+    <p><strong>5.</strong> Monitor GPU usage</p>
+  </div>
+  
+  <div class="highlight-box">
+    <strong>💡 Why tmux?</strong> Keep jobs running even if SSH disconnects. Essential for long-running computations!
+  </div>
+  
+  <div class="success-box">
+    <strong>📊 Expected Duration:</strong> Depends on your computation. Training can run for hours or days.
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">15</div>
+</div>
+
+<!-- Slide 16: Load Modules -->
+<div class="slide">
+  <h2>Step 1: Load Pre-installed Modules</h2>
+  
+  <h3>On GPU VM (SSH Session):</h3>
+  
+  <div class="command-label">Load base modules:</div>
+  <div class="code-block">
+    <code>
+      module load anaconda3/2024.02-1<br>
+      module load ml_dl_gpu_base_all
+    </code>
+  </div>
+  
+  <div class="command-label">Verify GPU access:</div>
+  <div class="code-block">
+    <code>
+      nvidia-smi
+    </code>
+  </div>
+  
+  <div class="success-box">
+    <strong>✅ What's Loaded:</strong>
+    <ul style="margin-top: 8px; font-size: 14px;">
+      <li>PyTorch 2.5.1 with CUDA support</li>
+      <li>TensorFlow 2.14</li>
+      <li>cuDNN 8.9, NCCL 2.27</li>
+      <li>scikit-learn, pandas, matplotlib</li>
+      <li>Full ML/DL ecosystem ready to use</li>
+    </ul>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">16</div>
+</div>
+
+<!-- Slide 17: Start tmux -->
+<div class="slide">
+  <h2>Step 2: Start Persistent tmux Session</h2>
+  
+  <h3>Create tmux Session:</h3>
+  
+  <div class="code-block">
+    <code>
+      tmux new -s training
+    </code>
+  </div>
+  
+  <div class="highlight-box">
+    <strong>🎮 tmux Quick Reference:</strong>
+    <ul style="margin-top: 8px; font-size: 14px;">
+      <li><strong>Detach:</strong> Press <code>Ctrl+B</code>, then press <code>D</code></li>
+      <li><strong>Reattach:</strong> <code>tmux attach -t training</code></li>
+      <li><strong>List sessions:</strong> <code>tmux ls</code></li>
+      <li><strong>Kill session:</strong> <code>tmux kill-session -t training</code></li>
+    </ul>
+  </div>
+  
+  <div class="warning-box">
+    <strong>⚠️ Important:</strong> All commands from now on should be run <strong>inside</strong> the tmux session!
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">17</div>
+</div>
+
+<!-- Slide 18: Run Training -->
+<div class="slide">
+  <h2>Step 3: Run Training Script</h2>
+  
+  <h3>Inside tmux Session:</h3>
+  
+  <div class="command-label">Create output directory:</div>
+  <div class="code-block">
+    <code>
+      mkdir -p /mnt/user_volume/training_output
+    </code>
+  </div>
+  
+  <div class="command-label">Run your training script:</div>
+  <div class="code-block">
+    <code>
+      python /mnt/user_volume/scripts/train.py \<br>
+        --data /mnt/user_volume/dataset/ \<br>
+        --output /mnt/user_volume/training_output/ \<br>
+        --epochs 100 \<br>
+        --batch-size 64 \<br>
+        | tee /mnt/user_volume/training_output/training.log
+    </code>
+  </div>
+  
+  <div class="success-box">
+    <strong>✅ Data Flow:</strong>
+    <ul style="margin-top: 8px; font-size: 14px;">
+      <li>Input: <code>/mnt/user_volume/dataset/</code></li>
+      <li>Script: <code>/mnt/user_volume/scripts/train.py</code></li>
+      <li>Output: <code>/mnt/user_volume/training_output/</code></li>
+      <li>Log: <code>/mnt/user_volume/training_output/training.log</code></li>
+    </ul>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">18</div>
+</div>
+
+<!-- Slide 19: Monitor Training -->
+<div class="slide">
+  <h2>Step 4: Monitor GPU Usage</h2>
+  
+  <h3>Open a Second tmux Window:</h3>
+  
+  <div class="command-label">Inside tmux, create new window:</div>
+  <div class="code-block">
+    <code>
+      # Press: Ctrl+B, then C (creates new window)<br>
+      # Switch windows: Ctrl+B, then 0 or 1
+    </code>
+  </div>
+  
+  <div class="command-label">Monitor GPU in real-time:</div>
+  <div class="code-block">
+    <code>
+      watch -n 2 nvidia-smi
+    </code>
+  </div>
+  
+  <div class="command-label">Alternative - Monitor from outside tmux:</div>
+  <div class="code-block">
+    <code>
+      # From your SSH session (not inside tmux)<br>
+      watch -n 2 nvidia-smi
+    </code>
+  </div>
+  
+  <div class="highlight-box">
+    <strong>📊 What to Watch:</strong>
+    <ul style="margin-top: 8px; font-size: 14px;">
+      <li><strong>GPU Utilization:</strong> Should be near 100% during training</li>
+      <li><strong>Memory Usage:</strong> Monitor to avoid OOM errors</li>
+      <li><strong>Temperature:</strong> Should stay under 85°C</li>
+    </ul>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">19</div>
+</div>
+
+<!-- Slide 20: Detach and Resume -->
+<div class="slide">
+  <h2>Detach Safely & Resume Later</h2>
+  
+  <h3>Detach from tmux:</h3>
+  <div class="code-block">
+    <code>
+      # Press: Ctrl+B, then D<br>
+      # Training continues running in background
+    </code>
+  </div>
+  
+  <div class="command-label">Exit SSH (safe to do now):</div>
+  <div class="code-block">
+    <code>
+      exit
+    </code>
+  </div>
+  
+  <h3 style="margin-top: 15px;">Resume Later:</h3>
+  <div class="code-block">
+    <code>
+      # SSH back in<br>
+      ssh -i ~/.ssh/gpu_cloud_key ubuntu@&lt;GPU_VM_IP&gt;<br>
+      <br>
+      # Reattach to tmux<br>
+      tmux attach -t training<br>
+      <br>
+      # Check training progress<br>
+      tail -f /mnt/user_volume/training_output/training.log
+    </code>
+  </div>
+  
+  <div class="success-box">
+    <strong>✅ Phase 2 Complete!</strong> Your training runs independently. Check back anytime.
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">20</div>
+</div>
+
+<!-- Slide 21: Phase 3 Overview -->
+<div class="slide">
+  <h2>Phase 3: NGC Container Workflow (NAMD)</h2>
+  <span class="phase-badge">PART 3 OF 5</span>
+  
+  <h3>What is NVIDIA NGC?</h3>
+  <p style="font-size: 15px;">NVIDIA GPU Cloud provides pre-built, optimized containers for scientific applications. No compilation needed!</p>
+  
+  <h3 style="margin-top: 15px;">NAMD Example Workflow:</h3>
+  <div style="font-size: 15px; line-height: 1.7;">
+    <p><strong>1.</strong> Pull pre-built NAMD container from NGC</p>
+    <p><strong>2.</strong> Prepare workspace directories</p>
+    <p><strong>3.</strong> Run NAMD with checkpoint strategy</p>
+    <p><strong>4.</strong> Use ephemeral storage for intermediate results</p>
+    <p><strong>5.</strong> Save checkpoints to persistent volume</p>
+  </div>
+  
+  <div class="highlight-box">
+    <strong>🎯 Strategy:</strong> Fast ephemeral disk for temporary data, persistent volume for important checkpoints.
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">21</div>
+</div>
+
+<!-- Slide 22: Pre-installed Tools -->
+<div class="slide">
+  <h2>What's Already Available</h2>
+  
+  <h3>Pre-installed on GPU VM:</h3>
+  
+  <div class="success-box">
+    <strong>✅ Ready to Use (No Installation Needed):</strong>
+    <ul style="margin-top: 10px; font-size: 15px;">
+      <li><strong>Docker:</strong> Container runtime</li>
+      <li><strong>NVIDIA Driver:</strong> GPU access</li>
+      <li><strong>NVIDIA Container Toolkit:</strong> GPU support in containers</li>
+      <li><strong>CUDA 12.2:</strong> GPU computing platform</li>
+      <li><strong>tmux:</strong> Terminal multiplexer</li>
+    </ul>
+  </div>
+  
+  <div class="command-label">Verify Docker is ready:</div>
+  <div class="code-block">
+    <code>
+      docker --version<br>
+      docker run --rm --gpus all nvidia/cuda:12.2.0-base-ubuntu22.04 nvidia-smi
+    </code>
+  </div>
+  
+  <div class="highlight-box">
+    <strong>💡 Benefit:</strong> Start using containers immediately—no setup required!
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">22</div>
+</div>
+
+<!-- Slide 23: Pull NAMD Container -->
+<div class="slide">
+  <h2>Step 1: Pull NAMD from NGC</h2>
+  
+  <h3>On GPU VM:</h3>
+  
+  <div class="command-label">Pull the container:</div>
+  <div class="code-block">
+    <code>
+      docker pull nvcr.io/hpc/namd:3.0.1
+    </code>
+  </div>
+  
+  <div class="highlight-box">
+    <strong>📦 What You Get:</strong>
+    <ul style="margin-top: 8px; font-size: 14px;">
+      <li>NAMD 3.0.1 fully configured for GPU</li>
+      <li>All dependencies included</li>
+      <li>Optimized for NVIDIA GPUs</li>
+      <li>No compilation, no configuration needed</li>
+    </ul>
+  </div>
+  
+  <div class="command-label">Verify the pull:</div>
+  <div class="code-block">
+    <code>
+      docker images | grep namd
+    </code>
+  </div>
+  
+  <div class="success-box">
+    <strong>⏱️ Pull Time:</strong> 2-5 minutes depending on network speed (~2-3 GB download)
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">23</div>
+</div>
+
+<!-- Slide 24: Prepare Workspace -->
+<div class="slide">
+  <h2>Step 2: Prepare Workspace & Directories</h2>
+  
+  <h3>Create Directory Structure:</h3>
+  
+  <div class="code-block">
+    <code>
+      # Workspace on persistent volume<br>
+      mkdir -p /mnt/user_volume/namd_workspace<br>
+      mkdir -p /mnt/user_volume/namd_workspace/namd_checkpoints<br>
+      <br>
+      # Intermediate results on fast ephemeral storage<br>
+      mkdir -p /ephemeral/namd_intermediate
+    </code>
+  </div>
+  
+  <div class="highlight-box">
+    <strong>📂 Directory Purpose:</strong>
+    <ul style="margin-top: 8px; font-size: 14px;">
+      <li><code>/mnt/user_volume/namd_workspace/</code> - Input files, final results</li>
+      <li><code>/mnt/user_volume/namd_workspace/namd_checkpoints/</code> - Saved checkpoints (persistent)</li>
+      <li><code>/ephemeral/namd_intermediate/</code> - Temporary calculations (fast I/O, deleted on VM termination)</li>
+    </ul>
+  </div>
+  
+  <div class="command-label">Copy your NAMD input files to workspace:</div>
+  <div class="code-block">
+    <code>
+      cp /mnt/user_volume/dataset/*.namd /mnt/user_volume/namd_workspace/<br>
+      cp /mnt/user_volume/dataset/*.pdb /mnt/user_volume/namd_workspace/<br>
+      cp /mnt/user_volume/dataset/*.psf /mnt/user_volume/namd_workspace/
+    </code>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">24</div>
+</div>
+
+<!-- Slide 25: Run NAMD Container -->
+<div class="slide">
+  <h2>Step 3: Run NAMD with Checkpoint Strategy</h2>
+  
+  <h3>Run NAMD Container:</h3>
+  
+  <div class="code-block" style="font-size: 11px;">
+    <code>
+      docker run --rm --runtime=nvidia --gpus all --ipc=host \<br>
+        -v /mnt/user_volume/namd_workspace:/workspace \<br>
+        -v /ephemeral/namd_intermediate:/intermediate \<br>
+        -w /workspace \<br>
+        nvcr.io/hpc/namd:3.0.1 namd3 \<br>
+        +p28 +devices 0 +setcpuaffinity \<br>
+        +restart /workspace/namd_checkpoints/latest.restart \<br>
+        +checkpoint /workspace/namd_checkpoints/step \<br>
+        +checkpointfreq 1000 \<br>
+        inputfile.namd
+    </code>
+  </div>
+  
+  <div class="highlight-box" style="font-size: 13px;">
+    <strong>🔧 Key Parameters:</strong>
+    <ul style="margin-top: 6px; font-size: 13px;">
+      <li><code>--gpus all</code> - Use all GPUs</li>
+      <li><code>-v /mnt/user_volume/namd_workspace:/workspace</code> - Mount volume</li>
+      <li><code>-v /ephemeral/namd_intermediate:/intermediate</code> - Mount ephemeral</li>
+      <li><code>+p28</code> - Use 28 CPU cores</li>
+      <li><code>+checkpoint .../step</code> - Save checkpoint every N steps</li>
+      <li><code>+checkpointfreq 1000</code> - Checkpoint every 1000 steps</li>
+    </ul>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">25</div>
+</div>
+
+<!-- Slide 26: Checkpoint Strategy -->
+<div class="slide">
+  <h2>Understanding the Checkpoint Strategy</h2>
+  
+  <h3>Data Flow:</h3>
+  
+  <div class="code-block" style="font-size: 13px;">
+    <code>
+      Input → /mnt/user_volume/namd_workspace/inputfile.namd<br>
+      <br>
+      During Run:<br>
+      ├── Fast calculations → /ephemeral/namd_intermediate/<br>
+      │   (temporary, high I/O, deleted when VM stops)<br>
+      │<br>
+      └── Periodic checkpoints → /mnt/user_volume/.../namd_checkpoints/<br>
+          (persistent, survives VM deletion)
+    </code>
+  </div>
+  
+  <div class="success-box">
+    <strong>✅ Benefits:</strong>
+    <ul style="margin-top: 8px; font-size: 14px;">
+      <li><strong>Performance:</strong> Ephemeral disk is faster for temporary I/O</li>
+      <li><strong>Safety:</strong> Regular checkpoints protect against failures</li>
+      <li><strong>Resume:</strong> Can restart from last checkpoint if interrupted</li>
+      <li><strong>Cost:</strong> Only important data stored on volume (cheaper)</li>
+    </ul>
+  </div>
+  
+  <div class="warning-box">
+    <strong>⚠️ Remember:</strong> Copy any needed intermediate results to volume before stopping VM!
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">26</div>
+</div>
+
+<!-- Slide 27: Phase 3 Complete -->
+<div class="slide">
+  <h2>✅ Phase 3 Complete!</h2>
+  
+  <h3>What We've Accomplished:</h3>
+  
+  <div class="success-box">
+    <strong>Container Workflow Mastered:</strong>
+    <ul style="margin-top: 10px; font-size: 15px;">
+      <li>✅ Pulled pre-built container from NGC</li>
+      <li>✅ Configured workspace on volume</li>
+      <li>✅ Implemented checkpoint strategy</li>
+      <li>✅ Leveraged ephemeral storage for performance</li>
+      <li>✅ Ensured data persistence with regular saves</li>
+    </ul>
+  </div>
+  
+  <div class="highlight-box">
+    <strong>💡 Key Takeaway:</strong> NGC containers save hours of compilation and configuration. For production applications like NAMD, GROMACS, OpenMM—always check NGC first!
+  </div>
+  
+  <div class="command-label">Find more containers:</div>
+  <div class="code-block">
+    <code>
+      Visit: https://catalog.ngc.nvidia.com
+    </code>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">27</div>
+</div>
+
+<!-- Slide 28: Phase 4 Overview -->
+<div class="slide">
+  <h2>Phase 4: Custom Docker Containers</h2>
+  <span class="phase-badge">PART 4 OF 5</span>
+  
+  <h3>When to Build Custom Containers:</h3>
+  <ul style="font-size: 15px;">
+    <li>Your application isn't available on NGC</li>
+    <li>You need specific versions or custom modifications</li>
+    <li>You want to package your own research code</li>
+  </ul>
+  
+  <h3 style="margin-top: 15px;">Workflow Overview:</h3>
+  <div style="font-size: 15px; line-height: 1.7;">
+    <p><strong>1.</strong> Write Dockerfile on your local machine</p>
+    <p><strong>2.</strong> Build container image locally</p>
+    <p><strong>3.</strong> Save image to tar file</p>
+    <p><strong>4.</strong> Transfer tar to GPU VM</p>
+    <p><strong>5.</strong> Load image on GPU VM</p>
+    <p><strong>6.</strong> Run your custom container</p>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">28</div>
+</div>
+
+<!-- Slide 29: Build Locally -->
+<div class="slide">
+  <h2>Step 1: Build Container on Local Machine</h2>
+  
+  <h3>Create Dockerfile:</h3>
+  
+  <div class="code-block" style="font-size: 12px;">
+    <code>
+      # Example Dockerfile for custom ML application<br>
+      FROM nvidia/cuda:12.2.0-cudnn8-runtime-ubuntu22.04<br>
+      <br>
+      # Install dependencies<br>
+      RUN apt-get update && apt-get install -y \<br>
+          python3-pip \<br>
+          python3-dev \<br>
+          && rm -rf /var/lib/apt/lists/*<br>
+      <br>
+      # Install Python packages<br>
+      RUN pip3 install torch torchvision transformers<br>
+      <br>
+      # Copy your application<br>
+      COPY ./my_app /app<br>
+      WORKDIR /app<br>
+      <br>
+      # Set entrypoint<br>
+      ENTRYPOINT ["python3", "main.py"]
+    </code>
+  </div>
+  
+  <div class="command-label">Build the image:</div>
+  <div class="code-block">
+    <code>
+      docker build -t my_custom_app:1.0 .
+    </code>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">29</div>
+</div>
+
+<!-- Slide 30: Save & Transfer -->
+<div class="slide">
+  <h2>Steps 2-4: Save, Transfer, Load</h2>
+  
+  <h3>Step 2: Save Image to tar File (Local):</h3>
+  <div class="code-block">
+    <code>
+      docker save my_custom_app:1.0 -o my_custom_app.tar
+    </code>
+  </div>
+  
+  <h3 style="margin-top: 15px;">Step 3: Transfer to GPU VM (Local):</h3>
+  <div class="code-block">
+    <code>
+      scp -i ~/.ssh/gpu_cloud_key \<br>
+          my_custom_app.tar \<br>
+          ubuntu@&lt;GPU_VM_IP&gt;:~/
+    </code>
+  </div>
+  
+  <div class="highlight-box">
+    <strong>⏱️ Transfer Time:</strong> Depends on image size and network. Typical ML images: 2-5 GB (5-15 min)
+  </div>
+  
+  <h3 style="margin-top: 15px;">Step 4: Load Image on GPU VM:</h3>
+  <div class="code-block">
+    <code>
+      # SSH to GPU VM<br>
+      ssh -i ~/.ssh/gpu_cloud_key ubuntu@&lt;GPU_VM_IP&gt;<br>
+      <br>
+      # Load the image<br>
+      docker load -i ~/my_custom_app.tar<br>
+      <br>
+      # Verify<br>
+      docker images | grep my_custom_app
+    </code>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">30</div>
+</div>
+
+<!-- Slide 31: Run Custom Container -->
+<div class="slide">
+  <h2>Step 5: Run Your Custom Container</h2>
+  
+  <h3>Basic Run Command:</h3>
+  
+  <div class="code-block">
+    <code>
+      docker run --rm --gpus all \<br>
+        -v /mnt/user_volume:/data \<br>
+        my_custom_app:1.0 \<br>
+        --input /data/dataset \<br>
+        --output /data/results
+    </code>
+  </div>
+  
+  <h3 style="margin-top: 15px;">Interactive Mode (for debugging):</h3>
+  <div class="code-block">
+    <code>
+      docker run -it --rm --gpus all \<br>
+        -v /mnt/user_volume:/data \<br>
+        my_custom_app:1.0 \<br>
+        /bin/bash
+    </code>
+  </div>
+  
+  <div class="success-box">
+    <strong>✅ Your Custom Application Now Runs with GPU Access!</strong>
+    <ul style="margin-top: 8px; font-size: 14px;">
+      <li>All GPUs available to container</li>
+      <li>Volume mounted for data access</li>
+      <li>Reproducible environment</li>
+    </ul>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">31</div>
+</div>
+
+<!-- Slide 32: Phase 4 Complete -->
+<div class="slide">
+  <h2>✅ Phase 4 Complete!</h2>
+  
+  <h3>Custom Container Skills Acquired:</h3>
+  
+  <div class="success-box">
+    <strong>What You Can Now Do:</strong>
+    <ul style="margin-top: 10px; font-size: 15px;">
+      <li>✅ Build custom Docker images locally</li>
+      <li>✅ Transfer images to GPU cloud</li>
+      <li>✅ Run containerized applications with GPU</li>
+      <li>✅ Mount volumes for persistent data</li>
+      <li>✅ Create reproducible research environments</li>
+    </ul>
+  </div>
+  
+  <div class="highlight-box">
+    <strong>💡 Best Practice:</strong>
+    <ul style="margin-top: 8px; font-size: 14px;">
+      <li><strong>First:</strong> Check NGC for pre-built containers</li>
+      <li><strong>Second:</strong> Build custom only if necessary</li>
+      <li><strong>Always:</strong> Document your Dockerfile for reproducibility</li>
+    </ul>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">32</div>
+</div>
+
+<!-- Slide 33: Phase 5 Overview -->
+<div class="slide">
+  <h2>Phase 5: Cleanup & Results Download</h2>
+  <span class="phase-badge">PART 5 OF 5</span>
+  
+  <h3>Final Steps:</h3>
+  
+  <div style="font-size: 15px; line-height: 1.7;">
+    <p><strong>1.</strong> Verify all results are saved to volume</p>
+    <p><strong>2.</strong> Safely unmount volume from GPU VM</p>
+    <p><strong>3.</strong> Detach volume in UI</p>
+    <p><strong>4.</strong> Delete or hibernate GPU VM (stop charges!)</p>
+    <p><strong>5.</strong> Attach volume to staging VM</p>
+    <p><strong>6.</strong> Download results to local machine</p>
+    <p><strong>7.</strong> Delete or hibernate staging VM</p>
+    <p><strong>8.</strong> (Optional) Delete volume if no longer needed</p>
+  </div>
+  
+  <div class="warning-box">
+    <strong>⚠️ Critical:</strong> Always verify data is on volume before deleting VMs!
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">33</div>
+</div>
+
+<!-- Slide 34: Verify & Unmount -->
+<div class="slide">
+  <h2>Steps 1-3: Verify, Unmount, Detach</h2>
+  
+  <h3>Step 1: Verify Results (On GPU VM):</h3>
+  <div class="code-block">
+    <code>
+      ls -lh /mnt/user_volume/training_output/<br>
+      ls -lh /mnt/user_volume/namd_workspace/namd_checkpoints/<br>
+      du -sh /mnt/user_volume/*
+    </code>
+  </div>
+  
+  <h3 style="margin-top: 15px;">Step 2: Unmount Volume (On GPU VM):</h3>
+  <div class="code-block">
+    <code>
+      sync<br>
+      sudo umount /mnt/user_volume<br>
+      <br>
+      # Verify unmounted<br>
+      df -h | grep user_volume  # Should show nothing
+    </code>
+  </div>
+  
+  <h3 style="margin-top: 15px;">Step 3: Detach in UI:</h3>
+  <ol style="font-size: 14px;">
+    <li>Go to <strong>Manage VMs</strong> → <code>aysha-gpu-h100</code></li>
+    <li>Click <strong>"DETACH"</strong> next to volume</li>
+    <li>Wait for status: <span style="background: #d4edda; padding: 2px 6px; border-radius: 3px; color: #155724; font-weight: 600;">AVAILABLE</span></li>
+  </ol>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">34</div>
+</div>
+
+<!-- Slide 35: Delete/Hibernate GPU VM -->
+<div class="slide">
+  <h2>Step 4: Delete or Hibernate GPU VM</h2>
+  
+  <h3>Option A: Delete VM (Permanent):</h3>
+  <ol style="font-size: 15px;">
+    <li>In <strong>Manage VMs</strong>, select <code>aysha-gpu-h100</code></li>
+    <li>Click <strong>"🛑 Delete GPU VM"</strong></li>
+    <li>Confirm deletion</li>
+  </ol>
+  
+  <div class="success-box">
+    <strong>💰 Charges Stop Immediately!</strong> H100 VM ($1.90/hr) charges end when deleted.
+  </div>
+  
+  <h3 style="margin-top: 15px;">Option B: Hibernate VM (Resume Later):</h3>
+  <ol style="font-size: 15px;">
+    <li>Select <code>aysha-gpu-h100</code></li>
+    <li>Click <strong>"⏸️ Hibernate GPU VM"</strong></li>
+    <li>Wait ~10-20 minutes for hibernation</li>
+  </ol>
+  
+  <div class="highlight-box">
+    <strong>Hibernate Costs:</strong> Only charged for root disk storage (~$7/month) + IP (~$5/month). Much cheaper than keeping VM running!
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">35</div>
+</div>
+
+<!-- Slide 36: Attach to Staging -->
+<div class="slide">
+  <h2>Step 5: Attach Volume to Staging VM</h2>
+  
+  <h3>Restore or Create Staging VM:</h3>
+  <div class="highlight-box" style="font-size: 14px;">
+    <strong>If you deleted staging earlier:</strong> Create new CPU VM<br>
+    <strong>If you kept it:</strong> It should still be running or hibernated
+  </div>
+  
+  <h3 style="margin-top: 15px;">Attach Volume via UI:</h3>
+  <ol style="font-size: 15px;">
+    <li>Go to <strong>Manage VMs</strong> → <code>aysha-staging</code></li>
+    <li>Click <strong>"🔗 Attach Volume"</strong></li>
+    <li>Select <code>aysha-research-data</code></li>
+  </ol>
+  
+  <h3 style="margin-top: 15px;">SSH & Mount:</h3>
+  <div class="code-block">
+    <code>
+      ssh -i ~/.ssh/gpu_cloud_key ubuntu@&lt;STAGING_IP&gt;<br>
+      <br>
+      # Get device path from UI<br>
+      DEVICE="/dev/disk/by-id/virtio-..."<br>
+      <br>
+      # Mount (no formatting!)<br>
+      sudo mkdir -p /mnt/user_volume<br>
+      sudo mount ${DEVICE} /mnt/user_volume
+    </code>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">36</div>
+</div>
+
+<!-- Slide 37: Download Results -->
+<div class="slide">
+  <h2>Step 6: Download Results to Local Machine</h2>
+  
+  <h3>From Your Local Machine:</h3>
+  
+  <div class="command-label">Download all results:</div>
+  <div class="code-block">
+    <code>
+      rsync -avz -P --checksum \<br>
+        -e "ssh -i ~/.ssh/gpu_cloud_key" \<br>
+        ubuntu@&lt;STAGING_IP&gt;:/mnt/user_volume/ \<br>
+        ./local_results/
+    </code>
+  </div>
+  
+  <div class="command-label">Download specific directories:</div>
+  <div class="code-block">
+    <code>
+      # Download only training outputs<br>
+      rsync -avz -P --checksum \<br>
+        -e "ssh -i ~/.ssh/gpu_cloud_key" \<br>
+        ubuntu@&lt;STAGING_IP&gt;:/mnt/user_volume/training_output/ \<br>
+        ./training_results/<br>
+      <br>
+      # Download NAMD checkpoints<br>
+      rsync -avz -P --checksum \<br>
+        -e "ssh -i ~/.ssh/gpu_cloud_key" \<br>
+        ubuntu@&lt;STAGING_IP&gt;:/mnt/user_volume/namd_workspace/ \<br>
+        ./namd_results/
+    </code>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">37</div>
+</div>
+
+<!-- Slide 38: Final Cleanup -->
+<div class="slide">
+  <h2>Steps 7-8: Final Cleanup</h2>
+  
+  <h3>Step 7: Delete/Hibernate Staging VM:</h3>
+  <div class="code-block">
+    <code>
+      # On staging VM, unmount first<br>
+      sync<br>
+      sudo umount /mnt/user_volume
+    </code>
+  </div>
+  
+  <ol style="font-size: 15px; margin-top: 10px;">
+    <li>In UI, detach volume from staging VM</li>
+    <li>Delete or hibernate staging VM</li>
+  </ol>
+  
+  <h3 style="margin-top: 15px;">Step 8: Delete Volume (Optional):</h3>
+  <div class="warning-box">
+    <strong>⚠️ Only if you're completely done!</strong>
+    <ul style="margin-top: 8px; font-size: 14px;">
+      <li>Volume deletion is <strong>permanent</strong></li>
+      <li>Make sure ALL data is downloaded first</li>
+    </ul>
+  </div>
+  
+  <ol style="font-size: 15px;">
+    <li>Go to <strong>⚙️💾 Manage Volumes</strong></li>
+    <li>Select <code>aysha-research-data</code></li>
+    <li>Click <strong>"🗑️ Delete Volume"</strong></li>
+  </ol>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">38</div>
+</div>
+
+<!-- Slide 39: Complete Workflow Summary -->
+<div class="slide">
+  <h2>📊 Complete Workflow Summary</h2>
+  
+  <div style="font-size: 14px; line-height: 1.6;">
+    <p><strong>Phase 1 - Setup:</strong> Volume → Staging → Upload → GPU VM</p>
+    <p><strong>Phase 2 - Python:</strong> Modules → tmux → Training → Monitor</p>
+    <p><strong>Phase 3 - NGC:</strong> Pull NAMD → Checkpoints → Ephemeral + Volume</p>
+    <p><strong>Phase 4 - Custom:</strong> Build → Save → Transfer → Load → Run</p>
+    <p><strong>Phase 5 - Cleanup:</strong> Unmount → Detach → Delete VMs → Download</p>
+  </div>
+  
+  <div class="success-box" style="margin-top: 15px;">
+    <strong>💰 Cost Optimization Achieved:</strong>
+    <ul style="margin-top: 8px; font-size: 14px;">
+      <li>Used cheap staging VM for uploads</li>
+      <li>Leveraged ephemeral storage for performance</li>
+      <li>Saved only important data to volume</li>
+      <li>Deleted expensive VMs immediately after use</li>
+    </ul>
+  </div>
+  
+  <div class="highlight-box">
+    <strong>⏱️ Total Time:</strong> Setup (1-2 hrs), Simulations (varies), Cleanup (30 min)
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">39</div>
+</div>
+
+<!-- Slide 40: Cost Breakdown Example -->
+<div class="slide">
+  <h2>💰 Real Cost Example: 48-Hour Project</h2>
+  
+  <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin: 15px 0;">
+    <thead style="background: #f8f9fa;">
+      <tr>
+        <th style="padding: 8px; border: 1px solid #dee2e6; text-align: left;">Resource</th>
+        <th style="padding: 8px; border: 1px solid #dee2e6;">Rate</th>
+        <th style="padding: 8px; border: 1px solid #dee2e6;">Time</th>
+        <th style="padding: 8px; border: 1px solid #dee2e6;">Cost</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="padding: 8px; border: 1px solid #dee2e6;">Staging VM (upload)</td>
+        <td style="padding: 8px; border: 1px solid #dee2e6;">$0.35/hr</td>
+        <td style="padding: 8px; border: 1px solid #dee2e6;">3 hrs</td>
+        <td style="padding: 8px; border: 1px solid #dee2e6;">$1.05</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px; border: 1px solid #dee2e6;">H100 GPU VM</td>
+        <td style="padding: 8px; border: 1px solid #dee2e6;">$1.90/hr</td>
+        <td style="padding: 8px; border: 1px solid #dee2e6;">48 hrs</td>
+        <td style="padding: 8px; border: 1px solid #dee2e6;">$91.20</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px; border: 1px solid #dee2e6;">Staging VM (download)</td>
+        <td style="padding: 8px; border: 1px solid #dee2e6;">$0.35/hr</td>
+        <td style="padding: 8px; border: 1px solid #dee2e6;">2 hrs</td>
+        <td style="padding: 8px; border: 1px solid #dee2e6;">$0.70</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px; border: 1px solid #dee2e6;">1TB Volume</td>
+        <td style="padding: 8px; border: 1px solid #dee2e6;">$0.097/hr</td>
+        <td style="padding: 8px; border: 1px solid #dee2e6;">53 hrs</td>
+        <td style="padding: 8px; border: 1px solid #dee2e6;">$5.14</td>
+      </tr>
+      <tr style="background: #e6f7ff; font-weight: 600;">
+        <td style="padding: 8px; border: 1px solid #dee2e6;" colspan="3"><strong>TOTAL</strong></td>
+        <td style="padding: 8px; border: 1px solid #dee2e6;"><strong>$98.09</strong></td>
+      </tr>
+    </tbody>
+  </table>
+  
+  <div class="success-box">
+    <strong>💰 Savings vs Direct GPU Upload:</strong> Using staging VM for 5 hours of data transfer saved <strong>$7.75!</strong>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">40</div>
+</div>
+
+<!-- Slide 41: Best Practices -->
+<div class="slide">
+  <h2>✨ Best Practices Summary</h2>
+  
+  <h3>Cost Optimization:</h3>
+  <ul style="font-size: 14px;">
+    <li><strong>Always use staging VM</strong> for large data transfers</li>
+    <li><strong>Delete VMs immediately</strong> after use—don't leave running idle</li>
+    <li><strong>Use ephemeral storage</strong> for temporary/intermediate files</li>
+    <li><strong>Right-size your GPU</strong>—don't use H100 for testing</li>
+  </ul>
+  
+  <h3 style="margin-top: 15px;">Data Safety:</h3>
+  <ul style="font-size: 14px;">
+    <li><strong>Always sync and umount</strong> before detaching volumes</li>
+    <li><strong>Regular checkpoints</strong> to volume during long runs</li>
+    <li><strong>Verify downloads</strong> before deleting volumes</li>
+    <li><strong>Keep staging VM</strong> until all data safely downloaded</li>
+  </ul>
+  
+  <h3 style="margin-top: 15px;">Efficiency:</h3>
+  <ul style="font-size: 14px;">
+    <li><strong>Use tmux</strong> for all long-running jobs</li>
+    <li><strong>Check NGC first</strong> before building custom containers</li>
+    <li><strong>Test on CPU VM</strong> before running on expensive GPU</li>
+    <li><strong>Monitor GPU usage</strong> to ensure full utilization</li>
+  </ul>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">41</div>
+</div>
+
+<!-- Slide 42: Troubleshooting -->
+<div class="slide">
+  <h2>🔧 Common Issues & Solutions</h2>
+  
+  <h3>Problem: Volume won't unmount</h3>
+  <div class="warning-box" style="font-size: 13px;">
+    <strong>Solution:</strong>
+    <div class="code-block" style="margin-top: 8px;">
+      <code>
+        # Find processes using volume<br>
+        lsof /mnt/user_volume<br>
+        fuser -m /mnt/user_volume<br>
+        <br>
+        # Kill processes if needed<br>
+        sudo fuser -km /mnt/user_volume<br>
+        <br>
+        # Then unmount<br>
+        sync && sudo umount /mnt/user_volume
+      </code>
+    </div>
+  </div>
+  
+  <h3 style="margin-top: 15px;">Problem: Docker container can't access GPU</h3>
+  <div class="warning-box" style="font-size: 13px;">
+    <strong>Solution:</strong> Always include <code>--gpus all</code> flag:<br>
+    <code style="margin-top: 5px; display: block;">docker run --gpus all --runtime=nvidia ...</code>
+  </div>
+  
+  <h3 style="margin-top: 15px;">Problem: Out of space on volume</h3>
+  <div class="warning-box" style="font-size: 13px;">
+    <strong>Solution:</strong> Use ephemeral for intermediate data, keep only final results on volume
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">42</div>
+</div>
+
+<!-- Slide 43: Advanced Tips -->
+<div class="slide">
+  <h2>🚀 Advanced Tips</h2>
+  
+  <h3>Auto-Mount on Boot:</h3>
+  <div class="code-block" style="font-size: 12px;">
+    <code>
+      # Get UUID<br>
+      sudo blkid ${DEVICE}<br>
+      <br>
+      # Edit /etc/fstab<br>
+      sudo nano /etc/fstab<br>
+      # Add: UUID=xxx /mnt/user_volume ext4 defaults,nofail 0 2<br>
+      <br>
+      # Test<br>
+      sudo mount -a
+    </code>
+  </div>
+  
+  <h3 style="margin-top: 15px;">Multi-GPU Training:</h3>
+  <div class="code-block" style="font-size: 12px;">
+    <code>
+      # Use specific GPUs<br>
+      export CUDA_VISIBLE_DEVICES=0,1,2,3<br>
+      <br>
+      # PyTorch distributed<br>
+      torchrun --nproc_per_node=4 train.py
+    </code>
+  </div>
+  
+  <h3 style="margin-top: 15px;">Container Optimization:</h3>
+  <ul style="font-size: 14px;">
+    <li>Use multi-stage builds to reduce image size</li>
+    <li>Clean up apt cache in Dockerfile</li>
+    <li>Use .dockerignore to exclude unnecessary files</li>
+  </ul>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">43</div>
+</div>
+
+<!-- Slide 44: Resources -->
+<div class="slide">
+  <h2>📚 Learning Resources</h2>
+  
+  <h3>Platform Documentation:</h3>
+  <ul style="font-size: 15px;">
+    <li><strong>📖 Complete Documentation</strong> - Full user guide</li>
+    <li><strong>⚡ Cheat Sheet</strong> - Quick command reference</li>
+    <li><strong>🗺️ Project Overview</strong> - Architecture details</li>
+  </ul>
+  
+  <h3 style="margin-top: 15px;">External Resources:</h3>
+  <ul style="font-size: 15px;">
+    <li><strong>NVIDIA NGC Catalog:</strong> https://catalog.ngc.nvidia.com</li>
+    <li><strong>Docker Documentation:</strong> https://docs.docker.com</li>
+    <li><strong>tmux Cheat Sheet:</strong> https://tmuxcheatsheet.com</li>
+  </ul>
+  
+  <div class="warning-box">
+    <strong>Need Help?</strong><br>
+    📧 Contact RCCG support: <strong>rccg@hbku.edu.qa</strong>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">44</div>
+</div>
+
+<!-- Slide 45: Thank You -->
+<div class="slide">
+  <div class="center-content">
+    <div class="large-icon">🎓</div>
+    <h1 style="color: #667eea;">Congratulations!</h1>
+    <p style="font-size: 24px; margin-top: 20px; color: #4a5568;">
+      You've Mastered Advanced GPU Cloud Workflows
+    </p>
+    
+    <div style="margin-top: 40px; text-align: left; max-width: 700px; font-size: 15px;">
+      <p><strong>You can now:</strong></p>
+      <ul style="margin-left: 25px; margin-top: 10px;">
+        <li>Optimize costs with staging VMs and volumes</li>
+        <li>Run traditional Python/conda workflows</li>
+        <li>Deploy pre-built NGC containers</li>
+        <li>Build and run custom Docker images</li>
+        <li>Implement checkpoint strategies</li>
+        <li>Manage persistent and ephemeral storage</li>
+      </ul>
+    </div>
+    
+    <div style="margin-top: 40px; padding: 15px; background: #f8f9fa; border-radius: 8px; max-width: 600px;">
+      <p style="font-size: 16px; color: #718096; margin: 0;">
+        <strong>RCCG</strong> - Research Computing Core Group<br>
+        Hamad Bin Khalifa University<br>
+        📧 rccg@hbku.edu.qa
+      </p>
+    </div>
+  </div>
+  <div class="slide-number">45</div>
+</div>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+  lucide.createIcons();
+</script>
+</body>
+</html>

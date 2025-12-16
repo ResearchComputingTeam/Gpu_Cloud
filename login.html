@@ -195,7 +195,7 @@ async function handleSignup(event) {
   if (!email.endsWith('@hbku.edu.qa')) {
     showMessage('⚠️ Please use your HBKU email address', 'warning');
     // Remove 'return' below if you want to allow other emails for testing
-    // return;
+    return;
   }
   
   // Show loading
@@ -235,14 +235,20 @@ async function handleForgotPassword() {
   const email = prompt('Enter your email address:');
   if (!email) return;
   
+  // Validate email format
+  if (!email.includes('@')) {
+    showMessage('✗ Please enter a valid email address', 'danger');
+    return;
+  }
+  
   try {
     const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/reset-password.html'
+      redirectTo: window.location.origin + '/reset_password.html'
     });
     
     if (error) throw error;
     
-    showMessage('✓ Password reset email sent! Check your inbox.', 'success');
+    showMessage('✔ Password reset email sent! Check your inbox (and spam folder).', 'success');
   } catch (error) {
     showMessage('✗ Error: ' + error.message, 'danger');
   }

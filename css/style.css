@@ -439,4 +439,135 @@ body {
   font-weight: 600;
 }
 
+/* ========================================
+   LEARNING HUB DROPDOWN STYLES (COMPACT)
+   ======================================== */
+
+/* Enhanced dropdown menu - COMPACT */
+.learning-hub-menu {
+  min-width: 260px;
+  padding: 4px 0;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  margin-top: 4px;
+}
+
+/* Section headers - COMPACT */
+.learning-hub-menu .dropdown-header {
+  font-size: 11px;
+  font-weight: 700;
+  color: #667eea;
+  padding: 8px 16px 4px;
+  text-transform: none;
+  letter-spacing: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Dividers - COMPACT */
+.learning-hub-menu .dropdown-divider {
+  margin: 4px 8px;
+  border-color: #e9ecef;
+}
+
+/* Menu items - COMPACT */
+.learning-hub-menu .dropdown-item {
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.learning-hub-menu .dropdown-item:hover {
+  background: linear-gradient(90deg, #f8f9ff 0%, #ffffff 100%);
+  border-left-color: #667eea;
+  padding-left: 20px;
+}
+
+/* Menu item icon - COMPACT */
+.menu-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+/* Menu item content - COMPACT */
+.menu-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+}
+
+.menu-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2d3748;
+  line-height: 1.2;
+}
+
+.menu-subtitle {
+  font-size: 11px;
+  color: #718096;
+  line-height: 1.2;
+}
+
+/* Hover effect for menu items */
+.learning-hub-menu .dropdown-item:hover .menu-title {
+  color: #667eea;
+}
+
+/* Active/focus state */
+.learning-hub-menu .dropdown-item:active {
+  background: #667eea;
+}
+
+.learning-hub-menu .dropdown-item:active .menu-title,
+.learning-hub-menu .dropdown-item:active .menu-subtitle {
+  color: white;
+}
+
+/* Button styling enhancement */
+#learningHubDropdown {
+  font-weight: 600;
+  padding: 6px 12px;
+  border-width: 2px;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+#learningHubDropdown:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.8);
+  transform: translateY(-1px);
+}
+
+/* Dropdown arrow animation */
+#learningHubDropdown::after {
+  transition: transform 0.2s ease;
+}
+
+#learningHubDropdown[aria-expanded="true"]::after {
+  transform: rotate(180deg);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .learning-hub-menu {
+    min-width: 240px;
+  }
+  
+  .menu-title {
+    font-size: 12px;
+  }
+  
+  .menu-subtitle {
+    font-size: 10px;
+  }
+}
 

@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GPU Cloud Platform - Beginner Guide</title>
+  <style>
+    @media print {
+      @page {
+        size: A4;
+        margin: 0;
+      }
+      
+      html, body {
+        width: 210mm;
+        height: 297mm;
+        margin: 0;
+        padding: 0;
+      }
+      
+      .slide {
+        width: 210mm;
+        height: 297mm;
+        page-break-after: always;
+        page-break-inside: avoid;
+        margin: 0;
+        padding: 15mm 20mm;
+        box-shadow: none;
+      }
+      
+      .slide:last-child {
+        page-break-after: avoid;
+      }
+    }
+    
+    @media screen {
+      body {
+        background: #f5f5f5;
+        padding: 20px 0;
+      }
+      
+      .slide {
+        margin: 0 auto 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      }
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      line-height: 1.6;
+      background: linear-gradient(135deg, #7c90ec 0%, #764ba2 100%);
+    }
+
+    .slide {
+      width: 210mm;
+      height: 297mm;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      position: relative;
+      overflow: hidden;
+      padding: 15mm 20mm;
+    }
+    
+    .slide-number {
+      position: absolute;
+      bottom: 30px;
+      right: 40px;
+      font-size: 14px;
+      color: #999;
+    }
+    
+    .slide-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px 30px;
+      margin: -15mm -20mm 20px;
+    }
+    
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 15px;
+    }
+    
+    .slide-header h1 {
+      color: white;
+      margin-bottom: 8px;
+      font-size: 32px;
+    }
+    
+    h2 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 20px;
+      border-bottom: 3px solid #667eea;
+      padding-bottom: 10px;
+    }
+    
+    h3 {
+      font-size: 22px;
+      font-weight: 600;
+      color: #4a5568;
+      margin: 20px 0 12px;
+    }
+    
+    p, li {
+      font-size: 16px;
+      color: #4a5568;
+      margin-bottom: 10px;
+    }
+    
+    ul, ol {
+      margin-left: 30px;
+      margin-bottom: 15px;
+    }
+    
+    li {
+      margin-bottom: 8px;
+      padding-left: 5px;
+    }
+    
+    .code-block {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 12px 15px;
+      border-radius: 6px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 13px;
+      margin: 12px 0;
+      overflow-x: auto;
+      border-left: 4px solid #52c41a;
+      line-height: 1.6;
+    }
+    
+    .code-block code {
+      color: inherit;
+      background: none;
+    }
+    
+    .highlight-box {
+      background: #e6f7ff;
+      border-left: 4px solid #1890ff;
+      padding: 12px 15px;
+      margin: 15px 0;
+      border-radius: 4px;
+      font-size: 15px;
+    }
+    
+    .warning-box {
+      background: #fff7e6;
+      border-left: 4px solid #fa8c16;
+      padding: 12px 15px;
+      margin: 15px 0;
+      border-radius: 4px;
+      font-size: 15px;
+    }
+    
+    .success-box {
+      background: #f6ffed;
+      border-left: 4px solid #52c41a;
+      padding: 12px 15px;
+      margin: 15px 0;
+      border-radius: 4px;
+      font-size: 15px;
+    }
+    
+    .step-number {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 32px;
+      font-weight: bold;
+      margin-right: 12px;
+      font-size: 16px;
+    }
+    
+    .workflow-step {
+      display: flex;
+      align-items: flex-start;
+      margin: 15px 0;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+    
+    .workflow-step-content {
+      flex: 1;
+    }
+    
+    .subtitle {
+      font-size: 20px;
+      color: #ebad03;
+      font-weight: 400;
+    }
+    
+    .footer-logo {
+      position: absolute;
+      bottom: 10mm;
+      left: 20mm;
+      font-size: 12px;
+      color: #999;
+    }
+    
+    .slide-number {
+      position: absolute;
+      bottom: 10mm;
+      right: 20mm;
+      font-size: 12px;
+      color: #999;
+    }
+    
+    strong {
+      color: #2d3748;
+      font-weight: 600;
+    }
+    
+    .center-content {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 60vh;
+    }
+    
+    .large-icon {
+      font-size: 80px;
+      margin-bottom: 30px;
+    }
+    
+    .command-label {
+      font-size: 16px;
+      color: #718096;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Slide 1: Title -->
+<div class="slide">
+  <div class="slide-header">
+    <h1>🚀 GPU Cloud Platform</h1>
+    <p class="subtitle">Beginner's Guide - Simple Workflow</p>
+  </div>
+  <div class="center-content">
+    <div class="large-icon">💻</div>
+    <p style="font-size: 28px; max-width: 800px; margin-bottom: 30px;">
+      A step-by-step guide for running your first GPU computation
+    </p>
+    <p style="font-size: 20px; color: #718096;">
+      From signup to results in 10 simple steps
+    </p>
+  </div>
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">1</div>
+</div>
+
+<!-- Slide 2: What You'll Learn -->
+<div class="slide">
+  <h2>📋 What You'll Learn</h2>
+  <div style="margin-top: 40px;">
+    <div class="workflow-step">
+      <span class="step-number">1</span>
+      <div class="workflow-step-content">
+        <strong>Sign Up & Login</strong>
+        <p>Create your account and access the platform</p>
+      </div>
+    </div>
+    
+    <div class="workflow-step">
+      <span class="step-number">2</span>
+      <div class="workflow-step-content">
+        <strong>Create a VM</strong>
+        <p>Launch your first virtual machine with GPU</p>
+      </div>
+    </div>
+    
+    <div class="workflow-step">
+      <span class="step-number">3</span>
+      <div class="workflow-step-content">
+        <strong>Setup SSH Access</strong>
+        <p>Generate and import your SSH key for secure connection</p>
+      </div>
+    </div>
+    
+    <div class="workflow-step">
+      <span class="step-number">4</span>
+      <div class="workflow-step-content">
+        <strong>Upload, Process & Download</strong>
+        <p>Run your computations and retrieve results</p>
+      </div>
+    </div>
+  </div>
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">2</div>
+</div>
+
+<!-- Slide 3: Prerequisites -->
+<div class="slide">
+  <h2>✅ Prerequisites</h2>
+  
+  <h3>Before You Start:</h3>
+  <ul>
+    <li><strong>HBKU Email Address</strong> - Required for signup</li>
+    <li><strong>Project Assignment</strong> - You must be added to a project by the PI (Project Owner)</li>
+    <li><strong>Terminal Access</strong> - Basic familiarity with command line (Linux/Mac Terminal or Windows PowerShell)</li>
+    <li><strong>SSH Client</strong> - Pre-installed on Linux/Mac, available on Windows 10+</li>
+  </ul>
+  
+  <div class="highlight-box">
+    <strong>💡 Note:</strong> This guide assumes you have already been added as a <strong>member</strong> to an existing project by your PI or project administrator.
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">3</div>
+</div>
+
+<!-- Slide 4: Step 1 - Sign Up -->
+<div class="slide">
+  <h2>Step 1️⃣: Sign Up</h2>
+  
+  <h3>Create Your Account</h3>
+  
+  <ol style="font-size: 22px;">
+    <li>Visit <strong>https://gpu-cloud.vercel.app/</strong></li>
+    <li>Click on the <strong>"Sign Up"</strong> tab</li>
+    <li>Fill in your details:
+      <ul style="font-size: 20px; margin-top: 10px;">
+        <li>Full Name</li>
+        <li>HBKU Email Address</li>
+        <li>Password (minimum 8 characters)</li>
+      </ul>
+    </li>
+    <li>Click <strong>"Sign Up"</strong></li>
+  </ol>
+  
+  <div class="warning-box">
+    <strong>⚠️ Important:</strong> You must use your <strong>HBKU email address</strong> (ending in @hbku.edu.qa). Other email addresses will not work.
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">4</div>
+</div>
+
+<!-- Slide 5: Step 2 - Verify Email -->
+<div class="slide">
+  <h2>Step 2️⃣: Verify Your Email</h2>
+  
+  <h3>Confirm Your Account</h3>
+  
+  <ol style="font-size: 22px;">
+    <li>Check your <strong>HBKU email inbox</strong></li>
+    <li>Look for an email from the GPU Cloud platform</li>
+    <li>Click on the <strong>verification link</strong> in the email</li>
+    <li>Your account is now activated!</li>
+  </ol>
+  
+  <div class="highlight-box">
+    <strong>💡 Tip:</strong> If you don't see the email:
+    <ul style="margin-top: 10px;">
+      <li>Check your spam/junk folder</li>
+      <li>Wait a few minutes and refresh your inbox</li>
+      <li>Contact RCCG support if the email doesn't arrive</li>
+    </ul>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">5</div>
+</div>
+
+<!-- Slide 6: Step 3 - Login -->
+<div class="slide">
+  <h2>Step 3️⃣: Login to the Platform</h2>
+  
+  <h3>Access Your Dashboard</h3>
+  
+  <ol style="font-size: 22px;">
+    <li>Return to <strong>https://gpu-cloud.vercel.app/</strong></li>
+    <li>Click on the <strong>"Login"</strong> tab</li>
+    <li>Enter your HBKU email and password</li>
+    <li>Click <strong>"Login"</strong></li>
+  </ol>
+  
+  <div class="success-box">
+    <strong>✅ Success!</strong> You should now see the <strong>Project Panel</strong> with your assigned project displayed automatically.
+  </div>
+  
+  <div class="highlight-box">
+    <strong>What You'll See:</strong>
+    <ul style="margin-top: 10px;">
+      <li>Your project name and ID</li>
+      <li>Remaining credits</li>
+      <li>Your role (Member)</li>
+      <li>Action buttons: Create VM, Manage VMs, Create/Manage Volumes</li>
+    </ul>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">6</div>
+</div>
+
+<!-- Slide 7: Step 4 - Create VM -->
+<div class="slide">
+  <h2>Step 4️⃣: Create Your First VM</h2>
+  
+  <h3>Launch a Virtual Machine</h3>
+  
+  <ol style="font-size: 20px;">
+    <li>Click on <strong>"➕🖥️ Create VM"</strong> button</li>
+    <li>Choose your <strong>Hardware Flavor</strong>:
+      <ul style="font-size: 18px; margin-top: 8px;">
+        <li><strong>For testing:</strong> n1-cpu-small (CPU Only) - $0.35/hour</li>
+        <li><strong>For GPU work:</strong> n3-A100x1 (Single A100 GPU) - $1.35/hour</li>
+      </ul>
+    </li>
+    <li>Select a <strong>Base Image</strong>:
+      <ul style="font-size: 18px; margin-top: 8px;">
+        <li><strong>Recommended:</strong> ml-dl-gpu-base-image (includes ML/DL tools)</li>
+        <li>Alternative: Ubuntu Server 22.04 + CUDA 12.2</li>
+      </ul>
+    </li>
+    <li>Enter a <strong>VM Name</strong> (e.g., "my-first-vm")</li>
+    <li>Click <strong>"▶️ Create VM"</strong></li>
+  </ol>
+  
+  <div class="warning-box">
+    <strong>⏳ Wait Time:</strong> VM creation takes <strong>2-5 minutes</strong>. You'll see the status update in real-time.
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">7</div>
+</div>
+
+<!-- Slide 8: VM Creation Status -->
+<div class="slide">
+  <h2>VM Creation - What to Expect</h2>
+  
+  <h3>Status Progression:</h3>
+  
+  <div style="margin: 30px 0; font-size: 22px;">
+    <p><strong>1.</strong> 📝 <code>instantiating</code> → Request received</p>
+    <p><strong>2.</strong> ⚙️ <code>provisioning</code> → Allocating resources</p>
+    <p><strong>3.</strong> 🔨 <code>vm_creation</code> → Building your VM</p>
+    <p><strong>4.</strong> ✅ <code>running</code> → <strong>VM is ready!</strong></p>
+  </div>
+  
+  <div class="success-box">
+    <strong>✅ When Status Shows "Running":</strong>
+    <ul style="margin-top: 10px;">
+      <li>Your VM is live and accessible</li>
+      <li>An IP address is assigned (e.g., 192.168.1.100)</li>
+      <li>You can now proceed to SSH setup</li>
+    </ul>
+  </div>
+  
+  <div class="highlight-box">
+    <strong>💡 Tip:</strong> Keep this page open. The status updates automatically - no need to refresh!
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">8</div>
+</div>
+
+<!-- Slide 9: Step 5 - Generate SSH Key -->
+<div class="slide">
+  <h2>Step 5️⃣: Generate SSH Key Pair</h2>
+  
+  <h3>On Your Local Machine (Laptop/Desktop):</h3>
+  
+  <div class="command-label">Open Terminal and run:</div>
+  <div class="code-block">
+    <code>
+      ssh-keygen -t ed25519 -f ~/.ssh/my_gpu_cloud_key
+    </code>
+  </div>
+  
+  <div class="command-label">Press Enter when prompted (no passphrase needed for simplicity)</div>
+  
+  <div class="command-label">Set correct permissions on the private key:</div>
+  <div class="code-block">
+    <code>
+      chmod 600 ~/.ssh/my_gpu_cloud_key
+    </code>
+  </div>
+  
+  <div class="highlight-box">
+    <strong>📁 This Creates Two Files:</strong>
+    <ul style="margin-top: 10px;">
+      <li><code>~/.ssh/my_gpu_cloud_key</code> - <strong>Private key</strong> (keep secret!)</li>
+      <li><code>~/.ssh/my_gpu_cloud_key.pub</code> - <strong>Public key</strong> (safe to share)</li>
+    </ul>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">9</div>
+</div>
+
+<!-- Slide 10: Step 6 - Import SSH Key -->
+<div class="slide">
+  <h2>Step 6️⃣: Import SSH Key to VM</h2>
+  
+  <h3>Add Your Public Key to the VM</h3>
+  
+  <ol style="font-size: 20px;">
+    <li>Go to <strong>"⚙️🖥️ Manage VMs"</strong></li>
+    <li>Select your VM from the list</li>
+    <li>In the <strong>Details</strong> panel, click <strong>"➕🔐 Import my SSH public key"</strong></li>
+    <li>Copy your public key:
+      <div class="code-block" style="margin: 15px 0;">
+        <code>cat ~/.ssh/my_gpu_cloud_key.pub</code>
+      </div>
+    </li>
+    <li>Paste the entire output into the dialog box</li>
+    <li>Click <strong>"Import"</strong></li>
+  </ol>
+  
+  <div class="warning-box">
+    <strong>⚠️ Critical:</strong> Only import the <strong>.pub</strong> file (public key). <strong>Never</strong> upload your private key!
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">10</div>
+</div>
+
+<!-- Slide 11: Step 7 - SSH Connect -->
+<div class="slide">
+  <h2>Step 7️⃣: Connect to Your VM</h2>
+  
+  <h3>SSH into the Running VM</h3>
+  
+  <div class="command-label">From your local terminal:</div>
+  <div class="code-block">
+    <code>
+      ssh -i ~/.ssh/my_gpu_cloud_key ubuntu@&lt;VM_IP&gt;
+    </code>
+  </div>
+  
+  <div class="command-label">Example (replace with your actual VM IP):</div>
+  <div class="code-block">
+    <code>
+      ssh -i ~/.ssh/my_gpu_cloud_key ubuntu@192.168.1.100
+    </code>
+  </div>
+  
+  <div class="highlight-box">
+    <strong>💡 Where to Find Your VM IP:</strong>
+    <ul style="margin-top: 10px;">
+      <li>It's displayed in the VM Details panel</li>
+      <li>Click the "📋 Copy IP" button for convenience</li>
+    </ul>
+  </div>
+  
+  <div class="success-box">
+    <strong>✅ Success!</strong> You should now see the Ubuntu welcome message and command prompt: <code>ubuntu@vm-name:~$</code>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">11</div>
+</div>
+
+<!-- Slide 12: Step 8 - Upload Data -->
+<div class="slide">
+  <h2>Step 8️⃣: Upload Your Data</h2>
+  
+  <h3>Transfer Files from Your Laptop to VM</h3>
+  
+  <div class="command-label">Open a NEW terminal on your laptop (don't close the SSH session):</div>
+  <div class="code-block">
+    <code>
+      rsync -avz -P --checksum \<br>
+      -e "ssh -i ~/.ssh/my_gpu_cloud_key" \<br>
+      ./my_data/ ubuntu@&lt;VM_IP&gt;:~/input_data/
+    </code>
+  </div>
+  
+  <div class="command-label">Example:</div>
+  <div class="code-block">
+    <code>
+      rsync -avz -P --checksum \<br>
+      -e "ssh -i ~/.ssh/my_gpu_cloud_key" \<br>
+      ./my_dataset/ ubuntu@192.168.1.100:~/input_data/
+    </code>
+  </div>
+  
+  <div class="highlight-box">
+    <strong>📂 What This Does:</strong>
+    <ul style="margin-top: 10px;">
+      <li>Uploads <code>./my_data/</code> from your laptop</li>
+      <li>To <code>~/input_data/</code> in the VM's home directory</li>
+      <li>Shows progress with <code>-P</code> flag</li>
+    </ul>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">12</div>
+</div>
+
+<!-- Slide 13: Step 9 - Setup Environment -->
+<div class="slide">
+  <h2>Step 9️⃣: Setup Software Environment</h2>
+  
+  <h3>On Your SSH Session (Inside the VM):</h3>
+  
+  <div class="command-label">1. Load the base ML environment:</div>
+  <div class="code-block">
+    <code>
+      module load anaconda3/2024.02-1<br>
+      module load ml_dl_gpu_base_all
+    </code>
+  </div>
+  
+  <div class="command-label">2. Create your own conda environment:</div>
+  <div class="code-block">
+    <code>
+      conda create -n myproject python=3.11 -y
+    </code>
+  </div>
+  
+  <div class="command-label">3. Activate the environment:</div>
+  <div class="code-block">
+    <code>
+      conda activate myproject
+    </code>
+  </div>
+  
+  <div class="command-label">4. Install additional packages:</div>
+  <div class="code-block">
+    <code>
+      pip install pandas scikit-learn matplotlib
+    </code>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">13</div>
+</div>
+
+<!-- Slide 14: Step 10 - Run Your Code -->
+<div class="slide">
+  <h2>Step 1️⃣0️⃣: Run Your Python Script</h2>
+  
+  <h3>Execute Your Computation</h3>
+  
+  <div class="command-label">Example: Simple processing script</div>
+  <div class="code-block">
+    <code>
+      # Create a simple Python script<br>
+      cat > ~/process_data.py << 'EOF'<br>
+      import pandas as pd<br>
+      <br>
+      # Load data<br>
+      df = pd.read_csv('input_data/dataset.csv')<br>
+      <br>
+      # Process<br>
+      result = df.describe()<br>
+      <br>
+      # Save results<br>
+      result.to_csv('output_data/results.csv')<br>
+      print("✅ Processing complete!")<br>
+      EOF
+    </code>
+  </div>
+  
+  <div class="command-label">Run your script:</div>
+  <div class="code-block">
+    <code>
+      mkdir -p ~/output_data<br>
+      python ~/process_data.py
+    </code>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">14</div>
+</div>
+
+<!-- Slide 15: Verify GPU Access -->
+<div class="slide">
+  <h2>🎮 Bonus: Verify GPU Access</h2>
+  
+  <h3>Check If GPU is Available</h3>
+  
+  <div class="command-label">Run this command in your SSH session:</div>
+  <div class="code-block">
+    <code>
+      nvidia-smi
+    </code>
+  </div>
+  
+  <div class="success-box">
+    <strong>✅ You Should See:</strong>
+    <ul style="margin-top: 10px;">
+      <li>GPU model (e.g., A100-PCIE-80GB)</li>
+      <li>Memory usage</li>
+      <li>Temperature</li>
+      <li>Driver version</li>
+    </ul>
+  </div>
+  
+  <div class="command-label">Test GPU with PyTorch:</div>
+  <div class="code-block">
+    <code>
+      python -c "import torch; print(torch.cuda.is_available())"
+    </code>
+  </div>
+  
+  <div class="highlight-box">
+    <strong>Expected Output:</strong> <code>True</code>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">15</div>
+</div>
+
+<!-- Slide 16: Download Results -->
+<div class="slide">
+  <h2>📥 Download Your Results</h2>
+  
+  <h3>Transfer Output Back to Your Laptop</h3>
+  
+  <div class="command-label">From a NEW terminal on your laptop (not the SSH session):</div>
+  <div class="code-block">
+    <code>
+      rsync -avz -P --checksum \<br>
+      -e "ssh -i ~/.ssh/my_gpu_cloud_key" \<br>
+      ubuntu@&lt;VM_IP&gt;:~/output_data/ \<br>
+      ./local_results/
+    </code>
+  </div>
+  
+  <div class="command-label">Example:</div>
+  <div class="code-block">
+    <code>
+      rsync -avz -P --checksum \<br>
+      -e "ssh -i ~/.ssh/my_gpu_cloud_key" \<br>
+      ubuntu@192.168.1.100:~/output_data/ \<br>
+      ./my_results/
+    </code>
+  </div>
+  
+  <div class="success-box">
+    <strong>✅ Done!</strong> Your results are now safely on your local machine in the <code>./my_results/</code> folder.
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">16</div>
+</div>
+
+<!-- Slide 17: Cleanup - Delete VM -->
+<div class="slide">
+  <h2>🧹 Cleanup: Delete Your VM</h2>
+  
+  <h3>Stop Charges by Deleting the VM</h3>
+  
+  <ol style="font-size: 20px;">
+    <li><strong>Exit the SSH session:</strong>
+      <div class="code-block" style="margin: 10px 0;">
+        <code>exit</code>
+      </div>
+    </li>
+    <li>Go back to the web interface: <strong>"⚙️🖥️ Manage VMs"</strong></li>
+    <li>Select your VM from the list</li>
+    <li>Click the <strong>"🛑 Delete GPU VM"</strong> button</li>
+    <li>Confirm the deletion when prompted</li>
+  </ol>
+  
+  <div class="warning-box">
+    <strong>⚠️ Important:</strong> Deleting the VM is <strong>permanent</strong>. Make sure you've downloaded all your results first!
+  </div>
+  
+  <div class="highlight-box">
+    <strong>💰 Cost Savings:</strong> VM charges stop immediately after deletion. Always delete VMs when you're done to save credits!
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">17</div>
+</div>
+
+<!-- Slide 18: Complete Workflow Summary -->
+<div class="slide">
+  <h2>📊 Complete Workflow Summary</h2>
+  
+  <div style="font-size: 18px; line-height: 1.8;">
+    <p><strong>1️⃣</strong> Sign up with HBKU email → <strong>2️⃣</strong> Verify email</p>
+    <p><strong>3️⃣</strong> Login to platform → <strong>4️⃣</strong> Create VM (wait 2-5 min)</p>
+    <p><strong>5️⃣</strong> Generate SSH key on laptop → <strong>6️⃣</strong> Import public key to VM</p>
+    <p><strong>7️⃣</strong> SSH connect to VM → <strong>8️⃣</strong> Upload data via rsync</p>
+    <p><strong>9️⃣</strong> Setup conda environment + packages</p>
+    <p><strong>🔟</strong> Run Python script → <strong>📥</strong> Download results</p>
+    <p><strong>🧹</strong> Delete VM</p>
+  </div>
+  
+  <div class="success-box" style="margin-top: 40px;">
+    <strong>⏱️ Total Time:</strong> Approximately 15-30 minutes for your first run
+  </div>
+  
+  <div class="highlight-box">
+    <strong>💡 After First Time:</strong> Steps 5-6 (SSH key) only needed once. Future sessions: just steps 4, 7-10!
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">18</div>
+</div>
+
+<!-- Slide 19: Best Practices -->
+<div class="slide">
+  <h2>✨ Best Practices</h2>
+  
+  <h3>Tips for Efficient Usage:</h3>
+  
+  <div class="workflow-step">
+    <span class="step-number">1</span>
+    <div class="workflow-step-content">
+      <strong>Always Delete VMs When Done</strong>
+      <p>VMs charge by the hour. Delete them as soon as you finish to save credits.</p>
+    </div>
+  </div>
+  
+  <div class="workflow-step">
+    <span class="step-number">2</span>
+    <div class="workflow-step-content">
+      <strong>Download Results Immediately</strong>
+      <p>Don't rely on the VM to store your results long-term. Download them to your laptop.</p>
+    </div>
+  </div>
+  
+  <div class="workflow-step">
+    <span class="step-number">3</span>
+    <div class="workflow-step-content">
+      <strong>Use Small Test Runs First</strong>
+      <p>Test your code with a small dataset before running the full computation.</p>
+    </div>
+  </div>
+  
+  <div class="workflow-step">
+    <span class="step-number">4</span>
+    <div class="workflow-step-content">
+      <strong>Monitor Your Credits</strong>
+      <p>Check remaining credits in the Project Panel regularly.</p>
+    </div>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">19</div>
+</div>
+
+<!-- Slide 20: Common Issues -->
+<div class="slide">
+  <h2>🔧 Troubleshooting Common Issues</h2>
+  
+  <h3>Problem: "Permission denied (publickey)"</h3>
+  <div class="warning-box">
+    <strong>Solution:</strong>
+    <ul style="margin-top: 10px;">
+      <li>Verify you imported the correct public key (.pub file)</li>
+      <li>Check the private key path in your SSH command</li>
+      <li>Ensure private key has correct permissions: <code>chmod 600 ~/.ssh/my_gpu_cloud_key</code></li>
+    </ul>
+  </div>
+  
+  <h3 style="margin-top: 30px;">Problem: rsync command not found</h3>
+  <div class="warning-box">
+    <strong>Solution:</strong>
+    <ul style="margin-top: 10px;">
+      <li><strong>Windows:</strong> Install rsync via WSL or use <code>scp</code> instead</li>
+      <li><strong>Mac/Linux:</strong> rsync is pre-installed</li>
+    </ul>
+  </div>
+  
+  <h3 style="margin-top: 30px;">Problem: Module command not found</h3>
+  <div class="warning-box">
+    <strong>Solution:</strong> Make sure you selected a base image with pre-installed modules (ml-dl-gpu-base-image or minimal-research-base-image)
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">20</div>
+</div>
+
+<!-- Slide 21: Alternative Upload Method -->
+<div class="slide">
+  <h2>🔄 Alternative: Using SCP Instead of rsync</h2>
+  
+  <h3>If rsync is Not Available:</h3>
+  
+  <div class="command-label">Upload files with scp:</div>
+  <div class="code-block">
+    <code>
+      scp -i ~/.ssh/my_gpu_cloud_key \<br>
+      -r ./my_data/ \<br>
+      ubuntu@&lt;VM_IP&gt;:~/input_data/
+    </code>
+  </div>
+  
+  <div class="command-label">Download results with scp:</div>
+  <div class="code-block">
+    <code>
+      scp -i ~/.ssh/my_gpu_cloud_key \<br>
+      -r ubuntu@&lt;VM_IP&gt;:~/output_data/ \<br>
+      ./my_results/
+    </code>
+  </div>
+  
+  <div class="highlight-box">
+    <strong>📝 Note:</strong> The <code>-r</code> flag means "recursive" - it copies entire directories including subdirectories.
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">21</div>
+</div>
+
+<!-- Slide 22: Understanding Storage -->
+<div class="slide">
+  <h2>💾 Understanding Storage in This Scenario</h2>
+  
+  <h3>Where Your Files Are Stored:</h3>
+  
+  <div class="highlight-box">
+    <strong>Root Disk (Ubuntu Home Directory)</strong>
+    <ul style="margin-top: 10px;">
+      <li><strong>Location:</strong> <code>/home/ubuntu/</code> (or <code>~/</code>)</li>
+      <li><strong>Size:</strong> 100GB included with VM</li>
+      <li><strong>Perfect for:</strong> Small input files, scripts, and results</li>
+      <li><strong>Persistence:</strong> Data stays as long as VM exists</li>
+    </ul>
+  </div>
+  
+  <div class="warning-box">
+    <strong>⚠️ Important Limitation:</strong>
+    <ul style="margin-top: 10px;">
+      <li>Root disk data is <strong>deleted</strong> when you delete the VM</li>
+      <li>For this beginner scenario: Always download results before deleting VM</li>
+      <li>For larger projects: Use Volumes (covered in advanced tutorials)</li>
+    </ul>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">22</div>
+</div>
+
+<!-- Slide 23: Cost Breakdown -->
+<div class="slide">
+  <h2>💰 Understanding Costs</h2>
+  
+  <h3>Example: 2-Hour Work Session</h3>
+  
+  <table style="width: 100%; border-collapse: collapse; margin: 30px 0; font-size: 18px;">
+    <thead style="background: #f8f9fa;">
+      <tr>
+        <th style="padding: 15px; border: 1px solid #dee2e6; text-align: left;">Resource</th>
+        <th style="padding: 15px; border: 1px solid #dee2e6; text-align: left;">Cost/Hour</th>
+        <th style="padding: 15px; border: 1px solid #dee2e6; text-align: left;">Duration</th>
+        <th style="padding: 15px; border: 1px solid #dee2e6; text-align: left;">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="padding: 12px; border: 1px solid #dee2e6;">CPU-Only VM</td>
+        <td style="padding: 12px; border: 1px solid #dee2e6;">$0.35</td>
+        <td style="padding: 12px; border: 1px solid #dee2e6;">2 hours</td>
+        <td style="padding: 12px; border: 1px solid #dee2e6;"><strong>$0.70</strong></td>
+      </tr>
+      <tr>
+        <td style="padding: 12px; border: 1px solid #dee2e6;">Single A100 GPU</td>
+        <td style="padding: 12px; border: 1px solid #dee2e6;">$1.35</td>
+        <td style="padding: 12px; border: 1px solid #dee2e6;">2 hours</td>
+        <td style="padding: 12px; border: 1px solid #dee2e6;"><strong>$2.70</strong></td>
+      </tr>
+    </tbody>
+  </table>
+  
+  <div class="success-box">
+    <strong>✅ Budget-Friendly Approach:</strong>
+    <ul style="margin-top: 10px;">
+      <li>Test on CPU-only VM first ($0.35/hr)</li>
+      <li>Switch to GPU only when needed</li>
+      <li>Delete VM immediately after downloading results</li>
+    </ul>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">23</div>
+</div>
+
+<!-- Slide 24: When to Use GPU -->
+<div class="slide">
+  <h2>🎮 When Do You Need a GPU?</h2>
+  
+  <h3>Use CPU-Only VM For:</h3>
+  <ul style="font-size: 20px;">
+    <li>Data preprocessing and cleaning</li>
+    <li>Testing code and scripts</li>
+    <li>Small statistical analyses</li>
+    <li>File organization and management</li>
+  </ul>
+  
+  <h3 style="margin-top: 30px;">Use GPU VM For:</h3>
+  <ul style="font-size: 20px;">
+    <li>Deep learning model training</li>
+    <li>Large-scale neural network inference</li>
+    <li>Computer vision tasks (image processing)</li>
+    <li>Natural language processing (NLP)</li>
+    <li>Scientific simulations requiring parallel computing</li>
+  </ul>
+  
+  <div class="highlight-box">
+    <strong>💡 Pro Tip:</strong> Start with CPU VM for testing, then create a GPU VM only when you're ready for the actual computation. This saves significant costs!
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">24</div>
+</div>
+
+<!-- Slide 25: Available Resources -->
+<div class="slide">
+  <h2>📚 Learning Resources</h2>
+  
+  <h3>Platform Documentation:</h3>
+  <ul style="font-size: 20px;">
+    <li><strong>📖 Complete Documentation</strong> - Detailed guides on all features</li>
+    <li><strong>⚡ Cheat Sheet</strong> - Quick reference for common commands</li>
+    <li><strong>🗺️ Project Overview</strong> - Understanding the platform architecture</li>
+  </ul>
+  
+  <div class="highlight-box" style="margin-top: 30px;">
+    <strong>🔗 Access from Dashboard:</strong>
+    <p style="margin-top: 10px;">All documentation links are available in the top-right corner of every page:</p>
+    <ul style="margin-top: 10px;">
+      <li>📖 Docs button</li>
+      <li>⚡ Cheat Sheet button</li>
+      <li>🗺️ Overview button</li>
+    </ul>
+  </div>
+  
+  <div class="warning-box">
+    <strong>Need Help?</strong> Contact RCCG support at: <strong>rccg@hbku.edu.qa</strong>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">25</div>
+</div>
+
+<!-- Slide 26: Next Steps -->
+<div class="slide">
+  <h2>🚀 Next Steps - Beyond the Basics</h2>
+  
+  <h3>Once You're Comfortable:</h3>
+  
+  <div class="workflow-step">
+    <span class="step-number">1</span>
+    <div class="workflow-step-content">
+      <strong>Learn About Volumes</strong>
+      <p>For larger datasets that don't fit in the root disk (100GB limit)</p>
+    </div>
+  </div>
+  
+  <div class="workflow-step">
+    <span class="step-number">2</span>
+    <div class="workflow-step-content">
+      <strong>Use Staging VMs</strong>
+      <p>Upload data to cheap CPU VM + volume, then attach volume to GPU VM</p>
+    </div>
+  </div>
+  
+  <div class="workflow-step">
+    <span class="step-number">3</span>
+    <div class="workflow-step-content">
+      <strong>Master tmux/screen</strong>
+      <p>Keep long-running jobs alive even if SSH disconnects</p>
+    </div>
+  </div>
+  
+  <div class="workflow-step">
+    <span class="step-number">4</span>
+    <div class="workflow-step-content">
+      <strong>Explore Docker/Singularity</strong>
+      <p>Use containers for reproducible research environments</p>
+    </div>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">26</div>
+</div>
+
+<!-- Slide 27: Quick Command Reference -->
+<div class="slide">
+  <h2>📋 Quick Command Reference</h2>
+  
+  <div style="font-size: 16px;">
+    <div class="command-label">Generate SSH Key:</div>
+    <div class="code-block">
+      <code>ssh-keygen -t ed25519 -f ~/.ssh/my_gpu_cloud_key</code>
+    </div>
+    
+    <div class="command-label">View Public Key:</div>
+    <div class="code-block">
+      <code>cat ~/.ssh/my_gpu_cloud_key.pub</code>
+    </div>
+    
+    <div class="command-label">Connect to VM:</div>
+    <div class="code-block">
+      <code>ssh -i ~/.ssh/my_gpu_cloud_key ubuntu@&lt;VM_IP&gt;</code>
+    </div>
+    
+    <div class="command-label">Upload Data:</div>
+    <div class="code-block">
+      <code>
+        rsync -avz -P --checksum \<br>
+        -e "ssh -i ~/.ssh/my_gpu_cloud_key" \<br>
+        ./local_folder/ ubuntu@&lt;VM_IP&gt;:~/remote_folder/
+      </code>
+    </div>
+    
+    <div class="command-label">Download Results:</div>
+    <div class="code-block">
+      <code>
+        rsync -avz -P --checksum \<br>
+        -e "ssh -i ~/.ssh/my_gpu_cloud_key" \<br>
+        ubuntu@&lt;VM_IP&gt;:~/results/ ./local_results/
+      </code>
+    </div>
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">27</div>
+</div>
+
+<!-- Slide 28: Summary Checklist -->
+<div class="slide">
+  <h2>✅ Pre-Flight Checklist</h2>
+  
+  <h3>Before Starting Your First Session:</h3>
+  
+  <div style="font-size: 20px; margin-top: 30px;">
+    <p>☐ I have an HBKU email address</p>
+    <p>☐ I've been added to a project as a member</p>
+    <p>☐ I've signed up and verified my email</p>
+    <p>☐ I can see my project in the dashboard</p>
+    <p>☐ I have my data ready on my laptop</p>
+    <p>☐ I understand the basic workflow (create → connect → upload → process → download → delete)</p>
+    <p>☐ I know how to access documentation and support</p>
+  </div>
+  
+  <div class="success-box" style="margin-top: 40px;">
+    <strong>✅ All Checked?</strong> You're ready to start! Follow the step-by-step guide and you'll have your first results in 15-30 minutes.
+  </div>
+  
+  <div class="footer-logo">RCCG @ HBKU</div>
+  <div class="slide-number">28</div>
+</div>
+
+<!-- Slide 29: Thank You -->
+<div class="slide">
+  <div class="center-content">
+    <div class="large-icon">🎓</div>
+    <h1 style="color: #667eea;">Thank You!</h1>
+    <p style="font-size: 28px; margin-top: 30px; color: #4a5568;">
+      You're Ready to Start Computing
+    </p>
+    
+    <div style="margin-top: 60px; text-align: left; max-width: 600px;">
+      <h3 style="color: #4a5568; font-size: 24px;">Questions or Issues?</h3>
+      <p style="font-size: 20px; margin-top: 20px;">
+        📧 <strong>Email:</strong> rccg@hbku.edu.qa
+      </p>
+      <p style="font-size: 20px;">
+        🌐 <strong>Platform:</strong> https://gpu-cloud.vercel.app/
+      </p>
+      <p style="font-size: 20px;">
+        📖 <strong>Documentation:</strong> Available in dashboard
+      </p>
+    </div>
+    
+    <div style="margin-top: 60px; padding: 20px; background: #f8f9fa; border-radius: 10px; max-width: 700px;">
+      <p style="font-size: 18px; color: #718096; margin: 0;">
+        <strong>RCCG</strong> - Research Computing Core Group<br>
+        Hamad Bin Khalifa University
+      </p>
+    </div>
+  </div>
+  <div class="slide-number">29</div>
+</div>
+
+</body>
+</html>
