@@ -243,7 +243,7 @@ async function handleForgotPassword() {
   
   try {
     const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/reset_password.html'
+      redirectTo: window.location.origin + '/reset-password.html'
     });
     
     if (error) throw error;
