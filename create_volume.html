@@ -304,6 +304,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         <code># 1. Copy device path from UI<br>
         DEVICE="/dev/disk/by-id/virtio-xxxxx"<br><br>
         # 2. Format (FIRST TIME ONLY!)<br>
+        # WARNING: IT WILL ERASE ALL DATA OF THE VOLUME SO ONLY DO THIS WHEN IT IS A NEW, EMPTY VOLUME<br>
         sudo mkfs.ext4 -F \${DEVICE}<br><br>
         # 3. Create mount point<br>
         sudo mkdir -p /mnt/user_volume<br><br>

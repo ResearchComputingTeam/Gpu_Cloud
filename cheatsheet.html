@@ -408,6 +408,7 @@ ls -l /dev/disk/by-id/virtio-*</code>
         <button class="copy-icon" onclick="copyCode(this)">📋</button>
         <code># Paste YOUR device path here <br>
 DEVICE="/dev/disk/by-id/virtio-xxxxx" <br>
+# !!! WARNING: IT WILL ERASE ALL DATA OF THE VOLUME SO ONLY DO THIS WHEN IT IS A NEW, EMPTY VOLUME !!! <br>
 sudo mkfs.ext4 -F ${DEVICE}</code>
       </div>
 

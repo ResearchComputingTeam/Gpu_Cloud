@@ -316,7 +316,7 @@ const helpContent = {
       # 2. Verify device exists<br>
       ls -l \${DEVICE}<br>
       lsblk<br><br>
-      # 3. Format (FIRST TIME ONLY! Erases data!)<br>
+      # 3. Format to ext4 => ⚠️WARNING: IT WILL ERASE ALL DATA OF THE VOLUME SO ONLY DO THIS WHEN IT IS A NEW, EMPTY VOLUME<br>
       sudo mkfs.ext4 -F \${DEVICE}<br><br>
       # 4. Create mount point<br>
       sudo mkdir -p /mnt/user_volume<br>

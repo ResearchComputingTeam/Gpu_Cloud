@@ -474,7 +474,7 @@ const helpContent = {
       DEVICE="/dev/disk/by-id/virtio-xxxxx"<br><br>
       # Verify the device exists <br>
       ls -l \$DEVICE <br>
-      # Format to ext4 => ⚠️Only if the volume is attached for the first time <br>
+      # Format to ext4 => ⚠️WARNING: IT WILL ERASE ALL DATA OF THE VOLUME SO ONLY DO THIS WHEN IT IS A NEW, EMPTY VOLUME<br>
       sudo mkfs.ext4 -F \${DEVICE} <br>
       # Create the folder that will be used as a mount point <br>
       sudo mkdir -p /mnt/user_volume<br>

@@ -1353,7 +1353,8 @@ DEVICE="/dev/disk/by-id/virtio-c72d3b45-dc19-48ec-9"
 # Verify the device exists
 ls -l $DEVICE
 
-# Format to ext4 
+# Format to ext4
+# WARNING: IT WILL ERASE ALL DATA OF THE VOLUME SO ONLY DO THIS WHEN IT IS A NEW, EMPTY VOLUME
 sudo mkfs.ext4 -F ${DEVICE}
 
 # Create mountpoint and mount 

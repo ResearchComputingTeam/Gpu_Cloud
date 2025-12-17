@@ -831,7 +831,7 @@
   <div class="command-label">Run your training script:</div>
   <div class="code-block">
     <code>
-      python /mnt/user_volume/scripts/train.py \<br>
+      python3 /mnt/user_volume/scripts/train.py \<br>
         --data /mnt/user_volume/dataset/ \<br>
         --output /mnt/user_volume/training_output/ \<br>
         --epochs 100 \<br>
@@ -1026,7 +1026,7 @@
   </div>
   
   <div class="success-box">
-    <strong>⏱️ Pull Time:</strong> 2-5 minutes depending on network speed (~2-3 GB download)
+    <strong>⏱️ Pull Time:</strong> ~1 minutes depending on network speed (~2-3 GB download)
   </div>
   
   <div class="footer-logo">RCCG @ HBKU</div>
@@ -1043,10 +1043,11 @@
     <code>
       # Workspace on persistent volume<br>
       mkdir -p /mnt/user_volume/namd_workspace<br>
-      mkdir -p /mnt/user_volume/namd_workspace/namd_checkpoints<br>
+      mkdir -p /mnt/user_volume/namd_checkpoints<br>
       <br>
       # Intermediate results on fast ephemeral storage<br>
-      mkdir -p /ephemeral/namd_intermediate
+      sudo mkdir -p /ephemeral/namd_intermediate<br>
+      sudo chown ubuntu:ubuntu /ephemeral/namd_intermediate
     </code>
   </div>
   
@@ -1054,7 +1055,7 @@
     <strong>📂 Directory Purpose:</strong>
     <ul style="margin-top: 8px; font-size: 14px;">
       <li><code>/mnt/user_volume/namd_workspace/</code> - Input files, final results</li>
-      <li><code>/mnt/user_volume/namd_workspace/namd_checkpoints/</code> - Saved checkpoints (persistent)</li>
+      <li><code>/mnt/user_volume/namd_checkpoints/</code> - Saved checkpoints (persistent)</li>
       <li><code>/ephemeral/namd_intermediate/</code> - Temporary calculations (fast I/O, deleted on VM termination)</li>
     </ul>
   </div>
@@ -1080,15 +1081,13 @@
   
   <div class="code-block" style="font-size: 11px;">
     <code>
-      docker run --rm --runtime=nvidia --gpus all --ipc=host \<br>
+      docker run --rm --gpus all --ipc=host \<br>
         -v /mnt/user_volume/namd_workspace:/workspace \<br>
+        -v /mnt/user_volume/namd_checkpoints:/workspace/namd_checkpoints \<br>
         -v /ephemeral/namd_intermediate:/intermediate \<br>
         -w /workspace \<br>
         nvcr.io/hpc/namd:3.0.1 namd3 \<br>
         +p28 +devices 0 +setcpuaffinity \<br>
-        +restart /workspace/namd_checkpoints/latest.restart \<br>
-        +checkpoint /workspace/namd_checkpoints/step \<br>
-        +checkpointfreq 1000 \<br>
         inputfile.namd
     </code>
   </div>
@@ -1096,12 +1095,17 @@
   <div class="highlight-box" style="font-size: 13px;">
     <strong>🔧 Key Parameters:</strong>
     <ul style="margin-top: 6px; font-size: 13px;">
+      <li><code>docker run --rm</code> - Launch a new Docker container and automatically remove the container after it exits</li>
       <li><code>--gpus all</code> - Use all GPUs</li>
-      <li><code>-v /mnt/user_volume/namd_workspace:/workspace</code> - Mount volume</li>
-      <li><code>-v /ephemeral/namd_intermediate:/intermediate</code> - Mount ephemeral</li>
+      <li><code>--ipc=host</code> - Share the host’s inter-process comm. namespace for performance</li>
+      <li><code>-v /mnt/user_volume/namd_workspace:/workspace</code> - Mount host input directory to container at /workspace</li>
+      <li><code>-v /mnt/user_volume/namd_checkpoints:/workspace/namd_checkpoints</code> - Mount host persistent checkpoint directory to container at /workspace/namd_checkpoints</li>
+      <li><code>-v /ephemeral/namd_intermediate:/intermediate</code> - Mount host fast scratch disk inside container for temporary outputs</li>
+      <li><code>-w /workspace</code> - Set /workspace as the container’s working directory</li>
+      <li><code>nvcr.io/hpc/namd:3.0.1/ namd3</code> - run namd3 inside the container built from the NVIDIA-optimized NAMD GPU image</li>
       <li><code>+p28</code> - Use 28 CPU cores</li>
-      <li><code>+checkpoint .../step</code> - Save checkpoint every N steps</li>
-      <li><code>+checkpointfreq 1000</code> - Checkpoint every 1000 steps</li>
+      <li><code>+devices 0</code> - Use GPU device 0 for calculations (if 4 GPUs available, change to <code>+devices 0, 1, 2, 3</code>)</li>
+      <li><code>inputfile.namd</code> - NAMD configuration file to execute</li>
     </ul>
   </div>
   
@@ -1123,7 +1127,7 @@
       ├── Fast calculations → /ephemeral/namd_intermediate/<br>
       │   (temporary, high I/O, deleted when VM stops)<br>
       │<br>
-      └── Periodic checkpoints → /mnt/user_volume/.../namd_checkpoints/<br>
+      └── Periodic checkpoints → /mnt/user_volume/namd_checkpoints/<br>
           (persistent, survives VM deletion)
     </code>
   </div>
@@ -1140,6 +1144,16 @@
   
   <div class="warning-box">
     <strong>⚠️ Remember:</strong> Copy any needed intermediate results to volume before stopping VM!
+  </div>
+
+  <div class="highlight-box">
+    <strong>💡Application-specific checkpointing:</strong> 
+    <ul style="margin-top: 8px; font-size: 14px;">
+      <li>Each app has its own method for setting up a checkpointing strategy. </li>
+      <li>For instance, in NAMD, the configuration file should include parameters like 
+        <code>binaryoutput</code>, <code>outputname</code>, <code>binaryrestart</code>, <code>restartfreq</code>, <code>restartname</code>.</li>
+      <li>Configure these parameters according to your workflow and needs.</li>
+    </ul>
   </div>
   
   <div class="footer-logo">RCCG @ HBKU</div>
@@ -1187,17 +1201,24 @@
   <ul style="font-size: 15px;">
     <li>Your application isn't available on NGC</li>
     <li>You need specific versions or custom modifications</li>
-    <li>You want to package your own research code</li>
+    <li>You want to package your own research or ML code</li>
   </ul>
   
+  <h3 style="margin-top: 15px;">Important Reality Check:</h3>
+  <div class="warning-box">
+    ⚠️ GPU-enabled Docker images are often very large (5–15 GB).  
+    Default Docker storage on cloud VMs is frequently <strong>too small</strong> to load them.
+  </div>
+
   <h3 style="margin-top: 15px;">Workflow Overview:</h3>
   <div style="font-size: 15px; line-height: 1.7;">
     <p><strong>1.</strong> Write Dockerfile on your local machine</p>
     <p><strong>2.</strong> Build container image locally</p>
-    <p><strong>3.</strong> Save image to tar file</p>
+    <p><strong>3.</strong> Save image to a tar file</p>
     <p><strong>4.</strong> Transfer tar to GPU VM</p>
-    <p><strong>5.</strong> Load image on GPU VM</p>
-    <p><strong>6.</strong> Run your custom container</p>
+    <p><strong>5.</strong> Prepare Docker storage on the GPU VM</p>
+    <p><strong>6.</strong> Load image on GPU VM</p>
+    <p><strong>7.</strong> Run your custom container</p>
   </div>
   
   <div class="footer-logo">RCCG @ HBKU</div>
@@ -1213,30 +1234,33 @@
   <div class="code-block" style="font-size: 12px;">
     <code>
       # Example Dockerfile for custom ML application<br>
-      FROM nvidia/cuda:12.2.0-cudnn8-runtime-ubuntu22.04<br>
-      <br>
-      # Install dependencies<br>
+      FROM nvidia/cuda:12.2.0-cudnn8-runtime-ubuntu22.04<br><br>
+
+      # Avoid interactive prompts<br>
+      ENV DEBIAN_FRONTEND=noninteractive<br><br>
+
+      # Install system dependencies<br>
       RUN apt-get update && apt-get install -y \<br>
+          python3 \<br>
           python3-pip \<br>
-          python3-dev \<br>
-          && rm -rf /var/lib/apt/lists/*<br>
-      <br>
-      # Install Python packages<br>
-      RUN pip3 install torch torchvision transformers<br>
-      <br>
-      # Copy your application<br>
-      COPY ./my_app /app<br>
-      WORKDIR /app<br>
-      <br>
-      # Set entrypoint<br>
-      ENTRYPOINT ["python3", "main.py"]
+          && rm -rf /var/lib/apt/lists/*<br><br>
+
+      # Install Python libraries<br>
+      RUN pip3 install --no-cache-dir numpy pandas torch<br><br>
+
+      # Copy application code<br>
+      WORKDIR /workspace<br>
+      COPY train.py /workspace/<br><br>
+
+      # Default command (can be overridden at runtime)<br>
+      CMD ["python3", "train.py"]
     </code>
   </div>
   
   <div class="command-label">Build the image:</div>
   <div class="code-block">
     <code>
-      docker build -t my_custom_app:1.0 .
+      sudo docker build -t my_custom_app:1.0 .
     </code>
   </div>
   
@@ -1246,60 +1270,110 @@
 
 <!-- Slide 30: Save & Transfer -->
 <div class="slide">
-  <h2>Steps 2-4: Save, Transfer, Load</h2>
+  <h2>Steps 2-5: Save, Transfer, Load</h2>
   
   <h3>Step 2: Save Image to tar File (Local):</h3>
   <div class="code-block">
     <code>
-      docker save my_custom_app:1.0 -o my_custom_app.tar
+      sudo docker save my_custom_app:1.0 -o my_custom_app.tar
     </code>
   </div>
+
+  <div class="warning-box">
+    ⏱️ Save operation might take a few minutes depending on the size of the image
+  </div>
   
-  <h3 style="margin-top: 15px;">Step 3: Transfer to GPU VM (Local):</h3>
+  <h3 style="margin-top: 15px;">Step 3: Transfer to GPU VM:</h3>
   <div class="code-block">
     <code>
       scp -i ~/.ssh/gpu_cloud_key \<br>
           my_custom_app.tar \<br>
-          ubuntu@&lt;GPU_VM_IP&gt;:~/
+          ubuntu@&lt;GPU_VM_IP&gt;:/mnt/user_volume/
     </code>
+  </div>
+
+  <div class="highlight-box">
+    ✔️ Always transfer large images to a <strong>data disk</strong>, not the home directory.
   </div>
   
   <div class="highlight-box">
     <strong>⏱️ Transfer Time:</strong> Depends on image size and network. Typical ML images: 2-5 GB (5-15 min)
   </div>
+</div>
+<div class="slide">
+  <h3 style="margin-top: 15px;">Step 4: Prepare Docker Storage (Critical)</h3>
+
+  <div class="warning-box">
+    ⚠️ Docker stores images under <code>/var/lib/docker</code> by default, which is often on a small system disk.
+  </div>
+
+  <div class="code-block">
+    <code>
+      # Stop Docker<br>
+      sudo systemctl stop docker<br><br>
+
+      # Move Docker data directory to large disk<br>
+      sudo mkdir -p /mnt/user_volume/docker<br>
+      sudo rsync -a /var/lib/docker/ /mnt/user_volume/docker/<br><br>
+
+      # Configure Docker to use new location<br>
+      sudo nano /etc/docker/daemon.json
+    </code>
+  </div>
+
+  <div class="code-block">
+    <code>
+      sudo systemctl start docker
+    </code>
+  </div>
+
+  <div class="success-box">
+    ✅ Docker can now safely load large GPU images
+  </div>
   
-  <h3 style="margin-top: 15px;">Step 4: Load Image on GPU VM:</h3>
+  <h3 style="margin-top: 15px;">Step 5: Load Image on GPU VM:</h3>
   <div class="code-block">
     <code>
       # SSH to GPU VM<br>
       ssh -i ~/.ssh/gpu_cloud_key ubuntu@&lt;GPU_VM_IP&gt;<br>
       <br>
-      # Load the image<br>
-      docker load -i ~/my_custom_app.tar<br>
+      # Load the image from the data disk<br>
+      docker load -i /mnt/user_volume/my_custom_app.tar<br><br>
       <br>
-      # Verify<br>
+      # Verify the image is available<br>
       docker images | grep my_custom_app
     </code>
   </div>
+    <div class="success-box">
+    ✅ Image successfully loaded and ready to run
+   </div>
+</div>
+
+
   
   <div class="footer-logo">RCCG @ HBKU</div>
   <div class="slide-number">30</div>
-</div>
+
 
 <!-- Slide 31: Run Custom Container -->
 <div class="slide">
-  <h2>Step 5: Run Your Custom Container</h2>
+  <h2>Step 6: Run Your Custom Container</h2>
   
   <h3>Basic Run Command:</h3>
   
   <div class="code-block">
     <code>
       docker run --rm --gpus all \<br>
-        -v /mnt/user_volume:/data \<br>
+        -v /mnt/user_volume/output:/outputs \<br>
         my_custom_app:1.0 \<br>
         --input /data/dataset \<br>
         --output /data/results
     </code>
+  </div>
+
+  <div class="highlight-box">
+    💡 Do NOT mount over the application directory unless you know what you are doing.
+    Mounting a volume hides files inside the container.
   </div>
   
   <h3 style="margin-top: 15px;">Interactive Mode (for debugging):</h3>
@@ -1346,7 +1420,8 @@
     <strong>💡 Best Practice:</strong>
     <ul style="margin-top: 8px; font-size: 14px;">
       <li><strong>First:</strong> Check NGC for pre-built containers</li>
-      <li><strong>Second:</strong> Build custom only if necessary</li>
+      <li><strong>Second:</strong> Build custom only if necessary, in this case, build locally, run remotely</li>
+      <li>Move Docker storage before loading large images</li>
       <li><strong>Always:</strong> Document your Dockerfile for reproducibility</li>
     </ul>
   </div>
