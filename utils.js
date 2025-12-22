@@ -31,7 +31,10 @@ function copyToClipboard(text) {
 }
 
 // Initialize Supabase client
-const supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+// const supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+
+const supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+ 
  
 // Show status message
 function showMessage(message, type = 'info') {
@@ -221,7 +224,7 @@ function subscribeToStatusUpdates(requestId, action) {
       console.log('Subscribing to updates for Request ID:', requestId);
       
       // Create new channel
-      activeChannel = supabase
+      activeChannel = supabaseClient
         .channel(`status-updates-${requestId}`)
         .on(
           'postgres_changes',
@@ -297,7 +300,7 @@ function handleRealtimeUpdate(data, action) {
 // function to poll current status
 async function pollCurrentStatus(requestId) {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('vm_creation_requests')
       .select('*')
       .eq('form_submission_unique_id', requestId)
@@ -662,12 +665,12 @@ if (document.getElementById("importSshBtn")) {
     // Clear previous messages
     feedback.style.display = "none";
 
-    const user = await supabase.auth.getUser();
+    const user = await supabaseClient.auth.getUser();
     if (!user.data.user) return alert("Not authenticated");
     console.log('user email:', user.data.user.email);
 
     // Get Supabase access token
-    const session = (await supabase.auth.getSession()).data.session;
+    const session = (await supabaseClient.auth.getSession()).data.session;
     if (!session) {
       feedback.style.display = "block";
       feedback.innerText = "You must be logged in.";

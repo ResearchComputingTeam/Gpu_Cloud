@@ -316,7 +316,7 @@ async function checkAdminAccess() {
   if (!user) return;
 
   // Check user_profiles.is_system_admin
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('user_profiles')
     .select('is_system_admin')
     .eq('id', user.id)
