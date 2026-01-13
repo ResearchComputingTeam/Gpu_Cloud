@@ -15,6 +15,10 @@
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     <!-- <script src="auth.js"></script> -->
+    <!-- Prism stuffs -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
 </head>
 
 <body>
@@ -353,15 +357,11 @@ const helpContent = {
     content: `<p class="mb-0 mt-0"><strong>To access your VM, you first need to:</strong></p>
     <ol class="mb-0 mt-0">
       <li>Generate your own SSH key pair</li>
-        <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0;">
-          <code>ssh-keygen -t ed25519 -f ~/.ssh/my_ssh_key</code>
+<pre><code class="language-bash">ssh-keygen -t ed25519 -f ~/.ssh/my_ssh_key</code></pre>
           <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('ssh-keygen -t ed25519 -f ~/.ssh/my_ssh_key')">Copy</button>
-        </div>
         <p class="mt-2 mb-0">Then you need to restrict the priviledges of your private key as follows:</p>
-        <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0;">
-          <code>chmod 600 ~/.ssh/my_ssh_key</code>
+<pre><code class="language-bash">chmod 600 ~/.ssh/my_ssh_key</code></pre>
           <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('chmod 600 ~/.ssh/my_ssh_key')">Copy</button>
-        </div>
       <li>Import the public part of this key pair (aka your public key) to your VM:</li>
         <ol class="mb-0">
           <li>In this page, select your target VM</li>
@@ -370,11 +370,9 @@ const helpContent = {
           <li>⚠️Warning: don't paste the content of your private key (my_ssh_key), this should never be disclosed</li>
         </ol>
       <li>Then you can access your VM through the <strong>SSH Command</strong> by pointing to the path of your private ssh key:</li>
-        <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0;">
-          <code>ssh -i ~/.ssh/my_ssh_key ubuntu@&lt;VM_IP&gt;</code>
+<pre><code class="language-bash">ssh -i ~/.ssh/my_ssh_key ubuntu@&lt;VM_IP&gt;</code></pre>
           <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('ssh -i ~/.ssh/my_ssh_private_key ubuntu@&lt;VM_IP&gt;')">Copy</button>
-        </div>
-        <div>
+      </ol>
           <p class="mt-2 mb-0"><strong>Alternative: Use MobaXterm (Windows):</strong></p>
             <ol class="mb-0">
               <li>Create new SSH session</li>
@@ -383,36 +381,31 @@ const helpContent = {
               <li>Use private key authentication (in "Advanced SSH settings")</li>
               <li>Save session for future use</li>
             </ol>
-        </div>
-    </ol>`
+        </div>`
   },
   monitor: {
     title: '👀Monitor VM Resources',
     content: `<p><strong>Essential Monitoring Commands:</strong></p>
-    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
-      <code># GPU usage (live updates)<br>
-      watch -n 2 nvidia-smi<br><br>
-      # CPU and memory<br>
-      htop<br><br>
-      # Disk space<br>
-      df -h<br>
-      df -h /mnt/user_volume<br><br>
-      # Disk I/O<br>
-      iostat -x 2<br><br>
-      # Find large files<br>
-      du -ah /mnt/user_volume | sort -rh | head -20<br><br>
-      # Check running processes<br>
-      ps aux | grep python</code>
-    </div>
+<pre><code class="language-bash"># GPU usage (live updates)<br>
+watch -n 2 nvidia-smi<br><br>
+# CPU and memory<br>
+htop<br><br>
+# Disk space<br>
+df -h<br>
+df -h /mnt/user_volume<br><br>
+# Disk I/O<br>
+iostat -x 2<br><br>
+# Find large files<br>
+du -ah /mnt/user_volume | sort -rh | head -20<br><br>
+# Check running processes<br>
+ps aux | grep python</code></pre>
     <p><strong>💡Pro Tip:</strong> Use <code>tmux</code> to keep monitoring running in background!</p>`
   },
   upload: {
     title: '📤 Upload Data to VM',
     content: `Upload your code and data to the running VM:
       <p><strong>⚠️Important:</strong> Use a <strong>staging VM</strong> (cheap CPU) + volume for data uploads to save money!</p>
-      <code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
-        rsync -avz -P --checksum -e "ssh -i /path/to/ssh_private_key" ./dataset/ ubuntu@staging-vm-ip:/mnt/user_volume
-        </code>
+<pre><code class="language-bash">rsync -avz -P --checksum -e "ssh -i /path/to/ssh_private_key" ./dataset/ ubuntu@staging-vm-ip:/mnt/user_volume</code></pre>
       <p class="mt-2"><strong>Cost-Saving Strategy:</strong></p>
       <ol class="mb-0">
         <li>Create a <code>Volume</code></li>
@@ -424,36 +417,37 @@ const helpContent = {
   },
   run: {
     title: '🚀Run Your Tasks',
-    content: `<p>SSH into your VM and run your workload:<br> <strong>⚠️Critical:</strong> Always use <code>tmux</code> to keep jobs running after disconnect!</p>
-      <code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
-        ssh ubuntu@VM_IP<br>
-        # Start tmux session<br>
-        tmux new -s training<br><br>
-        # Load modules<br>
-        module load anaconda3/2024.02-1<br>
-        module load ml_dl_gpu_base_all<br><br>
-        # Run with output to volume<br>
-        cd /your/project/path<br>
-        python train.py \\<br>
-        &nbsp;&nbsp;--data /mnt/user_volume/datasets/ \\<br>
-        &nbsp;&nbsp;--output /mnt/user_volume/results/ \\<br>
-        &nbsp;&nbsp;| tee /mnt/user_volume/logs/train.log<br><br>
-        # Detach: Ctrl-B, then D<br>
-        # Reattach: tmux attach -t training <br>
-      </code>
+    content: `<p>SSH into your VM and run your workload:<br></p>
+<pre><code class="language-bash">ssh ubuntu@VM_IP<br>
+# ⚠️Critical: Always use tmux to keep jobs running after disconnect!
+# Start tmux session<br>
+tmux new -s training<br><br>
+# Load modules<br>
+module load anaconda3/2024.02-1<br>
+module load ml_dl_gpu_base_all<br><br>
+# Run with output to volume<br>
+cd /your/project/path<br>
+python train.py \\<br>
+&nbsp;&nbsp;--data /mnt/user_volume/datasets/ \\<br>
+&nbsp;&nbsp;--output /mnt/user_volume/results/ \\<br>
+&nbsp;&nbsp;| tee /mnt/user_volume/logs/train.log<br><br>
+# Detach:
+Ctrl-B, then D<br>
+# Reattach: 
+tmux attach -t training <br></code></pre>
           <p><strong>Monitoring:</strong></p>
-      <ul class="mb-0">
-        <li><code>watch -n 2 nvidia-smi</code> - GPU usage</li>
-        <li><code>htop</code> - CPU/RAM usage</li>
-        <li><code>df -h /mnt/user_volume</code> - Disk space</li>
-      </ul>`
+<pre><code class="language-bash"># GPU usage
+watch -n 2 nvidia-smi
+# CPU/RAM usage
+htop
+# Disk space
+df -h /mnt/user_volume
+</code></pre>`
   },
   download: {
     title: '📥 Step 7: Download Results',
     content: `<p><strong>From your laptop, run:</strong></p>
-      <code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
-        rsync -avz -P --checksum -e "ssh -i /path/to/ssh_private_key" ubuntu@VM_IP:/mnt/user_volume/results/ ./local_results/
-      </code>`
+      <pre><code class="language-bash">rsync -avz -P --checksum -e "ssh -i /path/to/ssh_private_key" ubuntu@VM_IP:/mnt/user_volume/results/ ./local_results/</code></pre>`
   },
   attach: {
     title: '🔗Attach Volume to VM',
@@ -466,46 +460,41 @@ const helpContent = {
       <li>Note the device path shown in UI</li>
     </ol>
     <p><strong>Mount the attached volume:</strong></p>
-    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
-      <code>
-      # SSH into your VM
-      ssh -i ~/.ssh/my_ssh_private_key ubuntu@&lt;VM_IP&gt; <br>
-      # Get device path from UI<br>
-      DEVICE="/dev/disk/by-id/virtio-xxxxx"<br><br>
-      # Verify the device exists <br>
-      ls -l \$DEVICE <br>
-      # Format to ext4 => ⚠️WARNING: IT WILL ERASE ALL DATA OF THE VOLUME SO ONLY DO THIS WHEN IT IS A NEW, EMPTY VOLUME<br>
-      sudo mkfs.ext4 -F \${DEVICE} <br>
-      # Create the folder that will be used as a mount point <br>
-      sudo mkdir -p /mnt/user_volume<br>
-      # Change the ownership of the folder <br>
-      sudo chown ubuntu:ubuntu /mnt/user_volume/ <br>
-      # Mount the volume to the created folder <br>
-      sudo mount \${DEVICE} /mnt/user_volume<br><br>
-      # Verify<br>
-      df -h | grep user_volume</code>
-    </div>
+<pre><code class="language-bash"># SSH into your VM
+ssh -i ~/.ssh/my_ssh_private_key ubuntu@&lt;VM_IP&gt; <br>
+# Get device path from UI<br>
+DEVICE="/dev/disk/by-id/virtio-xxxxx"<br><br>
+# Verify the device exists <br>
+ls -l \$DEVICE <br>
+# Format to ext4
+#⚠️WARNING: IT WILL ERASE ALL DATA OF THE VOLUME SO ONLY DO THIS WHEN IT IS A NEW, EMPTY VOLUME<br>
+sudo mkfs.ext4 -F \${DEVICE} <br>
+# Create the folder that will be used as a mount point <br>
+sudo mkdir -p /mnt/user_volume<br>
+# Change the ownership of the folder <br>
+sudo chown ubuntu:ubuntu /mnt/user_volume/ <br>
+# Mount the volume to the created folder <br>
+sudo mount \${DEVICE} /mnt/user_volume<br><br>
+# Verify<br>
+df -h | grep user_volume</code></pre>
     <p class="mb-0"><strong📒Note:</strong> Volume can only be attached to one VM at a time.</p>`
   },
   detach: {
     title: '🔌Detach Volume from VM',
     content: `<p><strong>⚠️CRITICAL: Always unmount before detaching!</strong></p>
     <p><strong>Safe detach procedure:</strong></p>
-    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
-      <code>
-      # 0. SSH into your VM <br>
-      ssh -i ~/.ssh/my_ssh_private_key ubuntu@&lt;VM_IP&gt; <br>
-      # 1. Check what's using the mount<br>
-      lsof /mnt/user_volume<br><br>
-      # 2. Stop any processes using it<br>
-      # (kill processes if needed)<br><br>
-      # 3. Flush all writes<br>
-      sync<br>
-      # 4. Unmount safely<br>
-      sudo umount /mnt/user_volume<br>
-      # 5. Verify unmounted<br>
-      df -h | grep user_volume  # Should show nothing</code>
-    </div>
+<pre><code class="language-bash"># 0. SSH into your VM <br>
+ssh -i ~/.ssh/my_ssh_private_key ubuntu@&lt;VM_IP&gt; <br>
+# 1. Check what's using the mount<br>
+lsof /mnt/user_volume<br><br>
+# 2. Stop any processes using it<br>
+# (kill processes if needed)<br><br>
+# 3. Flush all writes<br>
+sync<br>
+# 4. Unmount safely<br>
+sudo umount /mnt/user_volume<br>
+# 5. Verify unmounted<br>
+df -h | grep user_volume  # Should show nothing</code></pre>
     <p><strong>Then in UI:</strong></p>
     <ol class="mb-0">
       <li>Go to VM details</li>
@@ -519,20 +508,18 @@ const helpContent = {
     content: `Pause your VM to stop compute charges while preserving data:
       <strong>What happens:</strong><br>
       <ul>
-        <li>VM stops running (compute charges stop)<li>
-        <li>Data (in root disk) is preserved (storage charges continue)<li>
-        <li>⚠️CRITICAL: Data in Ephemeural memory won't be saved<li>
+        <li>VM stops running (compute charges stop)</li>
+        <li>Data (in root disk) is preserved (storage charges continue)</li>
+        <li>⚠️CRITICAL: Data in Ephemeural memory won't be saved</li>
         <li>Can be restored later to same state</li>
-        <li>Storage charges continue<li>
+        <li>Storage charges continue</li>
       </ul>
       <p><strong>Before hibernating:</strong></p>
-      <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
-        <code># Save any work in progress<br>
-        # Stop running processes<br>
-        # Unmount volumes<br>
-        sync<br>
-        sudo umount /mnt/user_volume</code>
-      </div>
+<pre><code class="language-bash"># Save any work in progress<br>
+# Stop running processes<br>
+# Unmount volumes<br>
+sync<br>
+sudo umount /mnt/user_volume</code></pre>
       <p><strong>To hibernate:</strong> Select VM and click <strong>⏸️Hibernate VM</strong> button.</p>
       <p class="mb-0"><strong>💡Use Case:</strong> Taking a break for hours/days but will resume work later.</p>
       <p class="mb-0"><strong>💡Tip:</strong>Going from Running to Hibernate typically takes 10-20 minutes.</p>`
@@ -547,18 +534,16 @@ const helpContent = {
         <li>Compute charges resume</li>
       </ul>
       <p><strong>After restoring:</strong></p>
-      <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
-        <code># SSH back into VM<br>
-        ssh -i ~/.ssh/my_ssh_private_key ubuntu@&lt;VM_IP&gt;
-        # Remount volumes if needed<br>
-        DEVICE="/dev/disk/by-id/virtio-xxxxx"<br>
-        sudo mount \${DEVICE} /mnt/user_volume<br>
-        # Verify GPU is available<br>
-        nvidia-smi<br>
-        # Resume tmux sessions<br>
-        tmux ls<br>
-        tmux attach -t training</code>
-      </div>
+<pre><code class="language-bash"># SSH back into VM<br>
+ssh -i ~/.ssh/my_ssh_private_key ubuntu@&lt;VM_IP&gt;
+# Remount volumes if needed<br>
+DEVICE="/dev/disk/by-id/virtio-xxxxx"<br>
+sudo mount \${DEVICE} /mnt/user_volume<br>
+# Verify GPU is available<br>
+nvidia-smi<br>
+# Resume tmux sessions<br>
+tmux ls<br>
+tmux attach -t training</code></pre>
       <p><strong>To restore:</strong> Select VM and click <strong>♻️Restore VM</strong> button.</p>
       <p class="mb-0"><strong>💡Tip:</strong> Restoration typically takes 10-20 minutes.</p>`
   },
@@ -573,7 +558,7 @@ const helpContent = {
         <li>Attached volumes will NOT be deleted (but must be unmounted properly to avoid data loss)</li>
         <li>Volumes can then be attached to other VMs</li>
         <li>All charges related to this VM will stop immediately</li>
-      <ul>
+      </ul>
       <p><strong>⚠️BEFORE DELETING:</strong></p>
       <ol>
         <li><strong>Download all important data!</strong></li>
@@ -602,6 +587,8 @@ function showHelp(action) {
   event.currentTarget.classList.add('active');
   // ✅ Call separate function that doesn't need event
   // updateSidebarActive(action);
+  // Re-run Prism highlighting on the newly added content
+  Prism.highlightAll();
 }
 
 // New helper function

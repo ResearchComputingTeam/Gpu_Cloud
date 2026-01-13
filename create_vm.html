@@ -15,6 +15,10 @@
   <script src="js/config.js"></script>
   <!-- <script src="auth.js"></script> -->
   <script src="utils.js"></script>
+  <!-- Prism stuffs -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
 </head>
 
 <body>
@@ -317,27 +321,22 @@ const helpContent = {
     <p class="mb-0 mt-0"><strong>To access your VM, you first need to:</strong></p>
     <ol class="mb-0 mt-0">
       <li>Generate your own SSH key pair (can be ignored if you already have a ssh key)</li>
-        <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0;">
-          <code>ssh-keygen -t ed25519 -f ~/.ssh/my_ssh_key</code>
+<pre><code class="language-bash">ssh-keygen -t ed25519 -f ~/.ssh/my_ssh_key</code></pre>
           <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('ssh-keygen -t ed25519 -f ~/.ssh/my_ssh_key')">Copy</button>
-        </div>
         <p class="mt-2 mb-0">Then you need to restrict the priviledges of your private key as follows:</p>
-        <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0;">
-          <code>chmod 600 ~/.ssh/my_ssh_key</code>
+<pre><code class="language-bash">chmod 600 ~/.ssh/my_ssh_key</code></pre>
           <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('chmod 600 ~/.ssh/my_ssh_key')">Copy</button>
-        </div>
       <li>Import the public part of this key pair (aka your public key) to your VM:</li>
         <ol class="mb-0">
           <li>Go to "Manage VMs" page, select your target VM</li>
           <li>In the "Details" panel, click on "➕🔐Import my SSH public key" button</li>
-          <li>Paste the content of your public key (my_ssh_key.pub) into the displayed field and click "import"</li>
+          <li>Paste the text content of your public key (my_ssh_key.pub) into the displayed field and click "import"</li>
           <li>⚠️Warning: don't paste the content of your private key (my_ssh_key), this should never be disclosed</li>
         </ol>
       <li>Then you can access your VM through the <strong>SSH Command</strong> by pointing to the path of your private ssh keys:</li>
-        <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0;">
-          <code>ssh -i ~/.ssh/my_ssh_key ubuntu@&lt;VM_IP&gt;</code>
+<pre><code class="language-bash">ssh -i ~/.ssh/my_ssh_key ubuntu@&lt;VM_IP&gt;</code></pre>
           <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('ssh -i ~/.ssh/my_ssh_private_key ubuntu@&lt;VM_IP&gt;')">Copy</button>
-        </div>
+    </ol> <br>
         <div>
           <p class="mt-2 mb-0"><strong>Alternative: Use MobaXterm (Windows):</strong></p>
             <ol class="mb-0">
@@ -347,27 +346,22 @@ const helpContent = {
               <li>Use private key authentication (in "Advanced SSH settings")</li>
               <li>Save session for future use</li>
             </ol>
-        </div>
-    </ol>`
+        </div>`
   },
   software: {
     title: '⚙️ Step 4: Setup Software Stack',
     content: `<p><strong>Using Environment Modules (Pre-installed):</strong></p>
-    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0;">
-      <code># List available modules<br>
-      module avail<br><br>
-      # Load Anaconda<br>
-      module load anaconda3/2024.02-1<br><br>
-      # Load complete ML/DL stack<br>
-      module load ml_dl_gpu_base_all</code>
-    </div>
-    <p><strong>Installing Additional Packages:</strong></p>
-    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0;">
-      <code># Create conda environment<br>
-      conda create -n myenv python=3.11 -y<br>
-      conda activate myenv<br>
-      pip install transformers datasets</code>
-    </div>
+<pre><code class="language-bash"># List available modules<br>
+module avail<br><br>
+# Load Anaconda<br>
+module load anaconda3/2024.02-1<br><br>
+# Load complete ML/DL stack<br>
+module load ml_dl_gpu_base_all</code></pre>
+<p><strong>Installing Additional Packages:</strong></p>
+<pre><code class="language-bash"># Create conda environment<br>
+conda create -n myenv python=3.11 -y<br>
+conda activate myenv<br>
+pip install transformers datasets</code></pre>
     <p class="mb-0"><strong>✅ Verify GPU:</strong> <code>nvidia-smi</code></p>`
   },
   upload: {
@@ -384,9 +378,7 @@ const helpContent = {
         </ol>
     <p>Use <code>rsync</code> to transfer files securely:</p>
     <p><strong>Upload Command (from laptop):</strong></p>
-    <code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
-      rsync -avz -P --checksum -e "ssh -i /path/to/ssh_private_key" ./dataset/ ubuntu@staging-vm-ip:/mnt/user_volume
-    </code>
+<pre><code class="language-bash">rsync -avz -P --checksum -e "ssh -i /path/to/ssh_private_key" ./dataset/ ubuntu@staging-vm-ip:/mnt/user_volume</code></pre>
     <p><strong>📌 Tip:</strong></p>
     <ul>
       <li>Place your <em>scripts and input data</em> on <strong>Volumes</strong> if you want them to persist after VM hibernation/deletion.</li>
@@ -397,36 +389,37 @@ const helpContent = {
   },
   run: {
     title: '🚀 Step 6: Run Your Tasks',
-    content: `<p>SSH into your VM and run your workload:<br> <strong>⚠️Critical:</strong> Always use <code>tmux</code> to keep jobs running after disconnect!</p>
-      <code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
-        ssh ubuntu@VM_IP<br>
-        # Start tmux session<br>
-        tmux new -s training<br><br>
-        # Load modules<br>
-        module load anaconda3/2024.02-1<br>
-        module load ml_dl_gpu_base_all<br><br>
-        # Run with output to volume<br>
-        cd /your/project/path<br>
-        python train.py \\<br>
-        &nbsp;&nbsp;--data /mnt/user_volume/datasets/ \\<br>
-        &nbsp;&nbsp;--output /mnt/user_volume/results/ \\<br>
-        &nbsp;&nbsp;| tee /mnt/user_volume/logs/train.log<br><br>
-        # Detach: Ctrl-B, then D<br>
-        # Reattach: tmux attach -t training <br>
-      </code>
+    content: `<p>SSH into your VM and run your workload:<br></p>
+<pre><code class="language-bash">ssh ubuntu@VM_IP
+#⚠️Critical: Always use tmux to keep jobs running after session disconnects!
+# Start tmux session
+tmux new -s training
+# Load modules
+module load anaconda3/2024.02-1
+module load ml_dl_gpu_base_all
+# Run with output to volume
+cd /your/project/path
+python train.py \\
+&nbsp;&nbsp;--data /mnt/user_volume/datasets/ \\
+&nbsp;&nbsp;--output /mnt/user_volume/results/ \\
+&nbsp;&nbsp;| tee /mnt/user_volume/logs/train.log
+# Detach: 
+Ctrl-B, then D
+# Reattach: 
+tmux attach -t training</code></pre>
           <p><strong>Monitoring:</strong></p>
-      <ul class="mb-0">
-        <li><code>watch -n 2 nvidia-smi</code> - GPU usage</li>
-        <li><code>htop</code> - CPU/RAM usage</li>
-        <li><code>df -h /mnt/user_volume</code> - Disk space</li>
-      </ul>`
+<pre><code class="language-bash"># GPU usage
+watch -n 2 nvidia-smi
+# CPU/RAM usage
+htop
+# Disk space
+df -h /mnt/user_volume
+</code></pre>`
   },
   download: {
     title: '📥 Step 7: Download Results',
     content: `<p><strong>From your laptop, run:</strong></p>
-      <code style="background:#f8f9fa; padding:8px; display:block; border-radius:4px; margin:8px 0;">
-        rsync -avz -P --checksum -e "ssh -i /path/to/ssh_private_key" ubuntu@VM_IP:/mnt/user_volume/results/ ./local_results/
-      </code>`
+      <pre><code class="language-bash">rsync -avz -P --checksum -e "ssh -i /path/to/ssh_private_key" ubuntu@VM_IP:/mnt/user_volume/results/ ./local_results/</code></pre>`
   },
   storage: {
     title: '💾Storage Types',
@@ -466,6 +459,9 @@ function showHelp(step) {
     el.classList.remove('active');
   });
   event.currentTarget.classList.add('active');
+
+  // Re-run Prism highlighting on the newly added content
+  Prism.highlightAll();
 }
 
 function goBackToProjectPanel() {

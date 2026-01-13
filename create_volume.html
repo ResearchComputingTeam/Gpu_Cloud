@@ -12,6 +12,10 @@
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
   <!-- <script src="auth.js"></script> -->
   <script src="utils.js"></script>
+  <!-- Prism stuffs -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
 </head>
 
 <body>
@@ -300,26 +304,23 @@ document.addEventListener('DOMContentLoaded', async function() {
     mount: {
       title: '💿Step 4: Mount & Format',
       content: `<p><strong>After attaching in UI:</strong></p>
-      <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
-        <code># 1. Copy device path from UI<br>
-        DEVICE="/dev/disk/by-id/virtio-xxxxx"<br><br>
-        # 2. Format (FIRST TIME ONLY!)<br>
-        # WARNING: IT WILL ERASE ALL DATA OF THE VOLUME SO ONLY DO THIS WHEN IT IS A NEW, EMPTY VOLUME<br>
-        sudo mkfs.ext4 -F \${DEVICE}<br><br>
-        # 3. Create mount point<br>
-        sudo mkdir -p /mnt/user_volume<br><br>
-        # Change the ownership of the folder <br>
-        sudo chown ubuntu:ubuntu /mnt/user_volume/ <br>
-        # 4. Mount<br>
-        sudo mount \${DEVICE} /mnt/user_volume<br><br>
-        # 5. Verify<br>
-        df -h | grep user_volume</code>
-      </div>
+<pre><code class="language-bash"># 1. Copy device path from UI
+DEVICE="/dev/disk/by-id/virtio-xxxxx"
+# 2. Format (FIRST TIME ONLY!)<br>
+# WARNING: IT WILL ERASE ALL DATA OF THE VOLUME SO ONLY DO THIS WHEN IT IS A NEW, EMPTY VOLUME<br>
+sudo mkfs.ext4 -F \${DEVICE}<br><br>
+# 3. Create mount point<br>
+sudo mkdir -p /mnt/user_volume<br><br>
+# Change the ownership of the folder <br>
+sudo chown ubuntu:ubuntu /mnt/user_volume/ <br>
+# 4. Mount<br>
+sudo mount \${DEVICE} /mnt/user_volume<br><br>
+# 5. Verify<br>
+df -h | grep user_volume</code></pre>
       <p><strong>⚠️Warning:</strong> Only format on <strong>first use</strong>! Formatting erases all data.</p>
       <p><strong>Before Detaching:</strong></p>
-      <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
-        <code>sync<br>
-        sudo umount /mnt/user_volume</code>
+<pre><code class="language-bash">sync<br>
+sudo umount /mnt/user_volume</code></pre>
       </div>`
     },
     usage: {
@@ -333,16 +334,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         <li><strong>Regular snapshots</strong> for important data</li>
       </ul>
       <p><strong>Auto-mount on Boot:</strong></p>
-      <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
-        <code># Get UUID<br>
-        sudo blkid \${DEVICE}<br><br>
-        # Add to /etc/fstab<br>
-        sudo vm /etc/fstab<br>
-        # Add line:<br>
-        UUID=your-uuid /mnt/user_volume ext4 defaults,nofail 0 2<br><br>
-        # Test<br>
-        sudo mount -a</code>
-      </div>
+<pre><code class="language-bash"># Get UUID<br>
+sudo blkid \${DEVICE}<br><br>
+# Add to /etc/fstab<br>
+sudo vm /etc/fstab<br>
+# Add line:<br>
+UUID=your-uuid /mnt/user_volume ext4 defaults,nofail 0 2<br><br>
+# Test<br>
+sudo mount -a</code></pre>
       <p class="mb-0"><strong>💡Tip:</strong> Use <code>nofail</code> option if volume isn't always attached!</p>`
     },
     cost: {
@@ -381,6 +380,9 @@ function showHelp(step) {
     el.classList.remove('active');
   });
   event.currentTarget.classList.add('active');
+
+  // Re-run Prism highlighting on the newly added content
+  Prism.highlightAll();
 }
 
 function goBackToProjectPanel() {

@@ -12,6 +12,10 @@
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     <!-- <script src="auth.js"></script> -->
     <link href="css/style.css" rel="stylesheet">
+  <!-- Prism stuffs -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
 </head>
 
 <body>
@@ -302,71 +306,62 @@ const helpContent = {
       <li>Copy the <strong>device path</strong> from UI for mounting</li>
     </ul>
     <p><strong>Device Path Example:</strong></p>
-    <div class="cmd-block" style="background:#f8f9fa; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
-      <code>/dev/disk/by-id/virtio-c72d3b45-dc19-48ec-9</code>
-    </div>
+<pre><code class="language-bash">/dev/disk/by-id/virtio-c72d3b45-dc19-48ec-9</code></pre>
     <p class="mb-0"><strong>💡Tip:</strong> Use the <strong>Copy Device</strong> button in UI!</p>`
   },
   mount: {
     title:'💿Mount Volume on VM',
     content: `<p><strong>After attaching in UI, SSH to VM and mount:</strong></p>
-    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
-      <code># 1. Copy device path from UI<br>
-      DEVICE="/dev/disk/by-id/virtio-c72d3b45-dc19-48ec-9"<br><br>
-      # 2. Verify device exists<br>
-      ls -l \${DEVICE}<br>
-      lsblk<br><br>
-      # 3. Format to ext4 => ⚠️WARNING: IT WILL ERASE ALL DATA OF THE VOLUME SO ONLY DO THIS WHEN IT IS A NEW, EMPTY VOLUME<br>
-      sudo mkfs.ext4 -F \${DEVICE}<br><br>
-      # 4. Create mount point<br>
-      sudo mkdir -p /mnt/user_volume<br>
-      # Change the ownership of the folder <br>
-      sudo chown ubuntu:ubuntu /mnt/user_volume/ <br>
-      # 5. Mount the volume to the created folder<br>
-      sudo mount \${DEVICE} /mnt/user_volume<br><br>
-      # 6. Verify mounted<br>
-      df -h | grep user_volume<br>
-      ls -la /mnt/user_volume</code>
-    </div>
+<pre><code class="language-bash"># 1. Copy device path from UI<br>
+DEVICE="/dev/disk/by-id/virtio-c72d3b45-dc19-48ec-9"<br><br>
+# 2. Verify device exists<br>
+ls -l \${DEVICE}<br>
+lsblk<br><br>
+# 3. Format to ext4
+#⚠️WARNING: IT WILL ERASE ALL DATA OF THE VOLUME SO ONLY DO THIS WHEN IT IS A NEW, EMPTY VOLUME<br>
+sudo mkfs.ext4 -F \${DEVICE}<br><br>
+# 4. Create mount point<br>
+sudo mkdir -p /mnt/user_volume<br>
+# Change the ownership of the folder <br>
+sudo chown ubuntu:ubuntu /mnt/user_volume/ <br>
+# 5. Mount the volume to the created folder<br>
+sudo mount \${DEVICE} /mnt/user_volume<br><br>
+# 6. Verify mounted<br>
+df -h | grep user_volume<br>
+ls -la /mnt/user_volume</code></pre>
     <p><strong>⚠️Warning:</strong> Only run <code>mkfs.ext4</code> on brand new volumes! It erases all data.</p>
     <p><strong>Auto-mount on boot (optional):</strong></p>
-    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
-      <code># Get UUID<br>
-      sudo blkid \${DEVICE}<br><br>
-      # Edit fstab<br>
-      sudo nano /etc/fstab<br>
-      # Add line (replace UUID):<br>
-      UUID=your-uuid /mnt/user_volume ext4 defaults,nofail 0 2<br><br>
-      # Test<br>
-      sudo mount -a</code>
-    </div>
+<pre><code class="language-bash"># Get UUID<br>
+sudo blkid \${DEVICE}<br><br>
+# Edit fstab<br>
+sudo nano /etc/fstab<br>
+# Add line (replace UUID):<br>
+UUID=your-uuid /mnt/user_volume ext4 defaults,nofail 0 2<br><br>
+# Test<br>
+sudo mount -a</code></pre>
     <p class="mb-0"><strong>💡Tip:</strong> Use <code>nofail</code> option if volume isn't always attached!</p>`
   },
   unmount: {
     title: '⏏️Unmount Volume Safely',
     content: `<p><strong>⚠️CRITICAL: Always unmount before detaching in UI!</strong></p>
     <p><strong>Safe unmount procedure:</strong></p>
-    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
-      <code># 1. Check what's using the volume<br>
-      lsof /mnt/user_volume<br>
-      fuser -m /mnt/user_volume<br><br>
-      # 2. Stop processes if needed<br>
-      # (Exit programs, kill processes)<br><br>
-      # 3. Flush all pending writes<br>
-      sync<br><br>
-      # 4. Unmount<br>
-      sudo umount /mnt/user_volume<br><br>
-      # 5. Verify unmounted<br>
-      df -h | grep user_volume  # Should show nothing<br>
-      mount | grep user_volume   # Should show nothing</code>
-    </div>
+<pre><code class="language-bash"># 1. Check what's using the volume<br>
+lsof /mnt/user_volume<br>
+fuser -m /mnt/user_volume<br><br>
+# 2. Stop processes if needed<br>
+# (Exit programs, kill processes)<br><br>
+# 3. Flush all pending writes<br>
+sync<br><br>
+# 4. Unmount<br>
+sudo umount /mnt/user_volume<br><br>
+# 5. Verify unmounted<br>
+df -h | grep user_volume  # Should show nothing<br>
+mount | grep user_volume   # Should show nothing</code></pre>
     <p><strong>If unmount fails:</strong></p>
-    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
-      <code># Force unmount (use with caution!)<br>
-      sudo umount -f /mnt/user_volume<br><br>
-      # Or lazy unmount<br>
-      sudo umount -l /mnt/user_volume</code>
-    </div>
+<pre><code class="language-bash"># Force unmount (use with caution!)<br>
+sudo umount -f /mnt/user_volume<br><br>
+# Or lazy unmount<br>
+sudo umount -l /mnt/user_volume</code></pre>
     <p class="mb-0"><strong>⚠️Never detach without unmounting - can cause data corruption!</strong></p>`
   },
   detach: {
@@ -388,11 +383,10 @@ const helpContent = {
       <li>Storage charges continue</li>
     </ul>
     <p><strong>Quick verification:</strong></p>
-    <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:8px; border-radius:4px; margin:8px 0; font-size:0.85rem;">
-      <code># On VM (after detach)<br>
-      lsblk  # Should not show the volume<br>
-      ls -l /dev/disk/by-id/virtio-*  # Device gone</code>
-    </div>
+<pre><code class="language-bash"># On VM (after detach)<br>
+lsblk  # Should not show the volume<br>
+ls -l /dev/disk/by-id/virtio-* 
+# Device gone</code></pre>
     <p class="mb-0"><strong>💡Use Case:</strong> Moving data between VMs without re-uploading!</p>`
   },
   transfer: {
@@ -401,9 +395,7 @@ const helpContent = {
     <div class="workflow-step" style="display:flex; align-items:start; margin:8px 0;">
       <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:600; flex-shrink:0; margin-right:10px; font-size:0.85rem;">1</div>
       <div><strong>On VM-A:</strong> Unmount the volume
-        <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:6px; border-radius:4px; margin:6px 0; font-size:0.8rem;">
-          <code>sync<br>sudo umount /mnt/user_volume</code>
-        </div>
+<pre><code class="language-bash">sync<br>sudo umount /mnt/user_volume</code></pre>
       </div>
     </div>
     <div class="workflow-step" style="display:flex; align-items:start; margin:8px 0;">
@@ -425,9 +417,7 @@ const helpContent = {
     <div class="workflow-step" style="display:flex; align-items:start; margin:8px 0;">
       <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:600; flex-shrink:0; margin-right:10px; font-size:0.85rem;">6</div>
       <div><strong>On VM-B:</strong> Mount with new device path
-        <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:6px; border-radius:4px; margin:6px 0; font-size:0.8rem;">
-          <code>DEVICE="/dev/disk/by-id/virtio-new-path"<br>sudo mount \${DEVICE} /mnt/user_volume</code>
-        </div>
+<pre><code class="language-bash">DEVICE="/dev/disk/by-id/virtio-new-path"<br>sudo mount \${DEVICE} /mnt/user_volume</code></pre>
       </div>
     </div>
     <p class="mt-2"><strong>💡Common Use Cases:</strong></p>
@@ -446,9 +436,8 @@ const helpContent = {
       <li><strong>Download important data</strong> to your laptop</li>
       <li><strong>Verify backups</strong> are complete</li>
       <li><strong>Unmount from VM:</strong>
-        <div class="cmd-block" style="background:#2d2d2d; color:#f8f8f2; padding:6px; border-radius:4px; margin:6px 0; font-size:0.8rem;">
-          <code>sync<br>sudo umount /mnt/user_volume</code>
-        </div>
+<pre><code class="language-bash">sync
+sudo umount /mnt/user_volume</code></pre>
       </li>
       <li><strong>Detach in UI</strong></li>
     </ol>
@@ -483,6 +472,9 @@ function showHelp(action, vmIp = null) {
   event.currentTarget.classList.add('active');
   // ✅ Call separate function that doesn't need event
   // updateSidebarActive(action);
+
+  // Re-run Prism highlighting on the newly added content
+  Prism.highlightAll();
 }
 
 // New helper function
