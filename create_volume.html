@@ -512,7 +512,6 @@ async function triggerVolumeCreation(action, inputs) {
     if (data.success) {
       showProgress('Volume creation is over', 'info', 'vm_available');
       displayVolumeDetails(data);
-      // loadVolumes();
       return;
     } else {
         showProgress(`Volume creation failed: ${data.message || 'Unknown error'}`, 'danger', 'volume_error');
@@ -525,57 +524,6 @@ async function triggerVolumeCreation(action, inputs) {
     showProgress(`Error: ${error.message}`, 'danger', 'volume_error');
     showError(error.message);
     throw error; // Re-throw so caller knows it failed
-  }
-}
-
-async function loadVolumes() {
-  const refreshBtn = document.getElementById('refreshVmsButton');
-  const refreshText = document.getElementById('refreshBtn-text');
-
-  // Disable button immediately and show spinner
-  refreshBtn.disabled = true;
-  const originalHTML = refreshBtn.innerHTML;
-
-  refreshBtn.innerHTML = `
-    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-    Refreshing GPU VMs...
-  `;
-
-  const payload = { project_id: projectId };
-
-  try {
-    const webhookUrl = `${CONFIG.API_BASE_URL}/webhook/list_vms`;
-    
-    console.log('Calling webhook:', webhookUrl, 'with payload:', payload);
-    // showProgress("VMs listing", 'info', 'list_vms');
-    
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    
-    const data = await response.json();
-    console.log('Response received:', data);
-    
-    if (data.success) {
-      // showMessage(`🔄 VM list updated`, 'success');
-      // showProgress('.', 'info', 'list_vms');
-      //list the VMs
-      displayVmsList(data);
-    } else {
-      // showProgress(`❌VM listing failed: ${data.message || 'Unknown error'}`, 'danger', 'list_vms');
-      document.getElementById('vmsList').innerHTML = '<div class="text-secondary p-3">No VMs to display, go to "Create VM" page: <button class="btn btn-primary btn-sm" onclick="goToCreateVmPage()">▶️ Create VM</button></div>';
-    }
-    
-  } catch (error) {
-    console.error('Error:', error);
-    showProgress(`Error: ${error.message}`, 'danger', 'list_vms');
-    showError(error.message);
-  } finally {
-    // 2️⃣ Re-enable button and restore original content
-    refreshBtn.disabled = false;
-    refreshBtn.innerHTML = originalHTML;
   }
 }
 

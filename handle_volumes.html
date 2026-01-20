@@ -281,7 +281,7 @@ const helpContent = {
       <li> Persistent, network-based SSDs that retain data across VM lifecycles. Each VM can attach up to 10 volumes.</li>
       <li><strong>Size:</strong> Cannot be rezised after creation</li>
       <li><strong>Cost:</strong> $0.097/TB/hour (~$70/TB/month)</li>
-      <li>Management is not automatic. You need to mount them at VM startup/restore and unmont them <strong>before</strong> VM hibernate/delete ⇨ More details in <strong> Volume Handling </strong> section </li>
+      <li>Management is not automatic. You need to mount them at VM startup/restore and unmont them <strong>before</strong> VM hibernate/delete ⇨ More details in the following sections </li>
       <li><strong>Device path:</strong> Shown in "Manage VMs" page UI after attachment</li>
     </ul>`
   },
@@ -766,10 +766,10 @@ async function loadVolumes() {
     
     if (data.success) {
       // showMessage(`🔄 VM list updated`, 'success');
-      //list the VMs
+      //list the Volumes
       displayVolumesList(data);
     } else {
-      document.getElementById('volumesList').innerHTML = '<div class="text-secondary p-3">No VMs to display, go to "Create VM" page: <button class="btn btn-primary btn-sm" onclick="goToCreateVolumePage()">▶️ Create VM</button></div>';
+      document.getElementById('volumesList').innerHTML = '<div class="text-secondary p-3">No Volumes to display, go to "Create Volume" page: <button class="btn btn-primary btn-sm" onclick="goToCreateVolumePage()">▶️ Create Volume</button></div>';
     }
     
   } catch (error) {
