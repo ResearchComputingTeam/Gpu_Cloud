@@ -520,7 +520,7 @@ document.getElementById("createVmButton").addEventListener("click", async () => 
     await createVm();
   } catch (err) {
     console.error('Unhandled error in createVm:', err);
-    showMessage(`Unexpected error: ${err.message}`, 'danger');
+    showProgress(`❌ ${err}`, 'danger');
     throw err; // Re-throw so caller knows it failed
   } finally {
     // Re-enable button after all async work is done
@@ -659,8 +659,8 @@ async function triggerVmAction(action, inputs) {
       activeChannel = null;
     }
     
-    showProgress(`❌ ${error.message}`, 'danger');
-    showError(error.message);
+    // showProgress(`❌ ${error.message}`, 'danger');
+    // showError(error.message);
     throw error; // Re-throw so caller knows it failed
   }
 }

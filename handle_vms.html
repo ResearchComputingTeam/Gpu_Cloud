@@ -627,7 +627,7 @@ document.getElementById("deleteVmButton").addEventListener("click", async () => 
     await deleteVm();
   } catch (err) {
     console.error('Unhandled error in deleteVm:', err);
-    showMessage(`Unexpected error: ${err.message}`, 'danger');
+    showMessage(`Unexpected error: ${err}`, 'danger');
   }
 });
 
@@ -703,6 +703,7 @@ async function deleteVm() {
     } catch (err) {
       console.error('Error deleting VM:', err);
       showMessage('Failed to delete GPU VM', 'danger');
+      throw new Error(err);
     } finally {
       // Restore button
       deleteVmButton.disabled = false;
@@ -743,29 +744,23 @@ async function triggerDeleteAction(vmName) {
     const data = await response.json();
 
     if (!data.success) {
-      throw new Error(data.message || 'Action failed');
+      console.log('success = false');
+      const errorMsg = data.message || 'Action failed';
+      showError(JSON.stringify(data));
+      showProgress(`VM deletion failed: ${data.message || 'Unknown error'}`, 'danger', 'delete_vm');
+      throw new Error(errorMsg);
     }
     
-    showProgress("VM deletion started", 'info', 'delete_vm');
-    // CheckVmStatus(vmName.user_vm_name);
     console.log('Response received:', data);
     
-    if (data.success) {
-      showProgress('VM deletion is over', 'info', 'delete_vm');
-      // CheckVmStatus(vmName.user_vm_name);
-      displayVmDetails(data);
-      loadVms();
-      return;
-    } else {
-        showProgress(`VM deletion failed: ${data.message || 'Unknown error'}`, 'danger', 'delete_vm');
-        showError(JSON.stringify(data));
-        throw new Error(data.message || 'Action failed');
-    }
-    
+    showProgress('VM deletion is over', 'info', 'delete_vm');
+    // CheckVmStatus(vmName.user_vm_name);
+    displayVmDetails(data);
+    loadVms();
+    return;
+
   } catch (error) {
     console.error('Error:', error);
-    showProgress(`Error: ${error.message}`, 'danger', 'delete_vm');
-    showError(error.message);
     throw error; // Re-throw so caller knows it failed
   }
 }
