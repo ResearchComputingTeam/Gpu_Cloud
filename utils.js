@@ -346,13 +346,16 @@ async function CheckVmStatus(vmName) {
       //Display the VM details
       displayVmDetails(data);
     } else {
-      showProgress(`❌VM details display failed: ${data.message || 'Unknown error'}`, 'danger', 'list_vms');
-      document.getElementById('vmsList').innerHTML = '<div class="text-danger p-3">Failed to load VMs</div>';
+      console.log('success = false');
+      const errorMsg = data.message || 'Action failed';
+      showProgress(`❌ ${errorMsg || 'Unknown error'}`, 'danger');
+      showError(data)
+      throw new Error(errorMsg); // Re-throw so caller knows it failed
     }
     
   } catch (error) {
-    console.error('Error:', error);
-    showError(error.message);
+    console.error('Error caught received:', error);
+    throw error; // Re-throw so caller knows it failed
   }
 }
 
