@@ -521,6 +521,7 @@ document.getElementById("createVmButton").addEventListener("click", async () => 
   } catch (err) {
     console.error('Unhandled error in createVm:', err);
     showMessage(`Unexpected error: ${err.message}`, 'danger');
+    throw err; // Re-throw so caller knows it failed
   } finally {
     // Re-enable button after all async work is done
     createVmButton.disabled = false;
@@ -533,6 +534,10 @@ document.getElementById("createVmButton").addEventListener("click", async () => 
 });
 
 async function createVm() {
+
+  resetErrorCard();
+  clearProgressPanel();
+
   // Check credits
   const hasCredits = checkCredits(projectId);
   console.log('checkCredits called with project id', projectId);
@@ -552,7 +557,14 @@ async function createVm() {
   }
   
   console.log('Creating VM with inputs:', inputs);
-  return await triggerVmAction('create_vm', inputs);
+
+  try {
+    return await triggerVmAction('create_vm', inputs);
+  } catch (error) {
+    // Error already shown by showError() in triggerVmAction
+    console.error('VM creation failed:', error);
+    throw error; // Re-throw so caller knows it failed
+  }
 }
 
 async function triggerVmAction(action, inputs) {
@@ -571,17 +583,20 @@ async function triggerVmAction(action, inputs) {
     });
   
     if (!response.ok) {
+      console.log('response.ok = false');
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
     const data = await response.json();
 
     if (!data.success) {
-      throw new Error(data.message || 'Action failed');
+      console.log('success = false');
+      const errorMsg = data.message || 'Action failed';
+      showError(data)
+      throw new Error(errorMsg);
     }
     
     showProgress('✅ Request accepted. Monitoring status...', 'success', action);
-    // showDetails(JSON.stringify(data));
     
     if (!data.request_id) {
       // No real-time tracking available
@@ -644,7 +659,7 @@ async function triggerVmAction(action, inputs) {
       activeChannel = null;
     }
     
-    showProgress(`❌ Error: ${error.message}`, 'danger');
+    showProgress(`❌ ${error.message}`, 'danger');
     showError(error.message);
     throw error; // Re-throw so caller knows it failed
   }
