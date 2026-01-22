@@ -1041,6 +1041,97 @@ function formatStatusUpdate(data) {
   return statusMessages[data.request_status] || `Status: ${data.request_status}`;
 }
 
+/**
+ * Display user-friendly error guidance based on backend error_type
+ * Works across create_vm, handle_vms, create_volume, handle_volumes
+ */
+function displayErrorDetails(data) {
+  const errorCard = document.getElementById('errorCard');
+  const errorPanel = document.getElementById('errorPanel');
+
+  // If the page does not support error display, exit gracefully
+  if (!errorCard || !errorPanel) {
+    console.warn('Error UI not found on this page.');
+    return;
+  }
+
+  const errorType = data?.error_type || 'unknown_error';
+
+  const ERROR_GUIDANCE = {
+    hyperstack_server_down: {
+      title: '🚧 Service temporarily unavailable',
+      message: 'Hyperstack server is temporarily unreachable. Please try again in a few minutes.',
+      suggestion: 'If the problem persists, contact rccg@hbku.edu.qa'
+    },
+
+    insufficient_resources: {
+      title: '📉 Resources unavailable',
+      message: 'The requested resources are currently not available.',
+      suggestion: 'Try a smaller flavor or retry later.'
+    },
+
+    quota_exceeded: {
+      title: '💳 Quota exceeded',
+      message: 'Your project has reached its quota limit.',
+      suggestion: 'Delete unused resources or request a quota increase.'
+    },
+
+    invalid_configuration: {
+      title: '⚙️ Invalid configuration',
+      message: 'The requested configuration is not valid.',
+      suggestion: 'Review your selections and try again.'
+    },
+
+    resource_not_found: {
+      title: '🔍 Resource not found',
+      message: 'The requested VM or Volume could not be found.',
+      suggestion: 'Refresh the list and retry.'
+    },
+
+    permission_denied: {
+      title: '🚫 Permission denied',
+      message: 'You do not have permission to perform this action.',
+      suggestion: 'Contact the project owner or administrator.'
+    },
+
+    unknown_error: {
+      title: '❌ Unexpected error',
+      message: 'An unexpected error occurred. Please try again',
+      suggestion: 'If the problem persists, contact rccg@hbku.edu.qa'
+    }
+  };
+
+  const guidance = ERROR_GUIDANCE[errorType] || ERROR_GUIDANCE.unknown_error;
+
+  // Prefer backend message if provided
+  const backendMessage =
+    data?.message ||
+    data?.error_message ||
+    null;
+
+  errorPanel.innerHTML = `
+    <div class="alert alert-danger mb-0">
+      <h6 class="mb-2">${guidance.title}</h6>
+      <p class="mb-1">${guidance.message}</p>
+      ${
+        guidance.suggestion
+          ? `<small class="text-muted">${guidance.suggestion}</small>`
+          : ''
+      }
+      ${
+        backendMessage
+          ? `<hr class="my-2"><pre class="mb-0">${escapeHtml(backendMessage)}</pre>`
+          : ''
+      }
+    </div>
+  `;
+
+  errorCard.style.display = 'block';
+  errorPanel.style.display = 'block';
+}
+
+
+
 function clearProgressPanel() {
   const progressContent = document.getElementById('progress-content');
   progressContent.innerHTML = ''; 

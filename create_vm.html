@@ -520,7 +520,6 @@ document.getElementById("createVmButton").addEventListener("click", async () => 
     await createVm();
   } catch (err) {
     console.error('Unhandled error in createVm:', err);
-    showProgress(`❌ ${err}`, 'danger');
     throw err; // Re-throw so caller knows it failed
   } finally {
     // Re-enable button after all async work is done
@@ -592,7 +591,9 @@ async function triggerVmAction(action, inputs) {
     if (!data.success) {
       console.log('success = false');
       const errorMsg = data.message || 'Action failed';
-      showError(data)
+      showProgress(`❌ ${errorMsg}`, 'danger');
+      displayErrorDetails(data);
+      // showError(data);
       throw new Error(errorMsg);
     }
     
@@ -658,9 +659,6 @@ async function triggerVmAction(action, inputs) {
       activeChannel.unsubscribe();
       activeChannel = null;
     }
-    
-    // showProgress(`❌ ${error.message}`, 'danger');
-    // showError(error.message);
     throw error; // Re-throw so caller knows it failed
   }
 }

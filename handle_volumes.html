@@ -510,7 +510,6 @@ document.getElementById("deleteVolumeButton").addEventListener("click", async ()
     await deleteVolume();
   } catch (err) {
     console.error('Unhandled error in deleteVolume:', err);
-    showMessage(`Unexpected error: ${err.message}`, 'danger');
   }
 });
 
@@ -623,7 +622,11 @@ async function triggerDeleteAction(volumeName) {
     const data = await response.json();
 
     if (!data.success) {
-      throw new Error(data.message || 'Action failed');
+      console.log('success = false');
+      const errorMsg = data.message || 'Action failed';
+      showProgress(`❌ ${errorMsg}`, 'danger');
+      displayErrorDetails(data);
+      throw new Error(errorMsg);
     }
     
     showProgress("Volume deletion started", 'info', 'delete_volume');
@@ -644,8 +647,6 @@ async function triggerDeleteAction(volumeName) {
     
   } catch (error) {
     console.error('Error:', error);
-    showProgress(`Error: ${error.message}`, 'danger', 'delete_vm');
-    showError(error.message);
     throw error; // Re-throw so caller knows it failed
   }
 }

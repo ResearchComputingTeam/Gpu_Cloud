@@ -702,8 +702,7 @@ async function deleteVm() {
       showMessage('GPU VM deleted successfully', 'success');
     } catch (err) {
       console.error('Error deleting VM:', err);
-      showMessage('Failed to delete GPU VM', 'danger');
-      throw new Error(err);
+      throw err;
     } finally {
       // Restore button
       deleteVmButton.disabled = false;
@@ -746,8 +745,9 @@ async function triggerDeleteAction(vmName) {
     if (!data.success) {
       console.log('success = false');
       const errorMsg = data.message || 'Action failed';
-      showError(JSON.stringify(data));
-      showProgress(`VM deletion failed: ${data.message || 'Unknown error'}`, 'danger', 'delete_vm');
+      showMessage('Failed to delete GPU VM', 'danger');
+      showProgress(`❌ Error: ${errorMsg}`, 'danger');
+      displayErrorDetails(data);
       throw new Error(errorMsg);
     }
     
@@ -820,7 +820,11 @@ async function triggerLongAction(action) {
     const data = await response.json();
 
     if (!data.success) {
-      throw new Error(data.message || 'Action failed');
+      const errorMsg = data.message || 'Action failed';
+      showMessage('Action Failed', 'danger');
+      showProgress(`❌ Error: ${errorMsg}`, 'danger');
+      displayErrorDetails(data);
+      throw new Error(errorMsg);
     }
     
     showProgress('✅ Request accepted. Monitoring status...', 'success', action);
@@ -900,10 +904,6 @@ async function triggerLongAction(action) {
       activeChannel.unsubscribe();
       activeChannel = null;
     }
-    
-    showProgress(`❌ Error: ${error.message}`, 'danger');
-    showError(error.message);
-    // addToHistory(action, error.message, 'danger');
     // Ensure button resets even on early error
     button.disabled = false;
     button.innerHTML = originalHTML;

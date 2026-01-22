@@ -502,7 +502,11 @@ async function triggerVolumeCreation(action, inputs) {
     const data = await response.json();
 
     if (!data.success) {
-      throw new Error(data.message || 'Action failed');
+      console.log('success = false');
+      const errorMsg = data.message || 'Action failed';
+      showProgress(`❌ ${errorMsg}`, 'danger');
+      displayErrorDetails(data);
+      throw new Error(errorMsg);
     }
     
     showProgress("Volume creation is starting", 'info', 'volume_creation');
@@ -521,8 +525,6 @@ async function triggerVolumeCreation(action, inputs) {
     
   } catch (error) {
     console.error('Error:', error);
-    showProgress(`Error: ${error.message}`, 'danger', 'volume_error');
-    showError(error.message);
     throw error; // Re-throw so caller knows it failed
   }
 }
