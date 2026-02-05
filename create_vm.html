@@ -518,13 +518,12 @@ document.getElementById("createVmButton").addEventListener("click", async () => 
 
   try {
     await createVm();
+    showProgress('✅ VM created successfully', 'success');
+    document.getElementById('markdown-content-create').innerHTML = '<div class="text-secondary p-3">Go to "Manage VMs" page to access your VM: <button class="btn btn-primary btn-sm" onclick="goToManageVmsPage()">⚙️🖥️ Manage VMs</button></div>';
   } catch (err) {
     console.error('Unhandled error in createVm:', err);
     throw err; // Re-throw so caller knows it failed
   } finally {
-    showProgress('✅ VM created successfully', 'success');
-    document.getElementById('markdown-content-create').innerHTML = '<div class="text-secondary p-3">Go to "Manage VMs" page to access your VM: <button class="btn btn-primary btn-sm" onclick="goToManageVmsPage()">⚙️🖥️ Manage VMs</button></div>';
-    
     // Re-enable button after all async work is done
     createVmButton.disabled = false;
     createVmButton.textContent = originalText;
