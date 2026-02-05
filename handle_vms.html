@@ -752,6 +752,13 @@ async function triggerDeleteAction(vmName) {
     }
     
     console.log('Response received:', data);
+
+    if (data.aborted) {
+      console.log('vm creation aborted = true');
+      showProgress(`Aborted VM deleted`, 'success');
+      loadVms();
+      return;
+    }
     
     showProgress('VM deletion is over', 'info', 'delete_vm');
     // CheckVmStatus(vmName.user_vm_name);

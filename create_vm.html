@@ -522,6 +522,9 @@ document.getElementById("createVmButton").addEventListener("click", async () => 
     console.error('Unhandled error in createVm:', err);
     throw err; // Re-throw so caller knows it failed
   } finally {
+    showProgress('✅ VM created successfully', 'success');
+    document.getElementById('markdown-content-create').innerHTML = '<div class="text-secondary p-3">Go to "Manage VMs" page to access your VM: <button class="btn btn-primary btn-sm" onclick="goToManageVmsPage()">⚙️🖥️ Manage VMs</button></div>';
+    
     // Re-enable button after all async work is done
     createVmButton.disabled = false;
     createVmButton.textContent = originalText;
@@ -667,6 +670,13 @@ function handleEnter(event) {
   if (event.key === 'Enter') {
     createVm();
   }
+}
+
+function goToManageVmsPage() {
+  // Pass project ID to new page via URL parameter
+  const handleVmsUrl = `handle_vms.html?project_id=${encodeURIComponent(projectId)}`;
+  // Open in new tab
+  window.open(handleVmsUrl, '_blank');
 }
 
 // Check if user is authenticated

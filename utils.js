@@ -1094,6 +1094,13 @@ function displayErrorDetails(data) {
       suggestion: 'Contact the project owner or administrator.'
     },
 
+    ip_not_allocated: {
+      title: '❌🌐 IP address not allocated to VM',
+      message: 'Hyperstack could not allocate a public IP address to the VM this time, VM creation is aborted',
+      suggestion: 'Try again to create a new VM'
+    },
+
+
     unknown_error: {
       title: '❌ Unexpected error',
       message: 'An unexpected error occurred. Please try again',
@@ -1354,17 +1361,18 @@ async function fetchAvailableVolumes() {
 
     const data = await response.json();
 
+    console.log('Response received from fetchAvailableVolumes:', data);
+
     if (!data.success) {
       throw new Error(data.message || 'Action failed');
     }
-    
-    console.log('Response received from fetchAvailableVolumes:', data);
     
     if (data.volumes) {
       availableVolumes = data.volumes;
       populateVolumeDropdown(data.volumes);
     } else {
-      showAttachError('Failed to load volumes: ' + (data.message || 'Unknown error'));
+      document.getElementById('volumeSelect').innerHTML = '<option value="">No Volumes available, go to "Create_Volume" page</option>';
+      // showAttachError('Failed to load volumes: ' + (data.message || 'Unknown error'));
     }
   } catch (error) {
     console.error('Error fetching volumes:', error);
