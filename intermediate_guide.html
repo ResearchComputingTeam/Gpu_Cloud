@@ -435,12 +435,12 @@
     <strong>📁 Two files created:</strong>
     <ul style="margin-top: 8px; font-size: 14px;">
       <li><code>~/.ssh/gpu_cloud_key</code> - Private key (keep secret!)</li>
-      <li><code>~/.ssh/gpu_cloud_key.pub</code> - Public key (import to VMs)</li>
+      <li><code>~/.ssh/gpu_cloud_key.pub</code> - Public key (add to VMs)</li>
     </ul>
   </div>
   
   <div class="warning-box">
-    <strong>⚠️ Important:</strong> You'll need to import the <strong>public key</strong> to <strong>both</strong> staging VM and GPU VM separately via the UI.
+    <strong>⚠️ Important:</strong> You'll need to add the <strong>public key</strong> to <strong>both</strong> staging VM and GPU VM separately via the UI.
   </div>
   
   <div class="footer-logo">RCCG @ HBKU</div>
@@ -490,10 +490,10 @@
   </ol>
   
   <div class="highlight-box">
-    <strong>Import SSH Key:</strong>
+    <strong>Add SSH Key:</strong>
     <ul style="margin-top: 8px; font-size: 14px;">
       <li>Go to <strong>"⚙️🖥️ Manage VMs"</strong>, select <code>aysha-staging</code></li>
-      <li>Click <strong>"➕🔐 Import my SSH public key"</strong></li>
+      <li>Click <strong>"➕🔐 Add my SSH public key"</strong></li>
       <li>Paste contents of <code>~/.ssh/gpu_cloud_key.pub</code></li>
       <li>Click "Import"</li>
     </ul>
@@ -633,7 +633,7 @@
     <strong>Import SSH Key (Again):</strong>
     <ul style="margin-top: 8px; font-size: 14px;">
       <li>Go to <strong>"⚙️🖥️ Manage VMs"</strong>, select <code>aysha-gpu-h100</code></li>
-      <li>Click <strong>"➕🔐 Import my SSH public key"</strong></li>
+      <li>Click <strong>"➕🔐 Add my SSH public key"</strong></li>
       <li>Paste contents of <code>~/.ssh/gpu_cloud_key.pub</code></li>
     </ul>
   </div>

@@ -709,7 +709,7 @@ python train.py  # uses GPU 0 and 1 only</code>
       </div>
 
       <div class="tip">
-        <strong>Import SSH keys to VMs:</strong> Use the "Import SSH Key" button in VM details to add your ssh key to the VM you want to get access to.
+        <strong>Add SSH keys to VMs:</strong> Use the "Add SSH Key" button in VM details to add your ssh key to the VM you want to get access to.
       </div>
 
       <div class="cmd-label">SSH with key</div>
@@ -719,7 +719,7 @@ python train.py  # uses GPU 0 and 1 only</code>
       </div>
 
       <div class="warning">
-        <strong>⚠️ Never share private keys!</strong> Only import .pub files to VMs.
+        <strong>⚠️ Never share private keys!</strong> Only add .pub files to VMs.
       </div>
 
       <div class="tip">
@@ -735,7 +735,7 @@ python train.py  # uses GPU 0 and 1 only</code>
       </div>
       
       <ul class="quick-list mb-0">
-        <li>✅ SSH key imported to VM</li>
+        <li>✅ SSH key added to VM</li>
         <li>✅ Copy device path from UI</li>
         <li>✅ Mount volume correctly</li>
         <li>✅ Setup auto-mount if needed</li>
@@ -766,7 +766,7 @@ python train.py  # uses GPU 0 and 1 only</code>
           <li>Delete VMs without backing up</li>
           <li>Forget <code>nofail</code> in fstab</li>
           <li>Use wrong device path</li>
-          <li>Forget to import SSH key to your VMs</li>
+          <li>Forget to add SSH key to your VMs</li>
           <li>Share or upload private SSH keys (.pem, id_rsa without .pub)</li>
         </ul>
       </div>
@@ -816,7 +816,7 @@ python train.py  # uses GPU 0 and 1 only</code>
         <code># 1. Create & attach volume to staging VM in UI<br>
         # 2. Copy device path from UI (📋 button) <br>
 
-        # 3. Imports her SSH public key into the staging VM in UI<br>
+        # 3. Adds her SSH public key into the staging VM in UI<br>
 
         # 4. SSH to staging VM <br>
         ssh -i ~/.ssh/id_rsa user@staging-vm <br>
@@ -838,7 +838,7 @@ python train.py  # uses GPU 0 and 1 only</code>
 
         # 8. Create GPU VM in UI<br>
 
-        # 9. Imports her SSH public key into GPU VM in UI<br>
+        # 9. Adds her SSH public key into GPU VM in UI<br>
 
         # 10. Attach volume to GPU VM in UI <br>
 

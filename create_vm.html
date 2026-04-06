@@ -23,6 +23,14 @@
 
 <body>
 
+<div class="header">
+  <small class="text-muted">
+    Powered by <a href="https://rccg.hbku.edu.qa/wiki/Main_Page" target="_blank">RCCG</a> | 
+    Hamad Bin Khalifa University | 
+    <a href="mailto:rccg@hbku.edu.qa">Support</a>
+  </small>
+</div>
+
 <div class="main-wrapper">
   <!-- Workflow Sidebar -->
   <leftside>
@@ -326,10 +334,10 @@ const helpContent = {
         <p class="mt-2 mb-0">Then you need to restrict the priviledges of your private key as follows:</p>
 <pre><code class="language-bash">chmod 600 ~/.ssh/my_ssh_key</code></pre>
           <button class="btn btn-sm btn-outline-secondary copy-btn" onclick="copyToClipboard('chmod 600 ~/.ssh/my_ssh_key')">Copy</button>
-      <li>Import the public part of this key pair (aka your public key) to your VM:</li>
+      <li>Add the public part of this key pair (aka your public key) to your VM:</li>
         <ol class="mb-0">
           <li>Go to "Manage VMs" page, select your target VM</li>
-          <li>In the "Details" panel, click on "➕🔐Import my SSH public key" button</li>
+          <li>In the "Details" panel, click on "➕🔐Add my SSH public key" button</li>
           <li>Paste the text content of your public key (my_ssh_key.pub) into the displayed field and click "import"</li>
           <li>⚠️Warning: don't paste the content of your private key (my_ssh_key), this should never be disclosed</li>
         </ol>

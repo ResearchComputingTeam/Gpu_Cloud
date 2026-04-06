@@ -295,7 +295,7 @@
       <span class="step-number">3</span>
       <div class="workflow-step-content">
         <strong>Setup SSH Access</strong>
-        <p>Generate and import your SSH key for secure connection</p>
+        <p>Generate and add your SSH key for secure connection</p>
       </div>
     </div>
     
@@ -511,16 +511,16 @@
   <div class="slide-number">9</div>
 </div>
 
-<!-- Slide 10: Step 6 - Import SSH Key -->
+<!-- Slide 10: Step 6 - Add SSH Key -->
 <div class="slide">
-  <h2>Step 6️⃣: Import SSH Key to VM</h2>
+  <h2>Step 6️⃣: Add SSH Key to VM</h2>
   
   <h3>Add Your Public Key to the VM</h3>
   
   <ol style="font-size: 20px;">
     <li>Go to <strong>"⚙️🖥️ Manage VMs"</strong></li>
     <li>Select your VM from the list</li>
-    <li>In the <strong>Details</strong> panel, click <strong>"➕🔐 Import my SSH public key"</strong></li>
+    <li>In the <strong>Details</strong> panel, click <strong>"➕🔐 Add my SSH public key"</strong></li>
     <li>Copy your public key:
       <div class="code-block" style="margin: 15px 0;">
         <code>cat ~/.ssh/my_gpu_cloud_key.pub</code>
@@ -531,7 +531,7 @@
   </ol>
   
   <div class="warning-box">
-    <strong>⚠️ Critical:</strong> Only import the <strong>.pub</strong> file (public key). <strong>Never</strong> upload your private key!
+    <strong>⚠️ Critical:</strong> Only add the <strong>.pub</strong> file (public key). <strong>Never</strong> upload your private key!
   </div>
   
   <div class="footer-logo">RCCG @ HBKU</div>
@@ -797,7 +797,7 @@
   <div style="font-size: 18px; line-height: 1.8;">
     <p><strong>1️⃣</strong> Sign up with HBKU email → <strong>2️⃣</strong> Verify email</p>
     <p><strong>3️⃣</strong> Login to platform → <strong>4️⃣</strong> Create VM (wait 2-5 min)</p>
-    <p><strong>5️⃣</strong> Generate SSH key on laptop → <strong>6️⃣</strong> Import public key to VM</p>
+    <p><strong>5️⃣</strong> Generate SSH key on laptop → <strong>6️⃣</strong> Add public key to VM</p>
     <p><strong>7️⃣</strong> SSH connect to VM → <strong>8️⃣</strong> Upload data via rsync</p>
     <p><strong>9️⃣</strong> Setup conda environment + packages</p>
     <p><strong>🔟</strong> Run Python script → <strong>📥</strong> Download results</p>

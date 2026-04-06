@@ -308,7 +308,7 @@
           <div>
             <strong>Team Access</strong>
             <p>Members must first Sign Up</p>
-            <p>Members shall then generate and import their ssh key into their GPU Cloud environment, then they will gain access to project resources</p>
+            <p>Members shall then generate and add their ssh key into their GPU Cloud environment, then they will gain access to project resources</p>
           </div>
         </div>
 
@@ -317,8 +317,8 @@
           <ul>
             <li>Project Owner is in charge of monitoring credit usage</li>
             <li>Project Owner is in charge of the SSH key of the project, he must not distribute it to anyone</li>
-            <li>After VM creation, any Project Member can import his own SSH keys directly to specific VMs via the "Import SSH Key" button</li>
-            <li>Imported keys are automatically added to the VM's authorized_keys file enabling passwordless access to the Project Member</li>
+            <li>After VM creation, any Project Member can add their own SSH keys directly to specific VMs via the "Add SSH Key" button</li>
+            <li>Added keys are automatically appended to the VM's authorized_keys file enabling passwordless access to the Project Member</li>
           </ul>
         </div>
 
@@ -509,11 +509,11 @@ chmod 600 ~/.ssh/my_ssh_key</code></pre>
                 </ol>
              </div>
             <div>💡This step is required to be performed only one time per project as you can re-use the same key for all VMs</div>
-          <li>Import the public part of this key pair (aka your public key) to the VM you want to access:</li>
+          <li>Add the public part of this key pair (aka your public key) to the VM you want to access:</li>
             <ol class="mb-0">
               <li>In the "Manage VMs" page, select the VM you want to ssh into</li>
-              <li>In the "Details" panel, click on "➕🔐Import my SSH public key" button</li>
-              <li>Paste the content of your public key (my_ssh_key.pub) into the Import SSH Key dialog and click "import"</li>
+              <li>In the "Details" panel, click on "➕🔐Add SSH public key" button</li>
+              <li>Paste the content of your public key (my_ssh_key.pub) into the Add SSH Key dialog and click "add"</li>
               <li>⚠️Warning: don't paste the content of your private key (my_ssh_key), this should never be disclosed</li>
             </ol>
             <div>💡This step is required to be performed for each VM you want to access</div>
@@ -538,7 +538,7 @@ ssh -i ~/.ssh/my_ssh_key ubuntu@&lt;GPU_VM_IP&gt;</code></pre>
       </section>
 
 <h4>Summary</h4>
-<p>Project Member can import additional SSH keys to an existing VM at any time:</p>
+<p>Project Member can add additional SSH keys to an existing VM at any time:</p>
 
 <div class="workflow-step">
   <div class="workflow-number">0</div>
@@ -559,7 +559,7 @@ ssh -i ~/.ssh/my_ssh_key ubuntu@&lt;GPU_VM_IP&gt;</code></pre>
 <div class="workflow-step">
   <div class="workflow-number">2</div>
   <div>
-    <strong>Click "➕🔐Import my SSH public key"</strong>
+    <strong>Click "➕🔐Add my SSH public key"</strong>
     <p>This option is only available for "Running" VMs</p>
   </div>
 </div>
@@ -567,8 +567,8 @@ ssh -i ~/.ssh/my_ssh_key ubuntu@&lt;GPU_VM_IP&gt;</code></pre>
 <div class="workflow-step">
   <div class="workflow-number">3</div>
   <div>
-    <strong>Paste Your Public Key</strong>
-    <p>Paste the contents of your <code>~/.ssh/my_ssh_key.pub</code> file (or other public key)</p>
+    <strong>Add public SSH key for VM access</strong>
+    <p>Add the contents of your <code>~/.ssh/my_ssh_key.pub</code> file (or other public key). This is a public key (not a password). It is safe to share.</p>
   </div>
 </div>
 
@@ -610,7 +610,7 @@ ssh-keygen -t ed25519 -f ~/.ssh/my_ssh_key</code></pre>
   <h4>📋 Example SSH Public Key</h4>
   <p>Your public key looks like this (one long line):</p>
   <pre><code class="language-bash">ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC7...</code></pre>
-  <p class="mt-2 mb-0"><strong>Copy the entire line</strong> and paste it into the Import SSH Key dialog.</p>
+  <p class="mt-2 mb-0"><strong>Copy the entire line</strong> and paste it into the Add SSH Key dialog.</p>
 </div>
 
       <!-- Section 4 -->
@@ -1618,7 +1618,7 @@ sudo umount /mnt/user_volume</code></pre>
 
         <h3>Security</h3>
         <ul>
-          <li><strong>Use SSH keys, avoid passwords:</strong> Upload your public key to your VMs by using "Import SSH Key" feature</li>
+          <li><strong>Use SSH keys, avoid passwords:</strong> Upload your public key to your VMs by using "Add SSH Key" feature</li>
           <li><strong>Protect your private keys:</strong> Never share or upload private keys (files without .pub extension)</li>
           <li><strong>Key rotation:</strong> Regularly update SSH keys, especially when team members leave</li>
           <li>Don't store secrets in images or code repositories</li>
@@ -1728,7 +1728,7 @@ python -c "import torch; print(torch.cuda.is_available())"</code></pre>
 
         <h3>Pre-Run Checklist</h3>
         <ul class="checklist">
-          <li>Your SSH key has been imported into the GPU VM</li>
+          <li>Your SSH key has been added into the GPU VM</li>
           <li>Dataset + code is ready</li>
           <li>Verify <code>nvidia-smi</code> works</li>
           <li>Data stored on volume (not ephemeral)</li>
@@ -1744,7 +1744,7 @@ python -c "import torch; print(torch.cuda.is_available())"</code></pre>
             <li>Aysha generates her SSH key pair</li>
             <li>Creates 1TB persistent volume in UI</li>
             <li>Creates cheap staging VM</li>
-            <li>Imports her SSH public key into the staging VM</li>
+            <li>Adds her SSH public key into the staging VM</li>
             <li>Attaches 1TB volume to the staging VM</li>
             <li>In UI, copies device path: <code>/dev/disk/by-id/virtio-abc123...</code></li>
             <li>SSH to staging VM, formats and mounts volume using device path</li>
@@ -1752,7 +1752,7 @@ python -c "import torch; print(torch.cuda.is_available())"</code></pre>
             <li>Safely unmounts: <code>sync && sudo umount /mnt/user_volume</code></li>
             <li>Detaches volume in UI</li>
             <li>Creates powerful GPU VM (H100)</li>
-            <li>Imports her SSH public key into this powerful VM</li>
+            <li>Adds her SSH public key into this powerful VM</li>
             <li>Attaches 1TB volume to powerful GPU VM</li>
             <li>SSH to powerful GPU VM: <code>ssh -i private_key.pem ubuntu@gpu-vm-ip</code></li>
             <li>Gets device path from UI and mounts: <code>sudo mount ${DEVICE} /mnt/user_volume</code></li>

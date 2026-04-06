@@ -604,8 +604,8 @@ function displayVmDetails(data) {
         </div>
 
         <!-- Add SSH key Button -->
-        <button class="btn btn-sm btn-outline-secondary mt-2" onclick="openImportSshModal('${data.ssh_key_name}', '${data.user_vm_ip}')" ${data.request_status !== 'running' ? 'disabled' : ''} title="${data.request_status !== 'running' ? 'VM must be running to add ssh key' : 'Import a ssh key to this VM'}">
-          ➕🔐Import my SSH public key
+        <button class="btn btn-sm btn-outline-secondary mt-2" onclick="openAddSshModal('${data.ssh_key_name}', '${data.user_vm_ip}')" ${data.request_status !== 'running' ? 'disabled' : ''} title="${data.request_status !== 'running' ? 'VM must be running to add ssh key' : 'Add a ssh key to this VM'}">
+          ➕🔐Add SSH public key
         </button>
 
       </div>
@@ -617,51 +617,51 @@ let currentEnvKeyName = null;
 let currentVmIp = null;
 
 // Open the modal
-function openImportSshModal(env_key_name, vm_ip) {
-  console.log('openImportSshModal called with params:', env_key_name, vm_ip);
+function openAddSshModal(env_key_name, vm_ip) {
+  console.log('openAddSshModal called with params:', env_key_name, vm_ip);
   currentEnvKeyName = env_key_name;
   currentVmIp = vm_ip;
 
   // Clear previous feedback and textarea
   document.getElementById("sshPublicKey").value = '';
-  const feedback = document.getElementById("importSshFeedback");
+  const feedback = document.getElementById("addSshFeedback");
   feedback.style.display = 'none';
   feedback.innerText = '';
 
   // Show the modal
-  const modalEl = document.getElementById('importSshModal');
+  const modalEl = document.getElementById('addSshModal');
   const modal = new bootstrap.Modal(modalEl);
   modal.show();
 }
 
-if (document.getElementById("importSshBtn")) {
+if (document.getElementById("addSshBtn")) {
   // Handle Import click inside modal
-  document.getElementById("importSshBtn").addEventListener("click", async () => {
+  document.getElementById("addSshBtn").addEventListener("click", async () => {
 
     // Get the raw value first, then sanitize
     const rawPublicKey = document.getElementById("sshPublicKey").value.trim();
 
-    console.log('importSshBtn called with param rawPublicKey:', rawPublicKey);
+    console.log('addSshBtn called with param rawPublicKey:', rawPublicKey);
 
-    // Sanitize SSH key - but preserve the key format
+    // Sanitize public SSH key - but preserve the key format
     const publicKey = sanitizeSSHKey(rawPublicKey);
 
     // const publicKey = sanitizeInput(document.getElementById("sshPublicKey").value.trim());
-    const feedback = document.getElementById("importSshFeedback");
+    const feedback = document.getElementById("addSshFeedback");
 
     console.log('publicKey, feedback:', publicKey, feedback);
 
 
     if (!publicKey) {
       feedback.style.display = "block";
-      feedback.innerText = "Please paste your SSH public key.";
+      feedback.innerText = "Add public SSH key for VM access";
       return;
     }
 
-    // Validate SSH key format
+    // Validate public SSH key format
     if (!isValidSSHKey(publicKey)) {
       feedback.style.display = "block";
-      feedback.innerText = "Invalid SSH key format. Please paste a valid public key.";
+      feedback.innerText = "Invalid public SSH key format. Please paste a valid public key.";
       return;
     }
 
@@ -696,7 +696,7 @@ if (document.getElementById("importSshBtn")) {
 
       if (!response.ok) {
         feedback.style.display = "block";
-        feedback.innerText = "HTTP Error importing SSH key.";
+        feedback.innerText = "HTTP Error adding public SSH key.";
         // throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         return;
       }
@@ -706,18 +706,18 @@ if (document.getElementById("importSshBtn")) {
 
       if (!data.success) {
         feedback.style.display = "block";
-        feedback.innerText = sanitizeInput(data.error || "Error importing SSH key.");
+        feedback.innerText = sanitizeInput(data.error || "Error adding public SSH key.");
         return;
       } else { 
         // data.success = true 
-        const modalEl = document.getElementById('importSshModal');
+        const modalEl = document.getElementById('addSshModal');
         const modal = bootstrap.Modal.getInstance(modalEl);
         modal.hide();
-        // alert("SSH key imported successfully!");
+        // alert("SSH key added successfully!");
         // Show success toast
         const toastEl = document.getElementById('sshToast');
         const toastBody = document.getElementById('sshToastBody');
-        toastBody.innerText = "SSH key imported successfully!";
+        toastBody.innerText = "SSH key added successfully!";
         const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
         toast.show();
         return;
@@ -726,7 +726,7 @@ if (document.getElementById("importSshBtn")) {
     } catch (error) {
       console.error('Error caught:', error);
       feedback.style.display = "block";
-      feedback.innerText = "ERROR importing SSH key.";
+      feedback.innerText = "ERROR adding public SSH key.";
       throw error; // Re-throw so caller knows it failed
     }
 
